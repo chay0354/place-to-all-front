@@ -95,7 +95,7 @@ function RegisterPageContent() {
             : recruiterRole === 'super_agent'
             ? 'You were invited by a super agent. You will join as an agent under them (account type is set by this link — you cannot choose). They earn an extra 4% on qualifying buys you and your referrals make (fees are paid by the buyer).'
             : recruiterRole === 'agent'
-              ? 'You were referred by an agent. You will join as a regular user (account type is set by this link — you cannot choose). They earn 2% when you buy crypto (fee paid by you as the buyer).'
+              ? 'You were referred by an agent. You will join as a regular user (account type is set by this link — you cannot choose). They earn 4% on your crypto buys (along with other tiers and admin; fees come from your purchase).'
               : 'Checking invite link…'
           : 'Get started with your crypto wallet'}
       </p>
@@ -125,7 +125,7 @@ function RegisterPageContent() {
             </label>
           </div>
           <p style={{ fontSize: '0.8125rem', color: 'var(--dash-muted)', marginTop: '0.35rem' }}>
-            Agents get a referral link for regular signups and earn 2% on those users’ buys. <strong>Super agent</strong> is not a signup option — register as an agent first; an app admin promotes you from the admin menu.
+            Agents get a referral link for regular signups and earn 4% on those users’ buys (plus upline tiers when applicable). <strong>Super agent</strong> is not a signup option — register as an agent first; an app admin promotes you from the admin menu.
           </p>
         </div>
       )}
@@ -160,10 +160,12 @@ function RegisterPageContent() {
           {loading ? 'Creating account…' : 'Create account'}
         </button>
       </form>
-      <p className="auth-footer">
-        Already have an account?{' '}
-        <Link href={nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login'}>Log in</Link>
-      </p>
+      {!isFromAffiliateLink && (
+        <p className="auth-footer">
+          Already have an account?{' '}
+          <Link href={nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login'}>Log in</Link>
+        </p>
+      )}
       </main>
     </div>
   );

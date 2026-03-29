@@ -29,6 +29,38 @@ const nested = {
 const labelMuted = { fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '0.25rem' };
 const strong = { fontWeight: 600, fontSize: '0.9375rem', wordBreak: 'break-word' };
 
+function formatLedgerAmount(n) {
+  const x = Number(n) || 0;
+  if (x === 0) return '0';
+  if (Math.abs(x) >= 1) return x.toLocaleString('en-US', { maximumFractionDigits: 8 });
+  return String(x);
+}
+
+/** App ledger wallets from admin API: [{ currency, balance }] */
+function LedgerBalances({ wallets }) {
+  const list = Array.isArray(wallets) ? wallets : [];
+  if (list.length === 0) {
+    return (
+      <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
+        <span style={{ fontWeight: 600, color: 'var(--text)' }}>Ledger: </span>
+        no currency wallets yet
+      </div>
+    );
+  }
+  return (
+    <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
+      <span style={{ fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 4 }}>In-app ledger</span>
+      <ul style={{ margin: 0, paddingLeft: '1.1rem' }}>
+        {list.map((w) => (
+          <li key={w.currency} style={{ fontVariantNumeric: 'tabular-nums' }}>
+            {w.currency}: {formatLedgerAmount(w.balance)}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function CopyIdButton({ id }) {
   if (!id) return null;
   return (
@@ -43,8 +75,11 @@ function CopyIdButton({ id }) {
   );
 }
 
-/** Agents recruited by a super / super-super (mobile-friendly cards). */
-function AgentsRecruitedList({ agents, emptyLabel }) {
+/**
+ * People listed under a super super or super agent card.
+ * recruitContext: who is the parent in the hierarchy (for clear copy).
+ */
+function AgentsRecruitedList({ agents, emptyLabel, recruitContext }) {
   if (!agents.length) {
     return <p style={{ ...labelMuted, margin: 0 }}>{emptyLabel}</p>;
   }
@@ -52,16 +87,25 @@ function AgentsRecruitedList({ agents, emptyLabel }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
       {agents.map((ag) => {
         const n = Number(ag.invitedCount) || 0;
-        const tierLabel = ag.role === 'super_agent' ? 'Super agent' : 'Agent';
+        let subtitle;
+        if (recruitContext === 'under_super_super') {
+          subtitle =
+            ag.role === 'super_agent'
+              ? 'Super agent — sits directly under this super super agent'
+              : 'Agent — sits directly under this super super agent';
+        } else {
+          subtitle = 'Agent — sits directly under this super agent';
+        }
         return (
           <div key={ag.id} style={{ ...card, marginBottom: 0, padding: '0.85rem' }}>
-            <div style={labelMuted}>{tierLabel} (used their recruiter’s invite link)</div>
+            <div style={labelMuted}>{subtitle}</div>
             <div style={strong}>{ag.email || 'No email'}</div>
             {(ag.display_name || ag.username) && (
               <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
                 {ag.display_name || ag.username}
               </div>
             )}
+            <LedgerBalances wallets={ag.wallets} />
             <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
               Regular customers they invited: <strong style={{ color: 'var(--text, inherit)' }}>{n}</strong>
             </div>
@@ -92,6 +136,7 @@ function RegularCustomersList({ users, emptyLabel }) {
           <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
             Joined: {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
           </div>
+          <LedgerBalances wallets={u.wallets} />
           <CopyIdButton id={u.id} />
         </div>
       ))}
@@ -311,7 +356,7 @@ export default function AdminPage() {
         Super super agents ({superSuperAgents.length})
       </h2>
       <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
-        Top tier. Each card shows agents they brought in via invite link.
+        Top tier. Each card shows ledger balances and who sits below them — usually <strong style={{ color: 'var(--text)' }}>super agents</strong> (and any legacy agents) recruited via their link.
       </p>
       <div className="card card-lg" style={{ marginBottom: '1.25rem' }}>
         {superSuperAgents.length === 0 ? (
@@ -336,14 +381,16 @@ export default function AdminPage() {
                     (everyone who used this person’s invite link)
                   </span>
                 </div>
+                <LedgerBalances wallets={a.wallets} />
                 <CopyIdButton id={a.id} />
                 <div style={nested}>
                   <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                    Their agents ({under.length})
+                    People below this super super ({under.length}) — super agents are labeled explicitly
                   </div>
                   <AgentsRecruitedList
                     agents={under}
-                    emptyLabel="No agents on their invite link yet."
+                    emptyLabel="No one on their invite link yet."
+                    recruitContext="under_super_super"
                   />
                 </div>
               </div>
@@ -356,7 +403,7 @@ export default function AdminPage() {
         Super agents ({superAgents.length})
       </h2>
       <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
-        Each card lists agents they recruited. Use the button to promote them to super super agent.
+        Each card shows ledger balances and <strong style={{ color: 'var(--text)' }}>agents</strong> they recruited. Use the button to promote to super super agent.
       </p>
       <div className="card card-lg" style={{ marginBottom: '1.25rem' }}>
         {superAgents.length === 0 ? (
@@ -377,6 +424,7 @@ export default function AdminPage() {
                 <div style={{ fontSize: '0.875rem', marginTop: '0.65rem', color: 'var(--text-muted)' }}>
                   Invite link count: <strong style={{ color: 'var(--text)' }}>{invited}</strong>
                 </div>
+                <LedgerBalances wallets={a.wallets} />
                 <CopyIdButton id={a.id} />
                 <button
                   type="button"
@@ -395,9 +443,13 @@ export default function AdminPage() {
                 </button>
                 <div style={nested}>
                   <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                    Their agents ({under.length})
+                    Agents under this super agent ({under.length})
                   </div>
-                  <AgentsRecruitedList agents={under} emptyLabel="No agents on their invite link yet." />
+                  <AgentsRecruitedList
+                    agents={under}
+                    emptyLabel="No agents on their invite link yet."
+                    recruitContext="under_super"
+                  />
                 </div>
               </div>
             );
@@ -434,6 +486,7 @@ export default function AdminPage() {
                 <div style={{ fontSize: '0.8125rem', marginTop: 4, color: canPromote ? 'var(--success, #3fb950)' : 'var(--text-muted)' }}>
                   {canPromote ? '✓ Can promote to super agent' : '✗ Cannot promote yet — they still have people on their link'}
                 </div>
+                <LedgerBalances wallets={a.wallets} />
                 <CopyIdButton id={a.id} />
                 <button
                   type="button"
@@ -470,7 +523,7 @@ export default function AdminPage() {
         All regular users ({regularUsers.length})
       </h2>
       <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
-        Everyone with a normal account. “Referred by” is the user ID of whoever invited them.
+        Everyone with a normal account. Ledger balances are per currency. “Referred by” is the user ID of whoever invited them.
       </p>
       <div className="card card-lg">
         {regularError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{regularError}</div>}
@@ -497,6 +550,7 @@ export default function AdminPage() {
                 ) : (
                   <div style={{ fontSize: '0.8125rem', marginTop: '0.35rem', color: 'var(--text-muted)' }}>Not referred by anyone</div>
                 )}
+                <LedgerBalances wallets={u.wallets} />
                 <CopyIdButton id={u.id} />
               </div>
             ))}

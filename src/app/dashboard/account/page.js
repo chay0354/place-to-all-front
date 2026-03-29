@@ -154,11 +154,11 @@ export default function AccountPage() {
                 </>
               ) : profile?.role === 'super_agent' ? (
                 <>
-                  Share this link to recruit <strong>agents</strong> under you. They get the same agent tools (their own referral link for regular users, payment links). You earn an extra <strong>4%</strong> on qualifying crypto buys they make and on buys by users they refer (on top of their 2% affiliate). All of these percentages are taken from the buyer’s side of each purchase.
+                  Share this link to recruit <strong>agents</strong> under you. They get the same agent tools (their own referral link for regular users, payment links). You earn an extra <strong>4%</strong> on qualifying crypto buys they make and on buys by users they refer (on top of the <strong>4%</strong> direct affiliate on those buys). All fee portions are taken from the buyer’s side of each purchase.
                 </>
               ) : (
                 <>
-                  Share this invite link. When someone signs up through it, they join as a <strong>regular</strong> user. You earn <strong>2%</strong> of each crypto purchase they make. If your account sits under a super agent, they also earn <strong>4%</strong> on those buys; a <strong>super super agent</strong> above them may earn a further <strong>4%</strong> when applicable (paid by the buyer).
+                  Share this invite link. When someone signs up through it, they join as a <strong>regular</strong> user. You earn <strong>4%</strong> of each crypto purchase they make (direct affiliate). If your account sits under a super agent, they also earn <strong>4%</strong> on those buys; a <strong>super super agent</strong> above may earn another <strong>4%</strong>; the platform admin fee is <strong>4%</strong> — up to <strong>16%</strong> total from the buyer’s gross on a full chain.
                 </>
               )}
             </p>
