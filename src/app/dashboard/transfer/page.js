@@ -9,7 +9,7 @@ import { getWallets, transfer } from '@/lib/api';
 export default function TransferPage() {
   const [wallets, setWallets] = useState([]);
   const [fromWalletId, setFromWalletId] = useState('');
-  const [toUsername, setToUsername] = useState('');
+  const [toEmail, setToEmail] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -31,20 +31,42 @@ export default function TransferPage() {
 
   useEffect(() => {
     if (!userId) return;
-    getWallets(userId, token).then((data) => {
-      const list = Array.isArray(data) ? data : data.data || [];
-      setWallets(list);
-      if (list.length && !fromWalletId) setFromWalletId(list[0].id);
-    }).catch(() => setWallets([]));
+    getWallets(userId, token)
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data.data || [];
+        const sorted = [...list].sort((a, b) => String(a.currency).localeCompare(String(b.currency)));
+        setWallets(sorted);
+        setFromWalletId((prev) => {
+          if (prev && sorted.some((w) => w.id === prev)) return prev;
+          return sorted[0]?.id || '';
+        });
+      })
+      .catch(() => {
+        setWallets([]);
+        setFromWalletId('');
+      });
   }, [userId, token]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     if (!userId) return;
+    if (!fromWalletId) {
+      setError('Add a balance or pick an asset first.');
+      return;
+    }
+    const emailTrim = toEmail.trim();
+    if (!emailTrim) {
+      setError('Enter the recipient’s email.');
+      return;
+    }
     setLoading(true);
     try {
-      await transfer(userId, { fromWalletId, toWalletId, amount: Number(amount) }, token);
+      await transfer(
+        userId,
+        { fromWalletId, toEmail: emailTrim, amount: Number(amount) },
+        token,
+      );
       router.push('/dashboard');
       router.refresh();
     } catch (err) {
@@ -56,62 +78,72 @@ export default function TransferPage() {
 
   if (!userId) return null;
 
+  const selectedWallet = wallets.find((w) => w.id === fromWalletId);
+
   return (
     <div className="page">
-        <Link href="/dashboard" className="back-link">← Back to portfolio</Link>
-        <h1 className="page-title">Transfer crypto</h1>
-        <p className="page-desc">
-          Send crypto to another user. Enter their profile username (same currency as the wallet you send from).
-        </p>
+      <Link href="/dashboard" className="back-link">← Back to portfolio</Link>
+      <h1 className="page-title">Transfer crypto</h1>
+      <p className="page-desc">
+        Send from your app balance using the recipient’s <strong>account email</strong> (the one they use to sign in). Pick which coin to send, then enter the amount.
+      </p>
 
-        <div className="card card-lg">
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">From wallet</label>
+      <div className="card card-lg">
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Recipient email</label>
+            <input
+              type="email"
+              placeholder="their@email.com"
+              value={toEmail}
+              onChange={(e) => setToEmail(e.target.value)}
+              required
+              autoComplete="email"
+              className="form-input"
+            />
+            <span className="form-hint">Must match the email on their Place to All account.</span>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Coin</label>
+            {wallets.length === 0 ? (
+              <p className="form-hint" style={{ margin: 0 }}>
+                No wallets yet. Buy or receive crypto first, then transfer.
+              </p>
+            ) : (
               <select
                 value={fromWalletId}
                 onChange={(e) => setFromWalletId(e.target.value)}
                 required
                 className="form-select"
               >
-                <option value="">Select wallet</option>
                 {wallets.map((w) => (
-                  <option key={w.id} value={w.id}>{w.currency} – {Number(w.balance).toFixed(4)}</option>
+                  <option key={w.id} value={w.id}>
+                    {w.currency} — balance {Number(w.balance).toFixed(4)}
+                  </option>
                 ))}
               </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Recipient username</label>
-              <input
-                type="text"
-                placeholder="Their profile username"
-                value={toUsername}
-                onChange={(e) => setToUsername(e.target.value)}
-                required
-                autoComplete="off"
-                className="form-input"
-              />
-              <span className="form-hint">The recipient must have a username on their profile. Matching ignores upper/lowercase.</span>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Amount</label>
-              <input
-                type="number"
-                step="any"
-                min="0"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-                className="form-input"
-              />
-            </div>
-            {error && <div className="alert alert-error">{error}</div>}
-            <button type="submit" disabled={loading} className="btn btn-primary">
-              {loading ? 'Transferring…' : 'Transfer'}
-            </button>
-          </form>
-        </div>
+            )}
+            <span className="form-hint">Transfer sends this asset only; amount cannot exceed your balance.</span>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Amount</label>
+            <input
+              type="number"
+              step="any"
+              min="0"
+              placeholder={selectedWallet ? `0.00 ${selectedWallet.currency}` : '0.00'}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              className="form-input"
+            />
+          </div>
+          {error && <div className="alert alert-error">{error}</div>}
+          <button type="submit" disabled={loading || !wallets.length} className="btn btn-primary">
+            {loading ? 'Transferring…' : 'Transfer'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

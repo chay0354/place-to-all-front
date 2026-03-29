@@ -698,6 +698,12 @@ input, button, select {
   color: var(--dash-muted);
 }
 
+/* Looks like other action tiles but does not navigate or respond to press */
+.dash-action-btn--static {
+  cursor: default;
+  pointer-events: none;
+}
+
 .dash-assets-header {
   display: flex;
   align-items: center;
@@ -860,7 +866,8 @@ input, button, select {
   box-sizing: border-box;
 }
 
-.dash-bottom-nav a {
+.dash-bottom-nav a,
+.dash-bottom-nav .dash-bottom-nav-static {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -874,6 +881,11 @@ input, button, select {
   transition: color 0.2s;
 }
 
+.dash-bottom-nav .dash-bottom-nav-static {
+  cursor: default;
+  pointer-events: none;
+}
+
 .dash-bottom-nav a:hover {
   color: var(--dash-text);
   text-decoration: none;
@@ -883,7 +895,8 @@ input, button, select {
   color: var(--dash-accent);
 }
 
-.dash-bottom-nav a svg {
+.dash-bottom-nav a svg,
+.dash-bottom-nav .dash-bottom-nav-static svg {
   width: 22px;
   height: 22px;
 }

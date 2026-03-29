@@ -182,12 +182,17 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
         </Link>
         <Link href="/dashboard/buy" className="dash-action-btn">
           <ReceiveIcon />
-          Receive
+          Buy
         </Link>
-        <Link href="/dashboard/sell" className="dash-action-btn">
+        <span
+          className="dash-action-btn dash-action-btn--static"
+          role="button"
+          aria-disabled="true"
+          tabIndex={-1}
+        >
           <SwapIcon />
           Swap
-        </Link>
+        </span>
         <Link href="/dashboard" className="dash-action-btn">
           <MoreIcon />
           More
@@ -250,10 +255,6 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
           No balances yet. <Link href="/dashboard/buy" style={{ color: 'var(--dash-primary)' }}>Buy crypto</Link> to see your assets here.
         </div>
       )}
-
-      <button type="button" onClick={refresh} className="btn btn-ghost refresh-btn" style={{ margin: '0 1.25rem 2rem', color: 'var(--dash-muted)', fontSize: '0.8125rem' }}>
-        Refresh balances
-      </button>
     </>
   );
 }

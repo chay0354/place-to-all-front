@@ -8,7 +8,6 @@ export function DashboardShell({ children }) {
   const isHome = pathname === '/dashboard' || pathname === '/dashboard/';
   const isTransfer = pathname.startsWith('/dashboard/transfer');
   const isBuy = pathname.startsWith('/dashboard/buy');
-  const isSell = pathname.startsWith('/dashboard/sell');
   const isAccount = pathname.startsWith('/dashboard/account');
 
   return (
@@ -42,10 +41,15 @@ export function DashboardShell({ children }) {
           <ReceiveIcon />
           Buy
         </Link>
-        <Link href="/dashboard/sell" className={isSell ? 'active' : ''}>
+        <span
+          className="dash-bottom-nav-static"
+          role="button"
+          aria-disabled="true"
+          tabIndex={-1}
+        >
           <SwapIcon />
           Sell
-        </Link>
+        </span>
       </nav>
     </div>
   );

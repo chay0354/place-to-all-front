@@ -39,6 +39,14 @@ export async function getProfile() {
   return data;
 }
 
+/** Super agent: agents under you. Agent: regular users you referred. */
+export async function getProfileDownline() {
+  const res = await fetch('/api/profile/downline', { credentials: 'include', cache: 'no-store' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
 /** Get transaction history for the user. */
 export async function getTransactions(userId, accessToken) {
   return apiRequest('/api/transactions', { userId }, accessToken);

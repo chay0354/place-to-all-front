@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -24,7 +24,7 @@ async function loadBuyableCurrencies() {
   return codes.filter((c) => BUYABLE_CODES.has(String(c).toUpperCase()));
 }
 
-export default function BuyPage() {
+function BuyPageContent() {
   const [currencies, setCurrencies] = useState([]);
   const [currency, setCurrency] = useState('BTC');
   const [amount, setAmount] = useState('');
@@ -268,5 +268,21 @@ export default function BuyPage() {
           </form>
         </div>
     </div>
+  );
+}
+
+function BuyFallback() {
+  return (
+    <div className="page" style={{ padding: '2rem 1.25rem', color: 'var(--text-muted)' }}>
+      Loading…
+    </div>
+  );
+}
+
+export default function BuyPage() {
+  return (
+    <Suspense fallback={<BuyFallback />}>
+      <BuyPageContent />
+    </Suspense>
   );
 }

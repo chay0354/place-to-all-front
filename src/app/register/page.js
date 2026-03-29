@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { Suspense, useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const searchParams = useSearchParams();
   const refParam = useMemo(() => searchParams.get('ref') || '', [searchParams]);
   const nextPath = useMemo(() => searchParams.get('next') || '', [searchParams]);
@@ -165,5 +165,21 @@ export default function RegisterPage() {
       </p>
       </main>
     </div>
+  );
+}
+
+function RegisterFallback() {
+  return (
+    <div className="app-dark" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '1.5rem' }}>
+      <p className="auth-sub">Loading…</p>
+    </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<RegisterFallback />}>
+      <RegisterPageContent />
+    </Suspense>
   );
 }

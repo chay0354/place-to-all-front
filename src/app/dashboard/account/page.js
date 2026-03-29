@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { getTransactions, getProfile, createPaymentLink, listPaymentLinks } from '@/lib/api';
+import { getTransactions, getProfile, getProfileDownline, createPaymentLink, listPaymentLinks } from '@/lib/api';
 import { isAdminOperatorEmail } from '@/lib/admin-config';
 
 export default function AccountPage() {
@@ -21,6 +21,8 @@ export default function AccountPage() {
   const [plAmount, setPlAmount] = useState('');
   const [plLoading, setPlLoading] = useState(false);
   const [plMessage, setPlMessage] = useState('');
+  const [downline, setDownline] = useState(null);
+  const [downlineLoading, setDownlineLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -47,6 +49,19 @@ export default function AccountPage() {
       .then((p) => setProfile(p || {}))
       .catch(() => setProfile({ role: 'regular' }));
   }, []);
+
+  useEffect(() => {
+    const r = profile?.role;
+    if (r !== 'agent' && r !== 'super_agent') {
+      setDownline(null);
+      return;
+    }
+    setDownlineLoading(true);
+    getProfileDownline()
+      .then((d) => setDownline(d && typeof d === 'object' ? d : { kind: 'none', members: [] }))
+      .catch(() => setDownline({ kind: r === 'super_agent' ? 'agents' : 'regulars', members: [] }))
+      .finally(() => setDownlineLoading(false));
+  }, [profile?.role]);
 
   const isAgentLike = profile?.role === 'agent' || profile?.role === 'super_agent';
 
@@ -299,6 +314,54 @@ export default function AccountPage() {
           </div>
         )}
       </div>
+
+      {isAgentLike && (
+        <>
+          <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>
+            {profile?.role === 'super_agent' ? 'Your agents' : 'Users you referred'}
+          </h2>
+          <div className="card card-lg">
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
+              {profile?.role === 'super_agent'
+                ? 'Agents who signed up with your super-agent invite link.'
+                : 'Regular users who joined with your invite link.'}
+            </p>
+            {downlineLoading ? (
+              <p style={{ color: 'var(--text-muted)', padding: '0.5rem 0' }}>Loading…</p>
+            ) : !downline?.members?.length ? (
+              <p style={{ color: 'var(--text-muted)', padding: '0.5rem 0' }}>No one yet.</p>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table
+                  className="form-input"
+                  style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--bg-muted)', borderRadius: 8 }}
+                >
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
+                      <th style={{ padding: '0.75rem', fontWeight: 600 }}>Email</th>
+                      <th style={{ padding: '0.75rem', fontWeight: 600 }}>Name</th>
+                      <th style={{ padding: '0.75rem', fontWeight: 600 }}>Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {downline.members.map((m) => (
+                      <tr key={m.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                        <td style={{ padding: '0.75rem', fontSize: '0.875rem' }}>{m.email || '—'}</td>
+                        <td style={{ padding: '0.75rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                          {m.display_name || m.username || '—'}
+                        </td>
+                        <td style={{ padding: '0.75rem', whiteSpace: 'nowrap', fontSize: '0.875rem' }}>
+                          {m.created_at ? new Date(m.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
