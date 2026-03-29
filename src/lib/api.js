@@ -216,6 +216,20 @@ export async function getCoinbaseSellQuote(cryptoAmount, currency = 'BTC', fiatC
   return data;
 }
 
+/**
+ * Buy-page tickers with USD spot (same getSpotPriceUsd chain as /api/coinbase/price on the server).
+ * Public via relay (GET /api/coinbase/market-overview).
+ */
+export async function getMarketOverview() {
+  const res = await fetch(coinbaseRelayUrl('/api/coinbase/market-overview'), {
+    credentials: typeof window !== 'undefined' ? 'include' : undefined,
+    cache: 'no-store',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
 /** Current USD spot price for an asset (Coinbase). */
 export async function getCoinbasePrice(currency = 'BTC') {
   const res = await fetch(coinbaseRelayUrl(`/api/coinbase/price?currency=${encodeURIComponent(currency)}`), {

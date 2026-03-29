@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getWalletsForDashboard } from '@/lib/api';
+import { assetLabel } from '@/lib/asset-names';
 
-const ASSET_NAMES = { BTC: 'Bitcoin', ETH: 'Ethereum', USDT: 'Tether', USDC: 'USD Coin', BNB: 'BNB', SOL: 'Solana', XRP: 'XRP', ADA: 'Cardano', DOGE: 'Dogecoin', DOT: 'Polkadot', MATIC: 'Polygon', LINK: 'Chainlink', UNI: 'Uniswap', AVAX: 'Avalanche', LTC: 'Litecoin', ATOM: 'Cosmos', XLM: 'Stellar', ALGO: 'Algorand', FIL: 'Filecoin', VET: 'VeChain', TRX: 'TRON', NEAR: 'NEAR', APT: 'Aptos', ARB: 'Arbitrum', OP: 'Optimism', INJ: 'Injective', IMX: 'Immutable X', SHIB: 'Shiba Inu', PEPE: 'Pepe', FLOKI: 'FLOKI' };
 const FALLBACK_PRICES = { BTC: 50000, ETH: 2000, USDT: 1, USDC: 1, BNB: 650, SOL: 150, XRP: 0.5 };
 
 /** Normalize currency code (trim, uppercase, map aliases like ETHEREUM -> ETH). */
@@ -40,10 +40,6 @@ function walletIconClass(currency) {
   if (c === 'eth') return 'eth';
   if (c === 'usdt' || c === 'usdc') return 'usdt';
   return 'other';
-}
-
-function assetLabel(currency) {
-  return ASSET_NAMES[currency] || currency || 'Crypto';
 }
 
 /** USD estimate for portfolio header (static — avoids live price API changing the total on every refresh). */
@@ -163,15 +159,10 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
           <ReceiveIcon />
           Buy
         </Link>
-        <span
-          className="dash-action-btn dash-action-btn--static"
-          role="button"
-          aria-disabled="true"
-          tabIndex={-1}
-        >
-          <SwapIcon />
-          Swap
-        </span>
+        <Link href="/dashboard/market" className="dash-action-btn">
+          <MarketIcon />
+          Market
+        </Link>
         <Link href="/dashboard" className="dash-action-btn">
           <MoreIcon />
           More
@@ -263,10 +254,11 @@ function ReceiveIcon() {
   );
 }
 
-function SwapIcon() {
+function MarketIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4" />
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 3v18h18" />
+      <path d="M7 16l4-4 4 4 6-8" />
     </svg>
   );
 }

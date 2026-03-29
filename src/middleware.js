@@ -41,8 +41,10 @@ export async function middleware(request) {
 export const config = {
   matcher: [
     /*
-     * Skip static files and image optimization; run for pages and /api/* (incl. profile + relay).
+     * Skip all of /_next/* (includes webpack-hmr WebSocket upgrades — middleware there breaks dev with
+     * "Cannot read properties of undefined (reading 'bind')" on setHeader).
+     * Skip static assets by extension.
      */
-    '/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
