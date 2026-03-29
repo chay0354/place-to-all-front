@@ -150,7 +150,7 @@ export default function AccountPage() {
             <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
               {profile?.role === 'super_super_agent' ? (
                 <>
-                  Share this link to recruit <strong>agents</strong> under you — same tools as a super agent (referral link for regular users, payment links). You earn the same <strong>4%</strong> super-network commission on qualifying buys where you are that tier, <strong>plus an additional 4%</strong> when you qualify as the super-super upline in the buyer’s chain (paid by the buyer).
+                  Share this link to recruit <strong>super agents</strong> under you (they sign up as super agent — no self-serve choice). Same tools for you: referral link effects, payment links. You earn the usual super-tier <strong>4%</strong> where it applies, <strong>plus an additional 4%</strong> when you qualify as the super-super upline in the buyer’s chain (paid by the buyer).
                 </>
               ) : profile?.role === 'super_agent' ? (
                 <>
@@ -326,14 +326,16 @@ export default function AccountPage() {
       {isAgentLike && (
         <>
           <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>
-            {profile?.role === 'super_agent' || profile?.role === 'super_super_agent'
-              ? 'Your agents'
-              : 'Users you referred'}
+            {profile?.role === 'super_super_agent'
+              ? 'Your team'
+              : profile?.role === 'super_agent'
+                ? 'Your agents'
+                : 'Users you referred'}
           </h2>
           <div className="card card-lg">
             <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
               {profile?.role === 'super_super_agent'
-                ? 'Agents who signed up with your super super agent invite link.'
+                ? 'Super agents (and any legacy agents) who signed up with your invite link.'
                 : profile?.role === 'super_agent'
                   ? 'Agents who signed up with your super-agent invite link.'
                   : 'Regular users who joined with your invite link.'}
@@ -352,6 +354,9 @@ export default function AccountPage() {
                     <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
                       <th style={{ padding: '0.75rem', fontWeight: 600 }}>Email</th>
                       <th style={{ padding: '0.75rem', fontWeight: 600 }}>Name</th>
+                      {profile?.role === 'super_super_agent' && (
+                        <th style={{ padding: '0.75rem', fontWeight: 600 }}>Role</th>
+                      )}
                       <th style={{ padding: '0.75rem', fontWeight: 600 }}>Joined</th>
                     </tr>
                   </thead>
@@ -362,6 +367,11 @@ export default function AccountPage() {
                         <td style={{ padding: '0.75rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
                           {m.display_name || m.username || '—'}
                         </td>
+                        {profile?.role === 'super_super_agent' && (
+                          <td style={{ padding: '0.75rem', fontSize: '0.8125rem' }}>
+                            {m.role === 'super_agent' ? 'Super agent' : m.role === 'agent' ? 'Agent' : m.role || '—'}
+                          </td>
+                        )}
                         <td style={{ padding: '0.75rem', whiteSpace: 'nowrap', fontSize: '0.875rem' }}>
                           {m.created_at ? new Date(m.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) : '—'}
                         </td>

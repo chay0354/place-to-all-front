@@ -91,11 +91,11 @@ function RegisterPageContent() {
       <p className="auth-sub">
         {isFromAffiliateLink
           ? recruiterRole === 'super_super_agent'
-            ? 'You were invited by a super super agent. You will sign up as an agent under them — they earn the same network fees as a super agent plus an additional 4% when the commission rules apply (fees are paid by the buyer).'
+            ? 'You were invited by a super super agent. You will join as a super agent under them (account type is set by this link — you cannot choose). They earn network fees including an extra tier when the commission rules apply (fees are paid by the buyer).'
             : recruiterRole === 'super_agent'
-            ? 'You were invited by a super agent. You will sign up as an agent under them — they earn an extra 4% on qualifying buys you and your referrals make (fees are paid by the buyer).'
+            ? 'You were invited by a super agent. You will join as an agent under them (account type is set by this link — you cannot choose). They earn an extra 4% on qualifying buys you and your referrals make (fees are paid by the buyer).'
             : recruiterRole === 'agent'
-              ? 'You were referred by an agent. Create a regular account; they earn 2% when you buy crypto (fee paid by you as the buyer).'
+              ? 'You were referred by an agent. You will join as a regular user (account type is set by this link — you cannot choose). They earn 2% when you buy crypto (fee paid by you as the buyer).'
               : 'Checking invite link…'
           : 'Get started with your crypto wallet'}
       </p>

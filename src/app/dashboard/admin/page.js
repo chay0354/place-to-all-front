@@ -52,9 +52,10 @@ function AgentsRecruitedList({ agents, emptyLabel }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
       {agents.map((ag) => {
         const n = Number(ag.invitedCount) || 0;
+        const tierLabel = ag.role === 'super_agent' ? 'Super agent' : 'Agent';
         return (
           <div key={ag.id} style={{ ...card, marginBottom: 0, padding: '0.85rem' }}>
-            <div style={labelMuted}>Agent (used super’s invite link)</div>
+            <div style={labelMuted}>{tierLabel} (used their recruiter’s invite link)</div>
             <div style={strong}>{ag.email || 'No email'}</div>
             {(ag.display_name || ag.username) && (
               <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
@@ -189,7 +190,7 @@ export default function AdminPage() {
   const agentsBySuperId = useMemo(() => {
     const m = {};
     for (const r of rows) {
-      if (r.role !== 'agent' || !r.referred_by_id) continue;
+      if (!r.referred_by_id || (r.role !== 'agent' && r.role !== 'super_agent')) continue;
       const k = r.referred_by_id;
       if (!m[k]) m[k] = [];
       m[k].push(r);
@@ -289,7 +290,7 @@ export default function AdminPage() {
         </div>
         <ol style={{ margin: 0, paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <li>
-            <strong style={{ color: 'var(--text)' }}>Super super</strong> and <strong style={{ color: 'var(--text)' }}>super agents</strong> recruit other <strong style={{ color: 'var(--text)' }}>agents</strong> with their invite link. Under each person you’ll see those agents listed.
+            <strong style={{ color: 'var(--text)' }}>Super super agents</strong> recruit <strong style={{ color: 'var(--text)' }}>super agents</strong> via invite link. <strong style={{ color: 'var(--text)' }}>Super agents</strong> recruit plain <strong style={{ color: 'var(--text)' }}>agents</strong>. Under each card you’ll see who used their link.
           </li>
           <li>
             <strong style={{ color: 'var(--text)' }}>Agents</strong> recruit <strong style={{ color: 'var(--text)' }}>regular customers</strong>. Open an agent card to see their customers.
