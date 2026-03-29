@@ -6,7 +6,11 @@
     "node": ">=18.18.0"
   },
   "scripts": {
+    "clean": "node scripts/clean-next.js",
     "dev": "next dev",
+    "dev:clean": "npm run clean && next dev",
+    "dev:turbo": "next dev --turbo",
+    "dev:fresh": "npm run clean && next dev --turbo",
     "build": "next build",
     "start": "next start"
   },

@@ -1688,6 +1688,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
 
 /* —— Market page —— */
 .market-page {
+  --market-control-height: 4.8125rem; /* ~77px — matches stat cards + search row */
   padding-bottom: 2rem;
 }
 
@@ -1721,10 +1722,15 @@ input[type='range']:focus-visible::-moz-range-thumb {
 .market-stat {
   flex: 1 1 auto;
   min-width: 7rem;
+  min-height: var(--market-control-height);
+  box-sizing: border-box;
   padding: 0.75rem 1rem;
   border-radius: 12px;
   border: 1px solid var(--dash-border);
   background: var(--dash-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .market-stat-label {
@@ -1748,17 +1754,20 @@ input[type='range']:focus-visible::-moz-range-thumb {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  align-items: stretch;
+  align-items: center;
   margin-bottom: 1rem;
 }
 
 .market-search-wrap {
-  flex: 1 1 200px;
+  flex: 1 1 12rem;
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  height: var(--market-control-height);
+  min-height: var(--market-control-height);
+  max-height: var(--market-control-height);
+  box-sizing: border-box;
   padding: 0 1rem;
-  min-height: 48px;
   border-radius: 12px;
   border: 1px solid var(--dash-border);
   background: var(--dash-card);
@@ -1779,10 +1788,12 @@ input[type='range']:focus-visible::-moz-range-thumb {
 .market-search-input {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   border: none;
   background: transparent;
   color: var(--dash-text);
   font-size: 1rem; /* 16px — iOS avoids zoom on focus */
+  line-height: 1.25;
   font-family: inherit;
   outline: none;
 }
@@ -1793,10 +1804,16 @@ input[type='range']:focus-visible::-moz-range-thumb {
 
 .market-refresh {
   flex-shrink: 0;
-  min-height: 48px;
+  height: var(--market-control-height);
+  min-height: var(--market-control-height);
+  max-height: var(--market-control-height);
+  box-sizing: border-box;
   padding-left: 1.25rem;
   padding-right: 1.25rem;
   border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .market-alert {
@@ -1971,10 +1988,18 @@ input[type='range']:focus-visible::-moz-range-thumb {
 @media (max-width: 480px) {
   .market-toolbar {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .market-search-wrap {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
   }
 
   .market-refresh {
     width: 100%;
+    max-width: none;
   }
 
   .market-stats {
