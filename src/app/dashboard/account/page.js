@@ -46,10 +46,19 @@ export default function AccountPage() {
   }, [user?.id, token]);
 
   useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
     getProfile()
-      .then((p) => setProfile(p || {}))
-      .catch(() => setProfile({ role: 'regular' }));
-  }, []);
+      .then((p) => {
+        if (!cancelled) setProfile(p || {});
+      })
+      .catch(() => {
+        if (!cancelled) setProfile({ role: 'regular' });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     const r = profile?.role;
