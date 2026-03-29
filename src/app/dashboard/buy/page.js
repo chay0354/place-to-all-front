@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { buyCrypto, createRapydCheckout, getCoinbaseSellQuote, getCoinbasePrice, getCoinbaseCurrencies, getPublicPaymentLink } from '@/lib/api';
+import { getApiOrigin } from '@/lib/api-base';
 
 /** Coinbase-supported buyable codes — used if buy API is unavailable. */
 const BUYABLE_CODES = new Set([
@@ -14,7 +15,7 @@ const BUYABLE_CODES = new Set([
 
 async function loadBuyableCurrencies() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/coinbase/currencies/buy`);
+    const res = await fetch(`${getApiOrigin()}/api/coinbase/currencies/buy`);
     const data = await res.json();
     const list = data.currencies || [];
     return Array.isArray(list) ? list.map((c) => (typeof c === 'string' ? c : c?.code)).filter(Boolean) : [];

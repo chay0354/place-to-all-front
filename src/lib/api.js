@@ -1,4 +1,6 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+import { getApiOrigin } from './api-base.js';
+
+const API_URL = getApiOrigin();
 
 export async function apiRequest(path, options = {}, accessToken) {
   const headers = {
