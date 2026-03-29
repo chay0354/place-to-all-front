@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -69,16 +69,22 @@ export default function AccountPage() {
   const isAgentLike =
     profile?.role === 'agent' || profile?.role === 'super_agent' || profile?.role === 'super_super_agent';
 
+  const canManagePaymentLinks = useMemo(() => {
+    if (profile == null) return false;
+    const role = profile.role || 'regular';
+    return ['regular', 'agent', 'super_agent', 'super_super_agent', 'admin'].includes(role);
+  }, [profile]);
+
   function refreshPaymentLinks() {
-    if (!user?.id || !token || !isAgentLike) return;
+    if (!user?.id || !token || !canManagePaymentLinks) return;
     listPaymentLinks(user.id, token)
       .then((list) => setPaymentLinks(Array.isArray(list) ? list : []))
       .catch(() => setPaymentLinks([]));
   }
 
   useEffect(() => {
-    if (isAgentLike && user?.id && token) refreshPaymentLinks();
-  }, [isAgentLike, user?.id, token]);
+    if (canManagePaymentLinks && user?.id && token) refreshPaymentLinks();
+  }, [canManagePaymentLinks, user?.id, token]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -154,7 +160,7 @@ export default function AccountPage() {
                 </>
               ) : profile?.role === 'super_agent' ? (
                 <>
-                  Share this link to recruit <strong>agents</strong> under you. They get the same agent tools (their own referral link for regular users, payment links). You earn an extra <strong>4%</strong> on qualifying crypto buys they make and on buys by users they refer (on top of the <strong>4%</strong> direct affiliate on those buys). All fee portions are taken from the buyer’s side of each purchase.
+                  Share this link to recruit <strong>agents</strong> under you. They get the same agent tools (referral link for regular signups, payment links). You earn an extra <strong>4%</strong> on qualifying crypto buys they make and on buys by users they refer (on top of the <strong>4%</strong> direct affiliate on those buys). All fee portions are taken from the buyer’s side of each purchase.
                 </>
               ) : (
                 <>
@@ -186,7 +192,11 @@ export default function AccountPage() {
               </button>
             </div>
           </div>
+        </>
+      )}
 
+      {canManagePaymentLinks && (
+        <>
           <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Payment links</h2>
           <div className="card card-lg">
             <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
