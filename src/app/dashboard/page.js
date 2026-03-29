@@ -10,13 +10,15 @@ export default async function DashboardPage({ searchParams }) {
 
   let wallets = [];
   try {
-    const res = await fetch(joinBackendUrl('/api/wallets'), {
+    const res = await fetch(joinBackendUrl(`/api/wallets?_t=${Date.now()}`), {
       headers: { 'X-User-Id': user.id },
       cache: 'no-store',
     });
-    const data = await res.json();
-    wallets = Array.isArray(data) ? data : data.data || [];
-  } catch (e) {
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      wallets = Array.isArray(data) ? data : data.data || [];
+    }
+  } catch {
     wallets = [];
   }
 
