@@ -144,7 +144,11 @@ function BuyPageContent() {
         body.paymentLinkToken = payToken;
       }
       await buyCrypto(userId, body, token);
-      router.push(`/dashboard?r=${Date.now()}`);
+      if (isPaymentLinkCheckout && payToken) {
+        router.push(`/pay/${encodeURIComponent(payToken)}?thankyou=1`);
+      } else {
+        router.push(`/dashboard?r=${Date.now()}`);
+      }
       router.refresh();
     } catch (err) {
       const msg = err.response?.error || err.message || 'Buy failed';
