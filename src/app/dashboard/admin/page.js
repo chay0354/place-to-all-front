@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, Fragment } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -12,96 +12,111 @@ import {
 } from '@/lib/api';
 import { isAdminOperatorEmail, ADMIN_OPERATOR_EMAIL } from '@/lib/admin-config';
 
-const tableWrap = {
-  overflow: 'auto',
-  maxHeight: 'min(70vh, 640px)',
+const card = {
   border: '1px solid var(--border, #30363d)',
-  borderRadius: 8,
-  WebkitOverflowScrolling: 'touch',
+  borderRadius: 12,
+  padding: '1rem',
+  marginBottom: '0.75rem',
+  background: 'var(--bg-muted, rgba(255,255,255,0.03))',
 };
 
-const thStyle = {
-  padding: '0.65rem 0.75rem',
-  fontWeight: 600,
-  fontSize: '0.8125rem',
-  textTransform: 'uppercase',
-  letterSpacing: '0.03em',
-  color: 'var(--text-muted)',
-  borderBottom: '1px solid var(--border, #30363d)',
-  background: 'var(--bg-muted)',
-  position: 'sticky',
-  top: 0,
-  zIndex: 1,
-  textAlign: 'left',
-  whiteSpace: 'nowrap',
+const nested = {
+  marginTop: '0.75rem',
+  paddingLeft: '0.5rem',
+  borderLeft: '3px solid var(--border, #30363d)',
 };
 
-const tdStyle = {
-  padding: '0.55rem 0.75rem',
-  borderBottom: '1px solid var(--border, #30363d)',
-  fontSize: '0.875rem',
-  verticalAlign: 'middle',
-};
+const labelMuted = { fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '0.25rem' };
+const strong = { fontWeight: 600, fontSize: '0.9375rem', wordBreak: 'break-word' };
 
-const subTh = { ...thStyle, position: 'static', background: 'var(--dash-card-hover, #21262d)' };
+function CopyIdButton({ id }) {
+  if (!id) return null;
+  return (
+    <button
+      type="button"
+      className="btn btn-ghost"
+      style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem', marginTop: '0.35rem' }}
+      onClick={() => navigator.clipboard.writeText(id).catch(() => {})}
+    >
+      Copy user ID
+    </button>
+  );
+}
 
-function AgentsUnderSuperTable({ agents }) {
+/** Agents recruited by a super / super-super (mobile-friendly cards). */
+function AgentsRecruitedList({ agents, emptyLabel }) {
   if (!agents.length) {
-    return <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>No agents under this super agent.</p>;
+    return <p style={{ ...labelMuted, margin: 0 }}>{emptyLabel}</p>;
   }
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem', minWidth: 560 }}>
-        <thead>
-          <tr>
-            <th style={subTh}>Email</th>
-            <th style={subTh}>Name</th>
-            <th style={{ ...subTh, minWidth: 200 }}>User ID</th>
-            <th style={{ ...subTh, textAlign: 'right' }}>Users under agent</th>
-          </tr>
-        </thead>
-        <tbody>
-          {agents.map((ag, j) => (
-            <tr key={ag.id} style={{ background: j % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.03)' }}>
-              <td style={tdStyle}>{ag.email || '—'}</td>
-              <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{ag.display_name || ag.username || '—'}</td>
-              <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.7rem', wordBreak: 'break-all' }}>{ag.id}</td>
-              <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{Number(ag.invitedCount) || 0}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+      {agents.map((ag) => {
+        const n = Number(ag.invitedCount) || 0;
+        return (
+          <div key={ag.id} style={{ ...card, marginBottom: 0, padding: '0.85rem' }}>
+            <div style={labelMuted}>Agent (used super’s invite link)</div>
+            <div style={strong}>{ag.email || 'No email'}</div>
+            {(ag.display_name || ag.username) && (
+              <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                {ag.display_name || ag.username}
+              </div>
+            )}
+            <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
+              Regular customers they invited: <strong style={{ color: 'var(--text, inherit)' }}>{n}</strong>
+            </div>
+            <CopyIdButton id={ag.id} />
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-function RegularUsersUnderAgentTable({ users }) {
+/** Regular end-users under an agent. */
+function RegularCustomersList({ users, emptyLabel }) {
   if (!users.length) {
-    return <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>No regular users under this agent.</p>;
+    return <p style={{ ...labelMuted, margin: 0 }}>{emptyLabel}</p>;
   }
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem', minWidth: 520 }}>
-        <thead>
-          <tr>
-            <th style={subTh}>Email</th>
-            <th style={subTh}>Name</th>
-            <th style={{ ...subTh, minWidth: 200 }}>User ID</th>
-            <th style={subTh}>Joined</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u, j) => (
-            <tr key={u.id} style={{ background: j % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.03)' }}>
-              <td style={tdStyle}>{u.email || '—'}</td>
-              <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{u.display_name || u.username || '—'}</td>
-              <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.7rem', wordBreak: 'break-all' }}>{u.id}</td>
-              <td style={tdStyle}>{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+      {users.map((u) => (
+        <div key={u.id} style={{ ...card, marginBottom: 0, padding: '0.85rem' }}>
+          <div style={labelMuted}>Regular customer</div>
+          <div style={strong}>{u.email || 'No email'}</div>
+          {(u.display_name || u.username) && (
+            <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
+              {u.display_name || u.username}
+            </div>
+          )}
+          <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
+            Joined: {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
+          </div>
+          <CopyIdButton id={u.id} />
+        </div>
+      ))}
     </div>
+  );
+}
+
+function RoleBadge({ children, variant }) {
+  const color = variant === 'ss' ? '#a371f7' : 'var(--success, #3fb950)';
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        fontSize: '0.6875rem',
+        fontWeight: 700,
+        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
+        padding: '0.2rem 0.5rem',
+        borderRadius: 6,
+        background: `${color}22`,
+        color,
+        marginBottom: '0.5rem',
+      }}
+    >
+      {children}
+    </span>
   );
 }
 
@@ -255,226 +270,242 @@ export default function AdminPage() {
   const superAgents = rows.filter((r) => r.role === 'super_agent');
   const superSuperAgents = rows.filter((r) => r.role === 'super_super_agent');
 
+  const guideBox = {
+    ...card,
+    background: 'var(--bg-muted)',
+    lineHeight: 1.55,
+    fontSize: '0.875rem',
+    color: 'var(--text-muted)',
+  };
+
   return (
-    <div className="page">
+    <div className="page" style={{ paddingBottom: '2rem' }}>
       <Link href="/dashboard/account" className="back-link">← Back to account</Link>
-      <h1 className="page-title">Admin menu</h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-        Operator: <strong>{user?.email}</strong>. Super super / super agent sections list <strong>agents</strong> whose <code style={{ fontSize: '0.8em' }}>referred_by_id</code> is that user. Each agent row lists regular users they referred. Promote <strong>agent → super agent</strong> or <strong>super agent → super super agent</strong> only when that user has <strong>zero</strong> invited profiles.
-      </p>
+      <h1 className="page-title">Admin</h1>
+
+      <div style={guideBox}>
+        <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '0.65rem', fontSize: '0.9375rem' }}>
+          How to read this screen
+        </div>
+        <ol style={{ margin: 0, paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <li>
+            <strong style={{ color: 'var(--text)' }}>Super super</strong> and <strong style={{ color: 'var(--text)' }}>super agents</strong> recruit other <strong style={{ color: 'var(--text)' }}>agents</strong> with their invite link. Under each person you’ll see those agents listed.
+          </li>
+          <li>
+            <strong style={{ color: 'var(--text)' }}>Agents</strong> recruit <strong style={{ color: 'var(--text)' }}>regular customers</strong>. Open an agent card to see their customers.
+          </li>
+          <li>
+            <strong style={{ color: 'var(--text)' }}>“Invite link count”</strong> = how many accounts signed up with that person’s link. Promotion is allowed only when that number is <strong style={{ color: 'var(--text)' }}>0</strong>.
+          </li>
+        </ol>
+        <p style={{ margin: '0.75rem 0 0', fontSize: '0.8125rem' }}>
+          Signed in as <strong style={{ color: 'var(--text)' }}>{user?.email}</strong>
+        </p>
+      </div>
 
       {listError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{listError}</div>}
       {actionMessage && <p style={{ marginBottom: '1rem', fontSize: '0.875rem' }}>{actionMessage}</p>}
 
-      <h2 className="page-title" style={{ marginTop: '1rem', fontSize: '1.1rem' }}>Super super agents ({superSuperAgents.length})</h2>
-      <div className="card card-lg" style={{ marginBottom: '1.5rem' }}>
+      <h2 className="page-title" style={{ marginTop: '1.25rem', fontSize: '1.05rem' }}>
+        Super super agents ({superSuperAgents.length})
+      </h2>
+      <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
+        Top tier. Each card shows agents they brought in via invite link.
+      </p>
+      <div className="card card-lg" style={{ marginBottom: '1.25rem' }}>
         {superSuperAgents.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)' }}>No super super agent accounts yet.</p>
+          <p style={{ color: 'var(--text-muted)', margin: 0 }}>None yet — promote a super agent when their invite count is 0.</p>
         ) : (
-          <div style={tableWrap}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
-              <thead>
-                <tr>
-                  <th style={thStyle}>Email</th>
-                  <th style={thStyle}>Name</th>
-                  <th style={{ ...thStyle, minWidth: 200 }}>User ID</th>
-                  <th style={{ ...thStyle, textAlign: 'right', width: 72 }}>Direct refs</th>
-                  <th style={{ ...thStyle, width: 120 }}>Role</th>
-                </tr>
-              </thead>
-              <tbody>
-                {superSuperAgents.map((a, i) => {
-                  const invited = Number(a.invitedCount) || 0;
-                  const rowBg = i % 2 === 0 ? 'transparent' : 'var(--bg-muted)';
-                  const under = agentsBySuperId[a.id] ?? [];
-                  return (
-                    <Fragment key={a.id}>
-                      <tr style={{ background: rowBg }}>
-                        <td style={tdStyle}>{a.email || '—'}</td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{a.display_name || a.username || '—'}</td>
-                        <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>{a.id}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{invited}</td>
-                        <td style={tdStyle}>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--success, #3fb950)' }}>Super super</span>
-                        </td>
-                      </tr>
-                      <tr style={{ background: 'var(--bg-muted)' }}>
-                        <td colSpan={5} style={{ padding: '1rem', borderBottom: '1px solid var(--border, #30363d)' }}>
-                          <div style={{ fontWeight: 600, marginBottom: '0.75rem', fontSize: '0.875rem' }}>
-                            Agents under this super super agent ({under.length})
-                          </div>
-                          <AgentsUnderSuperTable agents={under} />
-                        </td>
-                      </tr>
-                    </Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          superSuperAgents.map((a) => {
+            const invited = Number(a.invitedCount) || 0;
+            const under = agentsBySuperId[a.id] ?? [];
+            return (
+              <div key={a.id} style={{ ...card, marginBottom: '1rem' }}>
+                <RoleBadge variant="ss">Super super agent</RoleBadge>
+                <div style={strong}>{a.email || 'No email'}</div>
+                {(a.display_name || a.username) && (
+                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                    {a.display_name || a.username}
+                  </div>
+                )}
+                <div style={{ fontSize: '0.875rem', marginTop: '0.65rem', color: 'var(--text-muted)' }}>
+                  Invite link count:{' '}
+                  <strong style={{ color: 'var(--text)' }}>{invited}</strong>
+                  <span style={{ display: 'block', marginTop: 4, fontSize: '0.8125rem' }}>
+                    (agents + others who used their link — must be 0 to promote further)
+                  </span>
+                </div>
+                <CopyIdButton id={a.id} />
+                <div style={nested}>
+                  <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                    Their agents ({under.length})
+                  </div>
+                  <AgentsRecruitedList
+                    agents={under}
+                    emptyLabel="No agents on their invite link yet."
+                  />
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 
-      <h2 className="page-title" style={{ marginTop: '1rem', fontSize: '1.1rem' }}>Super agents ({superAgents.length})</h2>
-      <div className="card card-lg" style={{ marginBottom: '1.5rem' }}>
+      <h2 className="page-title" style={{ fontSize: '1.05rem' }}>
+        Super agents ({superAgents.length})
+      </h2>
+      <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
+        Each card lists agents they recruited. Use the button to move someone to super super (only if invite count is 0).
+      </p>
+      <div className="card card-lg" style={{ marginBottom: '1.25rem' }}>
         {superAgents.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)' }}>No super agent accounts yet.</p>
+          <p style={{ color: 'var(--text-muted)', margin: 0 }}>None yet — promote a plain agent when their invite count is 0.</p>
         ) : (
-          <div style={tableWrap}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
-              <thead>
-                <tr>
-                  <th style={thStyle}>Email</th>
-                  <th style={thStyle}>Name</th>
-                  <th style={{ ...thStyle, minWidth: 200 }}>User ID</th>
-                  <th style={{ ...thStyle, textAlign: 'right', width: 72 }}>Direct refs</th>
-                  <th style={{ ...thStyle, width: 90 }}>Role</th>
-                  <th style={{ ...thStyle, width: 1 }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {superAgents.map((a, i) => {
-                  const invited = Number(a.invitedCount) || 0;
-                  const canPromoteSuperSuper = invited === 0;
-                  const rowBg = i % 2 === 0 ? 'transparent' : 'var(--bg-muted)';
-                  const under = agentsBySuperId[a.id] ?? [];
-                  return (
-                    <Fragment key={a.id}>
-                      <tr style={{ background: rowBg }}>
-                        <td style={tdStyle}>{a.email || '—'}</td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{a.display_name || a.username || '—'}</td>
-                        <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>{a.id}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{invited}</td>
-                        <td style={tdStyle}>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--success, #3fb950)' }}>Super agent</span>
-                        </td>
-                        <td style={tdStyle}>
-                          <button
-                            type="button"
-                            className="btn btn-primary"
-                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.8125rem', whiteSpace: 'nowrap' }}
-                            disabled={actionId === a.id || !canPromoteSuperSuper}
-                            title={!canPromoteSuperSuper ? 'Promote only when direct ref count is 0' : undefined}
-                            onClick={() => promoteToSuperSuper(a.id)}
-                          >
-                            {actionId === a.id ? '…' : 'To super super'}
-                          </button>
-                        </td>
-                      </tr>
-                      <tr style={{ background: 'var(--bg-muted)' }}>
-                        <td colSpan={6} style={{ padding: '1rem', borderBottom: '1px solid var(--border, #30363d)' }}>
-                          <div style={{ fontWeight: 600, marginBottom: '0.75rem', fontSize: '0.875rem' }}>
-                            Agents under this super agent ({under.length})
-                          </div>
-                          <AgentsUnderSuperTable agents={under} />
-                        </td>
-                      </tr>
-                    </Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          superAgents.map((a) => {
+            const invited = Number(a.invitedCount) || 0;
+            const canPromoteSuperSuper = invited === 0;
+            const under = agentsBySuperId[a.id] ?? [];
+            return (
+              <div key={a.id} style={{ ...card, marginBottom: '1rem' }}>
+                <RoleBadge>Super agent</RoleBadge>
+                <div style={strong}>{a.email || 'No email'}</div>
+                {(a.display_name || a.username) && (
+                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                    {a.display_name || a.username}
+                  </div>
+                )}
+                <div style={{ fontSize: '0.875rem', marginTop: '0.65rem', color: 'var(--text-muted)' }}>
+                  Invite link count: <strong style={{ color: 'var(--text)' }}>{invited}</strong>
+                </div>
+                <CopyIdButton id={a.id} />
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    maxWidth: 320,
+                    marginTop: '0.75rem',
+                    padding: '0.55rem 1rem',
+                    fontSize: '0.875rem',
+                  }}
+                  disabled={actionId === a.id || !canPromoteSuperSuper}
+                  title={!canPromoteSuperSuper ? 'Invite link count must be 0 first' : undefined}
+                  onClick={() => promoteToSuperSuper(a.id)}
+                >
+                  {actionId === a.id ? 'Working…' : 'Promote to super super agent'}
+                </button>
+                {!canPromoteSuperSuper && (
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', margin: '0.5rem 0 0' }}>
+                    Clear their downline invites first (count must be 0) to enable promotion.
+                  </p>
+                )}
+                <div style={nested}>
+                  <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                    Their agents ({under.length})
+                  </div>
+                  <AgentsRecruitedList agents={under} emptyLabel="No agents on their invite link yet." />
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 
-      <h2 className="page-title" style={{ fontSize: '1.1rem' }}>Agents ({agents.length})</h2>
-      <div className="card card-lg" style={{ marginBottom: '1.5rem' }}>
+      <h2 className="page-title" style={{ fontSize: '1.05rem' }}>
+        Agents ({agents.length})
+      </h2>
+      <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
+        People who can invite regular customers. Promote to super agent only if their invite link count is 0.
+      </p>
+      <div className="card card-lg" style={{ marginBottom: '1.25rem' }}>
         {agents.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)' }}>No agent accounts.</p>
+          <p style={{ color: 'var(--text-muted)', margin: 0 }}>No agent accounts.</p>
         ) : (
-          <div style={tableWrap}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 800 }}>
-              <thead>
-                <tr>
-                  <th style={thStyle}>Email</th>
-                  <th style={thStyle}>Name</th>
-                  <th style={{ ...thStyle, minWidth: 200 }}>User ID</th>
-                  <th style={{ ...thStyle, textAlign: 'right', width: 72 }}>Invited</th>
-                  <th style={{ ...thStyle, width: 100 }}>Eligible</th>
-                  <th style={{ ...thStyle, width: 1 }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {agents.map((a, i) => {
-                  const invited = Number(a.invitedCount) || 0;
-                  const canPromote = invited === 0;
-                  const rowBg = i % 2 === 0 ? 'transparent' : 'var(--bg-muted)';
-                  const usersUnder = regularUsersByAgentId[a.id] ?? [];
-                  return (
-                    <Fragment key={a.id}>
-                      <tr style={{ background: rowBg }}>
-                        <td style={tdStyle}>{a.email || '—'}</td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{a.display_name || a.username || '—'}</td>
-                        <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>{a.id}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{invited}</td>
-                        <td style={{ ...tdStyle, fontSize: '0.8125rem', color: canPromote ? 'var(--success, #3fb950)' : 'var(--text-muted)' }}>
-                          {canPromote ? 'Yes' : `No (${invited})`}
-                        </td>
-                        <td style={tdStyle}>
-                          <button
-                            type="button"
-                            className="btn btn-primary"
-                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.8125rem', whiteSpace: 'nowrap' }}
-                            disabled={actionId === a.id || !canPromote}
-                            title={!canPromote ? 'Promote only when invited count is 0' : undefined}
-                            onClick={() => promote(a.id)}
-                          >
-                            {actionId === a.id ? '…' : 'Promote'}
-                          </button>
-                        </td>
-                      </tr>
-                      <tr style={{ background: 'var(--bg-muted)' }}>
-                        <td colSpan={6} style={{ padding: '1rem', borderBottom: '1px solid var(--border, #30363d)' }}>
-                          <div style={{ fontWeight: 600, marginBottom: '0.75rem', fontSize: '0.875rem' }}>
-                            Regular users under this agent ({usersUnder.length})
-                          </div>
-                          <RegularUsersUnderAgentTable users={usersUnder} />
-                        </td>
-                      </tr>
-                    </Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          agents.map((a) => {
+            const invited = Number(a.invitedCount) || 0;
+            const canPromote = invited === 0;
+            const usersUnder = regularUsersByAgentId[a.id] ?? [];
+            return (
+              <div key={a.id} style={{ ...card, marginBottom: '1rem' }}>
+                <RoleBadge>Agent</RoleBadge>
+                <div style={strong}>{a.email || 'No email'}</div>
+                {(a.display_name || a.username) && (
+                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                    {a.display_name || a.username}
+                  </div>
+                )}
+                <div style={{ fontSize: '0.875rem', marginTop: '0.65rem', color: 'var(--text-muted)' }}>
+                  Invite link count: <strong style={{ color: 'var(--text)' }}>{invited}</strong>
+                </div>
+                <div style={{ fontSize: '0.8125rem', marginTop: 4, color: canPromote ? 'var(--success, #3fb950)' : 'var(--text-muted)' }}>
+                  {canPromote ? '✓ Can promote to super agent' : '✗ Cannot promote yet — they still have people on their link'}
+                </div>
+                <CopyIdButton id={a.id} />
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    maxWidth: 320,
+                    marginTop: '0.75rem',
+                    padding: '0.55rem 1rem',
+                    fontSize: '0.875rem',
+                  }}
+                  disabled={actionId === a.id || !canPromote}
+                  title={!canPromote ? 'Invite link count must be 0' : undefined}
+                  onClick={() => promote(a.id)}
+                >
+                  {actionId === a.id ? 'Working…' : 'Promote to super agent'}
+                </button>
+                <div style={nested}>
+                  <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                    Their regular customers ({usersUnder.length})
+                  </div>
+                  <RegularUsersUnderAgentList
+                    users={usersUnder}
+                    emptyLabel="No regular customers on their invite link yet."
+                  />
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 
-      <h2 className="page-title" style={{ fontSize: '1.1rem' }}>Regular users ({regularUsers.length})</h2>
+      <h2 className="page-title" style={{ fontSize: '1.05rem' }}>
+        All regular users ({regularUsers.length})
+      </h2>
+      <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
+        Everyone with a normal account. “Referred by” is the user ID of whoever invited them.
+      </p>
       <div className="card card-lg">
         {regularError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{regularError}</div>}
         {regularUsers.length === 0 && !regularError ? (
-          <p style={{ color: 'var(--text-muted)' }}>No regular user accounts.</p>
+          <p style={{ color: 'var(--text-muted)', margin: 0 }}>No regular user accounts.</p>
         ) : regularUsers.length > 0 ? (
-          <div style={tableWrap}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
-              <thead>
-                <tr>
-                  <th style={thStyle}>Email</th>
-                  <th style={thStyle}>Name</th>
-                  <th style={{ ...thStyle, minWidth: 200 }}>User ID</th>
-                  <th style={{ ...thStyle, minWidth: 200 }}>Referred by (user id)</th>
-                  <th style={{ ...thStyle, width: 110 }}>Joined</th>
-                </tr>
-              </thead>
-              <tbody>
-                {regularUsers.map((u, i) => {
-                  const rowBg = i % 2 === 0 ? 'transparent' : 'var(--bg-muted)';
-                  return (
-                    <tr key={u.id} style={{ background: rowBg }}>
-                      <td style={tdStyle}>{u.email || '—'}</td>
-                      <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{u.display_name || u.username || '—'}</td>
-                      <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>{u.id}</td>
-                      <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.7rem', wordBreak: 'break-all' }}>
-                        {u.referred_by_id || '—'}
-                      </td>
-                      <td style={tdStyle}>{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            {regularUsers.map((u) => (
+              <div key={u.id} style={{ ...card, marginBottom: 0, padding: '0.85rem' }}>
+                <div style={labelMuted}>Regular user</div>
+                <div style={strong}>{u.email || 'No email'}</div>
+                {(u.display_name || u.username) && (
+                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                    {u.display_name || u.username}
+                  </div>
+                )}
+                <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
+                  Joined: {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
+                </div>
+                {u.referred_by_id ? (
+                  <div style={{ fontSize: '0.8125rem', marginTop: '0.35rem', color: 'var(--text-muted)', wordBreak: 'break-all' }}>
+                    Referred by (user ID): <span style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>{u.referred_by_id}</span>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.8125rem', marginTop: '0.35rem', color: 'var(--text-muted)' }}>Not referred by anyone</div>
+                )}
+                <CopyIdButton id={u.id} />
+              </div>
+            ))}
           </div>
         ) : null}
       </div>

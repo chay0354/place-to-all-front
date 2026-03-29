@@ -141,20 +141,6 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
     );
   }
 
-  if (!wallets.length) {
-    return (
-      <div className="empty-state" style={{ margin: '1.25rem', background: 'var(--dash-card)', border: '1px solid var(--dash-border)', color: 'var(--dash-muted)' }}>
-        <p>Your wallet is ready. Buy crypto to add funds.</p>
-        <Link href="/dashboard/buy" className="btn btn-primary" style={{ marginTop: '1rem' }}>
-          Buy crypto
-        </Link>
-        <button type="button" onClick={refresh} className="btn btn-ghost refresh-btn">
-          Refresh
-        </button>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="dash-balance-card">
@@ -169,9 +155,15 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
           $<span className="dash-balance-whole">{balanceWhole}</span>
           {balanceCents && <span className="dash-balance-cents">{balanceCents}</span>}
         </div>
-        <div className={`dash-balance-change ${isPositiveChange ? '' : 'negative'}`}>
-          <span>{isPositiveChange ? '↑' : '▼'}</span>
-          <span>${Math.abs(changePercent).toFixed(2)} ({isPositiveChange ? '+' : ''}{changePercent.toFixed(1)}%)</span>
+        <div className={`dash-balance-change ${totalUsd > 0 && !isPositiveChange ? 'negative' : ''}`}>
+          {totalUsd <= 0 ? (
+            <span style={{ opacity: 0.85 }}>No balance yet</span>
+          ) : (
+            <>
+              <span>{isPositiveChange ? '↑' : '▼'}</span>
+              <span>${Math.abs(changePercent).toFixed(2)} ({isPositiveChange ? '+' : ''}{changePercent.toFixed(1)}%)</span>
+            </>
+          )}
         </div>
       </div>
 
