@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getTransactions, getProfile, getProfileDownline, createPaymentLink, listPaymentLinks } from '@/lib/api';
 import { isAdminOperatorEmail } from '@/lib/admin-config';
+import { siteUrl } from '@/lib/site-url';
 
 export default function AccountPage() {
   const [user, setUser] = useState(null);
@@ -158,7 +159,7 @@ export default function AccountPage() {
               <input
                 type="text"
                 readOnly
-                value={typeof window !== 'undefined' ? `${window.location.origin}/register?ref=${user.id}` : ''}
+                value={siteUrl(`/register?ref=${user.id}`)}
                 className="form-input"
                 style={{ flex: '1', minWidth: 200, fontFamily: 'monospace', fontSize: '0.8125rem' }}
               />
@@ -166,7 +167,7 @@ export default function AccountPage() {
                 type="button"
                 className="btn btn-primary"
                 onClick={async () => {
-                  const url = typeof window !== 'undefined' ? `${window.location.origin}/register?ref=${user.id}` : '';
+                  const url = siteUrl(`/register?ref=${user.id}`);
                   try {
                     await navigator.clipboard.writeText(url);
                     setInviteCopied(true);
@@ -254,12 +255,12 @@ export default function AccountPage() {
                           readOnly
                           className="form-input"
                           style={{ flex: 1, minWidth: 180, fontFamily: 'monospace', fontSize: '0.75rem' }}
-                          value={typeof window !== 'undefined' ? `${window.location.origin}/pay/${pl.token}` : ''}
+                          value={siteUrl(`/pay/${pl.token}`)}
                         />
                         <button
                           type="button"
                           className="btn btn-ghost"
-                          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/pay/${pl.token}`)}
+                          onClick={() => navigator.clipboard.writeText(siteUrl(`/pay/${pl.token}`))}
                         >
                           Copy
                         </button>

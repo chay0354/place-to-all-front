@@ -1,6 +1,4 @@
-import { getApiOrigin } from './api-base.js';
-
-const API_URL = getApiOrigin();
+import { joinBackendUrl } from './api-base.js';
 
 export async function apiRequest(path, options = {}, accessToken) {
   const headers = {
@@ -9,7 +7,7 @@ export async function apiRequest(path, options = {}, accessToken) {
   };
   if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
   if (options.userId) headers['X-User-Id'] = options.userId;
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  const res = await fetch(joinBackendUrl(path), { ...options, headers });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const err = new Error(data.error || res.statusText);
@@ -94,7 +92,7 @@ export async function createRapydCheckout(userId, { currency, fiatAmount, crypto
 
 /** Public: load payment link details for /pay/[token] page. */
 export async function getPublicPaymentLink(linkToken) {
-  const res = await fetch(`${API_URL}/api/payment-links/public/${encodeURIComponent(linkToken)}`, { cache: 'no-store' });
+  const res = await fetch(joinBackendUrl(`/api/payment-links/public/${encodeURIComponent(linkToken)}`), { cache: 'no-store' });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || res.statusText);
   return data;
@@ -147,7 +145,7 @@ export async function getMoonPayUrl(userId, { currencyCode = 'eth', baseCurrency
 
 export async function getCoinbaseBuyQuote(fiatAmount, currency = 'BTC', fiatCurrency = 'USD') {
   const res = await fetch(
-    `${API_URL}/api/coinbase/quote/buy?fiatAmount=${encodeURIComponent(fiatAmount)}&currency=${encodeURIComponent(currency)}&fiatCurrency=${encodeURIComponent(fiatCurrency)}`
+    joinBackendUrl(`/api/coinbase/quote/buy?fiatAmount=${encodeURIComponent(fiatAmount)}&currency=${encodeURIComponent(currency)}&fiatCurrency=${encodeURIComponent(fiatCurrency)}`)
   );
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || res.statusText);
@@ -156,7 +154,7 @@ export async function getCoinbaseBuyQuote(fiatAmount, currency = 'BTC', fiatCurr
 
 export async function getCoinbaseSellQuote(cryptoAmount, currency = 'BTC', fiatCurrency = 'USD') {
   const res = await fetch(
-    `${API_URL}/api/coinbase/quote/sell?cryptoAmount=${encodeURIComponent(cryptoAmount)}&currency=${encodeURIComponent(currency)}&fiatCurrency=${encodeURIComponent(fiatCurrency)}`
+    joinBackendUrl(`/api/coinbase/quote/sell?cryptoAmount=${encodeURIComponent(cryptoAmount)}&currency=${encodeURIComponent(currency)}&fiatCurrency=${encodeURIComponent(fiatCurrency)}`)
   );
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || res.statusText);
@@ -165,7 +163,7 @@ export async function getCoinbaseSellQuote(cryptoAmount, currency = 'BTC', fiatC
 
 /** Current USD spot price for an asset (Coinbase). */
 export async function getCoinbasePrice(currency = 'BTC') {
-  const res = await fetch(`${API_URL}/api/coinbase/price?currency=${encodeURIComponent(currency)}`);
+  const res = await fetch(joinBackendUrl(`/api/coinbase/price?currency=${encodeURIComponent(currency)}`));
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || res.statusText);
   return data;
@@ -173,7 +171,7 @@ export async function getCoinbasePrice(currency = 'BTC') {
 
 /** List of supported crypto currency codes from Coinbase (for buy/sell). */
 export async function getCoinbaseCurrencies() {
-  const res = await fetch(`${API_URL}/api/coinbase/currencies`);
+  const res = await fetch(joinBackendUrl('/api/coinbase/currencies'));
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || res.statusText);
   return data.currencies || [];
@@ -181,7 +179,7 @@ export async function getCoinbaseCurrencies() {
 
 /** Currencies supported by both MoonPay (buy to wallet) and Coinbase — use for buy page only. */
 export async function getBuyableCurrencies() {
-  const res = await fetch(`${API_URL}/api/coinbase/currencies/buy`);
+  const res = await fetch(joinBackendUrl('/api/coinbase/currencies/buy'));
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || res.statusText);
   const list = data.currencies || [];

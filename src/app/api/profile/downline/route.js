@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { getApiOrigin } from '@/lib/api-base';
+import { joinBackendUrl } from '@/lib/api-base';
 
 /** GET /api/profile/downline — proxy to backend (agents / referred users). */
 export async function GET() {
@@ -8,7 +8,7 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const res = await fetch(`${getApiOrigin()}/api/profile/downline`, {
+  const res = await fetch(joinBackendUrl('/api/profile/downline'), {
     headers: { 'X-User-Id': user.id },
     cache: 'no-store',
   });

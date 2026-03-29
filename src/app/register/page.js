@@ -4,7 +4,7 @@ import { Suspense, useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { getApiOrigin } from '@/lib/api-base';
+import { joinBackendUrl } from '@/lib/api-base';
 
 function RegisterPageContent() {
   const searchParams = useSearchParams();
@@ -27,8 +27,7 @@ function RegisterPageContent() {
       setRecruiterRole(null);
       return;
     }
-    const apiUrl = getApiOrigin();
-    fetch(`${apiUrl}/api/auth/referral-preview?ref=${encodeURIComponent(ref)}`)
+    fetch(joinBackendUrl(`/api/auth/referral-preview?ref=${encodeURIComponent(ref)}`))
       .then((r) => r.json())
       .then((d) => setRecruiterRole(d.valid ? d.recruiterRole : null))
       .catch(() => setRecruiterRole(null));
@@ -55,14 +54,13 @@ function RegisterPageContent() {
         throw new Error(typeof msg === 'string' ? msg : 'Sign up failed. Try a different email or password.');
       }
       if (data?.user?.id) {
-        const apiUrl = getApiOrigin();
         const confirmBody = { userId: data.user.id };
         if (isFromAffiliateLink) {
           confirmBody.referredBy = refParam.trim();
         } else {
           confirmBody.role = userType;
         }
-        const confirmRes = await fetch(`${apiUrl}/api/auth/confirm-email`, {
+        const confirmRes = await fetch(joinBackendUrl('/api/auth/confirm-email'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(confirmBody),

@@ -1,18 +1,16 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { DashboardClient } from './DashboardClient';
-import { getApiOrigin } from '@/lib/api-base';
+import { joinBackendUrl } from '@/lib/api-base';
 
 export default async function DashboardPage({ searchParams }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const apiUrl = getApiOrigin();
-
   let wallets = [];
   try {
-    const res = await fetch(`${apiUrl}/api/wallets`, {
+    const res = await fetch(joinBackendUrl('/api/wallets'), {
       headers: { 'X-User-Id': user.id },
       cache: 'no-store',
     });
