@@ -110,7 +110,7 @@ export async function listPaymentLinks(userId, accessToken) {
   return apiRequest('/api/payment-links', { userId, cache: 'no-store' }, accessToken);
 }
 
-/** Admin: list agents and super agents (operator email only — see backend). */
+/** Admin: list agents, super agents, and super super agents (operator email only — see backend). */
 export async function adminListAgents(userId, accessToken) {
   return apiRequest('/api/admin/agents', { userId, cache: 'no-store' }, accessToken);
 }
@@ -118,6 +118,15 @@ export async function adminListAgents(userId, accessToken) {
 /** Admin: promote an agent to super_agent. */
 export async function adminPromoteToSuperAgent(userId, targetUserId, accessToken) {
   return apiRequest('/api/admin/promote-to-super-agent', {
+    method: 'POST',
+    userId,
+    body: JSON.stringify({ targetUserId }),
+  }, accessToken);
+}
+
+/** Admin: promote a super_agent to super_super_agent. */
+export async function adminPromoteToSuperSuperAgent(userId, targetUserId, accessToken) {
+  return apiRequest('/api/admin/promote-to-super-super-agent', {
     method: 'POST',
     userId,
     body: JSON.stringify({ targetUserId }),

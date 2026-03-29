@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { buyCrypto, createRapydCheckout, getCoinbaseSellQuote, getCoinbasePrice, getCoinbaseCurrencies, getPublicPaymentLink } from '@/lib/api';
+import { buyCrypto, getCoinbaseSellQuote, getCoinbasePrice, getCoinbaseCurrencies, getPublicPaymentLink } from '@/lib/api';
 import { joinBackendUrl } from '@/lib/api-base';
 
 /** Coinbase-supported buyable codes — used if buy API is unavailable. */
@@ -154,50 +154,6 @@ function BuyPageContent() {
     }
   }
 
-  const canBuyToWallet = currency && currencies.some((c) => String(c).toUpperCase() === String(currency).toUpperCase());
-
-  async function openRapyd() {
-    setError('');
-    if (!userId) return;
-    if (!canBuyToWallet) {
-      setError('Select a currency from the list to pay with Rapyd.');
-      return;
-    }
-    const cryptoNum = Number(amount);
-    let usdAmount = usdFromCrypto != null ? Number(usdFromCrypto) : 0;
-    if (cryptoNum > 0 && !(usdAmount > 0)) {
-      try {
-        const { priceUsd } = await getCoinbasePrice(currency);
-        usdAmount = cryptoNum * priceUsd;
-      } catch (_) {}
-    }
-    if (!(usdAmount > 0)) usdAmount = 100;
-    setLoading(true);
-    try {
-      const rapydOpts = {
-        currency,
-        fiatAmount: usdAmount,
-        fiatCurrency: 'USD',
-      };
-      if (isPaymentLinkCheckout) {
-        rapydOpts.beneficiaryUserId = payTo;
-        rapydOpts.paymentLinkToken = payToken;
-      }
-      const { redirect_url } = await createRapydCheckout(userId, rapydOpts, token);
-      if (redirect_url) window.location.href = redirect_url;
-      else setError('Could not create Rapyd checkout');
-    } catch (err) {
-      let msg = err.message || 'Could not open Rapyd';
-      const rapyd = err.response?.rapyd;
-      if (rapyd?.operation_id) {
-        msg += ` — Contact Rapyd Support (https://support.rapyd.net) with reference: ${rapyd.operation_id}`;
-      }
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   if (!userId) return null;
 
   return (
@@ -207,7 +163,7 @@ function BuyPageContent() {
         <p className="page-desc">
           {isPaymentLinkCheckout
             ? 'Confirm the asset and amount, then use Pay now to simulate a successful payment. The recipient is credited on the ledger (demo).'
-            : 'Choose asset and amount for an estimate. Pay with card (Rapyd) or use instant test for development.'}
+            : 'Choose asset and amount for an estimate, then use instant test to simulate a buy (development).'}
         </p>
         {isPaymentLinkCheckout && (
           <div className="alert alert-success" style={{ margin: '0 0 1rem', borderRadius: 12 }}>
@@ -254,17 +210,12 @@ function BuyPageContent() {
             <div className="action-row">
               <button
                 type="button"
-                onClick={isPaymentLinkCheckout ? handleInstantTest : openRapyd}
+                onClick={handleInstantTest}
                 disabled={loading || !currency}
                 className="btn btn-primary"
               >
-                {loading ? '…' : isPaymentLinkCheckout ? 'Pay now (simulated)' : 'Pay with card (Rapyd)'}
+                {loading ? '…' : isPaymentLinkCheckout ? 'Pay now (simulated)' : 'Instant test (dev)'}
               </button>
-              {!isPaymentLinkCheckout && (
-                <button type="button" onClick={handleInstantTest} disabled={loading} className="btn btn-ghost">
-                  Instant test (dev)
-                </button>
-              )}
             </div>
           </form>
         </div>

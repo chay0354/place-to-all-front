@@ -90,7 +90,9 @@ function RegisterPageContent() {
       <h1 className="auth-title">Create account</h1>
       <p className="auth-sub">
         {isFromAffiliateLink
-          ? recruiterRole === 'super_agent'
+          ? recruiterRole === 'super_super_agent'
+            ? 'You were invited by a super super agent. You will sign up as an agent under them — they earn the same network fees as a super agent plus an additional 4% when the commission rules apply (fees are paid by the buyer).'
+            : recruiterRole === 'super_agent'
             ? 'You were invited by a super agent. You will sign up as an agent under them — they earn an extra 4% on qualifying buys you and your referrals make (fees are paid by the buyer).'
             : recruiterRole === 'agent'
               ? 'You were referred by an agent. Create a regular account; they earn 2% when you buy crypto (fee paid by you as the buyer).'

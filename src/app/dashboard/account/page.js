@@ -53,18 +53,21 @@ export default function AccountPage() {
 
   useEffect(() => {
     const r = profile?.role;
-    if (r !== 'agent' && r !== 'super_agent') {
+    if (r !== 'agent' && r !== 'super_agent' && r !== 'super_super_agent') {
       setDownline(null);
       return;
     }
     setDownlineLoading(true);
     getProfileDownline()
       .then((d) => setDownline(d && typeof d === 'object' ? d : { kind: 'none', members: [] }))
-      .catch(() => setDownline({ kind: r === 'super_agent' ? 'agents' : 'regulars', members: [] }))
+      .catch(() =>
+        setDownline({ kind: r === 'super_agent' || r === 'super_super_agent' ? 'agents' : 'regulars', members: [] }),
+      )
       .finally(() => setDownlineLoading(false));
   }, [profile?.role]);
 
-  const isAgentLike = profile?.role === 'agent' || profile?.role === 'super_agent';
+  const isAgentLike =
+    profile?.role === 'agent' || profile?.role === 'super_agent' || profile?.role === 'super_super_agent';
 
   function refreshPaymentLinks() {
     if (!user?.id || !token || !isAgentLike) return;
@@ -131,7 +134,7 @@ export default function AccountPage() {
           <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Admin</h2>
           <div className="card card-lg">
             <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-              View agents and super agents; promote <strong>agents</strong> to <strong>super agent</strong> only when they have no invited users. (Operator account only.)
+              View agents, super agents, and super super agents; promote <strong>agents</strong> to <strong>super agent</strong>, and <strong>super agents</strong> to <strong>super super agent</strong>, only when they have no invited users. (Operator account only.)
             </p>
             <Link href="/dashboard/admin" className="btn btn-primary" style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none', width: '100%' }}>
               Open admin menu
@@ -145,13 +148,17 @@ export default function AccountPage() {
           <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Invite link</h2>
           <div className="card card-lg">
             <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-              {profile?.role === 'super_agent' ? (
+              {profile?.role === 'super_super_agent' ? (
+                <>
+                  Share this link to recruit <strong>agents</strong> under you — same tools as a super agent (referral link for regular users, payment links). You earn the same <strong>4%</strong> super-network commission on qualifying buys where you are that tier, <strong>plus an additional 4%</strong> when you qualify as the super-super upline in the buyer’s chain (paid by the buyer).
+                </>
+              ) : profile?.role === 'super_agent' ? (
                 <>
                   Share this link to recruit <strong>agents</strong> under you. They get the same agent tools (their own referral link for regular users, payment links). You earn an extra <strong>4%</strong> on qualifying crypto buys they make and on buys by users they refer (on top of their 2% affiliate). All of these percentages are taken from the buyer’s side of each purchase.
                 </>
               ) : (
                 <>
-                  Share this invite link. When someone signs up through it, they join as a <strong>regular</strong> user. You earn <strong>2%</strong> of each crypto purchase they make. If your account sits under a super agent, they also earn <strong>4%</strong> on those buys (paid by the buyer).
+                  Share this invite link. When someone signs up through it, they join as a <strong>regular</strong> user. You earn <strong>2%</strong> of each crypto purchase they make. If your account sits under a super agent, they also earn <strong>4%</strong> on those buys; a <strong>super super agent</strong> above them may earn a further <strong>4%</strong> when applicable (paid by the buyer).
                 </>
               )}
             </p>
@@ -319,13 +326,17 @@ export default function AccountPage() {
       {isAgentLike && (
         <>
           <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>
-            {profile?.role === 'super_agent' ? 'Your agents' : 'Users you referred'}
+            {profile?.role === 'super_agent' || profile?.role === 'super_super_agent'
+              ? 'Your agents'
+              : 'Users you referred'}
           </h2>
           <div className="card card-lg">
             <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-              {profile?.role === 'super_agent'
-                ? 'Agents who signed up with your super-agent invite link.'
-                : 'Regular users who joined with your invite link.'}
+              {profile?.role === 'super_super_agent'
+                ? 'Agents who signed up with your super super agent invite link.'
+                : profile?.role === 'super_agent'
+                  ? 'Agents who signed up with your super-agent invite link.'
+                  : 'Regular users who joined with your invite link.'}
             </p>
             {downlineLoading ? (
               <p style={{ color: 'var(--text-muted)', padding: '0.5rem 0' }}>Loading…</p>

@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import {
   adminListAgents,
   adminPromoteToSuperAgent,
+  adminPromoteToSuperSuperAgent,
   adminListRegularUsers,
 } from '@/lib/api';
 import { isAdminOperatorEmail, ADMIN_OPERATOR_EMAIL } from '@/lib/admin-config';
@@ -216,6 +217,24 @@ export default function AdminPage() {
     }
   }
 
+  async function promoteToSuperSuper(targetUserId) {
+    if (!user?.id || !token) return;
+    if (!window.confirm('Promote this user to super super agent?')) return;
+    setActionId(targetUserId);
+    setActionMessage('');
+    try {
+      await adminPromoteToSuperSuperAgent(user.id, targetUserId, token);
+      setActionMessage('Promoted to super super agent.');
+      setRows((prev) =>
+        prev.map((r) => (r.id === targetUserId ? { ...r, role: 'super_super_agent' } : r))
+      );
+    } catch (e) {
+      setActionMessage(e?.message || 'Failed');
+    } finally {
+      setActionId(null);
+    }
+  }
+
   if (loading) return null;
 
   if (forbidden) {
@@ -234,17 +253,67 @@ export default function AdminPage() {
 
   const agents = rows.filter((r) => r.role === 'agent');
   const superAgents = rows.filter((r) => r.role === 'super_agent');
+  const superSuperAgents = rows.filter((r) => r.role === 'super_super_agent');
 
   return (
     <div className="page">
       <Link href="/dashboard/account" className="back-link">← Back to account</Link>
       <h1 className="page-title">Admin menu</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-        Operator: <strong>{user?.email}</strong>. Each super agent lists agents where <code style={{ fontSize: '0.8em' }}>referred_by_id</code> is that super agent. Each agent lists regular users with the same referrer. Promote to super agent only when the agent has <strong>zero</strong> invited users.
+        Operator: <strong>{user?.email}</strong>. Super super / super agent sections list <strong>agents</strong> whose <code style={{ fontSize: '0.8em' }}>referred_by_id</code> is that user. Each agent row lists regular users they referred. Promote <strong>agent → super agent</strong> or <strong>super agent → super super agent</strong> only when that user has <strong>zero</strong> invited profiles.
       </p>
 
       {listError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{listError}</div>}
       {actionMessage && <p style={{ marginBottom: '1rem', fontSize: '0.875rem' }}>{actionMessage}</p>}
+
+      <h2 className="page-title" style={{ marginTop: '1rem', fontSize: '1.1rem' }}>Super super agents ({superSuperAgents.length})</h2>
+      <div className="card card-lg" style={{ marginBottom: '1.5rem' }}>
+        {superSuperAgents.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)' }}>No super super agent accounts yet.</p>
+        ) : (
+          <div style={tableWrap}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>Email</th>
+                  <th style={thStyle}>Name</th>
+                  <th style={{ ...thStyle, minWidth: 200 }}>User ID</th>
+                  <th style={{ ...thStyle, textAlign: 'right', width: 72 }}>Direct refs</th>
+                  <th style={{ ...thStyle, width: 120 }}>Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                {superSuperAgents.map((a, i) => {
+                  const invited = Number(a.invitedCount) || 0;
+                  const rowBg = i % 2 === 0 ? 'transparent' : 'var(--bg-muted)';
+                  const under = agentsBySuperId[a.id] ?? [];
+                  return (
+                    <Fragment key={a.id}>
+                      <tr style={{ background: rowBg }}>
+                        <td style={tdStyle}>{a.email || '—'}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{a.display_name || a.username || '—'}</td>
+                        <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>{a.id}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{invited}</td>
+                        <td style={tdStyle}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--success, #3fb950)' }}>Super super</span>
+                        </td>
+                      </tr>
+                      <tr style={{ background: 'var(--bg-muted)' }}>
+                        <td colSpan={5} style={{ padding: '1rem', borderBottom: '1px solid var(--border, #30363d)' }}>
+                          <div style={{ fontWeight: 600, marginBottom: '0.75rem', fontSize: '0.875rem' }}>
+                            Agents under this super super agent ({under.length})
+                          </div>
+                          <AgentsUnderSuperTable agents={under} />
+                        </td>
+                      </tr>
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <h2 className="page-title" style={{ marginTop: '1rem', fontSize: '1.1rem' }}>Super agents ({superAgents.length})</h2>
       <div className="card card-lg" style={{ marginBottom: '1.5rem' }}>
@@ -260,11 +329,13 @@ export default function AdminPage() {
                   <th style={{ ...thStyle, minWidth: 200 }}>User ID</th>
                   <th style={{ ...thStyle, textAlign: 'right', width: 72 }}>Direct refs</th>
                   <th style={{ ...thStyle, width: 90 }}>Role</th>
+                  <th style={{ ...thStyle, width: 1 }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {superAgents.map((a, i) => {
                   const invited = Number(a.invitedCount) || 0;
+                  const canPromoteSuperSuper = invited === 0;
                   const rowBg = i % 2 === 0 ? 'transparent' : 'var(--bg-muted)';
                   const under = agentsBySuperId[a.id] ?? [];
                   return (
@@ -277,9 +348,21 @@ export default function AdminPage() {
                         <td style={tdStyle}>
                           <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--success, #3fb950)' }}>Super agent</span>
                         </td>
+                        <td style={tdStyle}>
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.8125rem', whiteSpace: 'nowrap' }}
+                            disabled={actionId === a.id || !canPromoteSuperSuper}
+                            title={!canPromoteSuperSuper ? 'Promote only when direct ref count is 0' : undefined}
+                            onClick={() => promoteToSuperSuper(a.id)}
+                          >
+                            {actionId === a.id ? '…' : 'To super super'}
+                          </button>
+                        </td>
                       </tr>
                       <tr style={{ background: 'var(--bg-muted)' }}>
-                        <td colSpan={5} style={{ padding: '1rem', borderBottom: '1px solid var(--border, #30363d)' }}>
+                        <td colSpan={6} style={{ padding: '1rem', borderBottom: '1px solid var(--border, #30363d)' }}>
                           <div style={{ fontWeight: 600, marginBottom: '0.75rem', fontSize: '0.875rem' }}>
                             Agents under this super agent ({under.length})
                           </div>
