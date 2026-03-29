@@ -295,7 +295,7 @@ export default function AdminPage() {
             <strong style={{ color: 'var(--text)' }}>Agents</strong> recruit <strong style={{ color: 'var(--text)' }}>regular customers</strong>. Open an agent card to see their customers.
           </li>
           <li>
-            <strong style={{ color: 'var(--text)' }}>“Invite link count”</strong> = how many accounts signed up with that person’s link. Promotion is allowed only when that number is <strong style={{ color: 'var(--text)' }}>0</strong>.
+            <strong style={{ color: 'var(--text)' }}>“Invite link count”</strong> = how many accounts signed up with that person’s link. <strong style={{ color: 'var(--text)' }}>Agent → super agent</strong> is allowed only when that count is <strong style={{ color: 'var(--text)' }}>0</strong>. <strong style={{ color: 'var(--text)' }}>Super agent → super super agent</strong> can be done anytime (supers usually already have agents on their link).
           </li>
         </ol>
         <p style={{ margin: '0.75rem 0 0', fontSize: '0.8125rem' }}>
@@ -314,7 +314,7 @@ export default function AdminPage() {
       </p>
       <div className="card card-lg" style={{ marginBottom: '1.25rem' }}>
         {superSuperAgents.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)', margin: 0 }}>None yet — promote a super agent when their invite count is 0.</p>
+          <p style={{ color: 'var(--text-muted)', margin: 0 }}>None yet — promote a super agent using the button in the Super agents section.</p>
         ) : (
           superSuperAgents.map((a) => {
             const invited = Number(a.invitedCount) || 0;
@@ -332,7 +332,7 @@ export default function AdminPage() {
                   Invite link count:{' '}
                   <strong style={{ color: 'var(--text)' }}>{invited}</strong>
                   <span style={{ display: 'block', marginTop: 4, fontSize: '0.8125rem' }}>
-                    (agents + others who used their link — must be 0 to promote further)
+                    (everyone who used this person’s invite link)
                   </span>
                 </div>
                 <CopyIdButton id={a.id} />
@@ -355,7 +355,7 @@ export default function AdminPage() {
         Super agents ({superAgents.length})
       </h2>
       <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
-        Each card lists agents they recruited. Use the button to move someone to super super (only if invite count is 0).
+        Each card lists agents they recruited. Use the button to promote them to super super agent.
       </p>
       <div className="card card-lg" style={{ marginBottom: '1.25rem' }}>
         {superAgents.length === 0 ? (
@@ -363,7 +363,6 @@ export default function AdminPage() {
         ) : (
           superAgents.map((a) => {
             const invited = Number(a.invitedCount) || 0;
-            const canPromoteSuperSuper = invited === 0;
             const under = agentsBySuperId[a.id] ?? [];
             return (
               <div key={a.id} style={{ ...card, marginBottom: '1rem' }}>
@@ -388,17 +387,11 @@ export default function AdminPage() {
                     padding: '0.55rem 1rem',
                     fontSize: '0.875rem',
                   }}
-                  disabled={actionId === a.id || !canPromoteSuperSuper}
-                  title={!canPromoteSuperSuper ? 'Invite link count must be 0 first' : undefined}
+                  disabled={actionId === a.id}
                   onClick={() => promoteToSuperSuper(a.id)}
                 >
                   {actionId === a.id ? 'Working…' : 'Promote to super super agent'}
                 </button>
-                {!canPromoteSuperSuper && (
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', margin: '0.5rem 0 0' }}>
-                    Clear their downline invites first (count must be 0) to enable promotion.
-                  </p>
-                )}
                 <div style={nested}>
                   <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                     Their agents ({under.length})
@@ -461,7 +454,7 @@ export default function AdminPage() {
                   <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                     Their regular customers ({usersUnder.length})
                   </div>
-                  <RegularUsersUnderAgentList
+                  <RegularCustomersList
                     users={usersUnder}
                     emptyLabel="No regular customers on their invite link yet."
                   />
