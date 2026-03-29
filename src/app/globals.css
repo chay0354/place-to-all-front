@@ -616,19 +616,6 @@ input, button, select {
   opacity: 0.9;
 }
 
-.dash-balance-change {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.875rem;
-  color: var(--dash-success);
-  margin-top: 0.35rem;
-}
-
-.dash-balance-change.negative {
-  color: var(--dash-danger);
-}
-
 .dash-balance-settings {
   position: absolute;
   top: 1.25rem;

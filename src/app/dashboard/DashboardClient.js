@@ -57,7 +57,6 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
   const [wallets, setWallets] = useState(() => ledgerRowsToWallets(initialWallets));
   const [walletError, setWalletError] = useState(null);
   const [walletReady, setWalletReady] = useState(false);
-  const [balanceChangePercent, setBalanceChangePercent] = useState(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -106,8 +105,6 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
   }
 
   const totalUsd = wallets.reduce((sum, w) => sum + toNum(w.balance) * usdUnitPrice(w.currency), 0);
-  const changePercent = balanceChangePercent ?? 0;
-  const isPositiveChange = changePercent >= 0;
   const balanceStr = totalUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const balanceParts = balanceStr.split('.');
   const balanceWhole = balanceParts[0];
@@ -154,16 +151,6 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
         <div className="dash-balance-amount">
           $<span className="dash-balance-whole">{balanceWhole}</span>
           {balanceCents && <span className="dash-balance-cents">{balanceCents}</span>}
-        </div>
-        <div className={`dash-balance-change ${totalUsd > 0 && !isPositiveChange ? 'negative' : ''}`}>
-          {totalUsd <= 0 ? (
-            <span style={{ opacity: 0.85 }}>No balance yet</span>
-          ) : (
-            <>
-              <span>{isPositiveChange ? '↑' : '▼'}</span>
-              <span>${Math.abs(changePercent).toFixed(2)} ({isPositiveChange ? '+' : ''}{changePercent.toFixed(1)}%)</span>
-            </>
-          )}
         </div>
       </div>
 

@@ -98,6 +98,21 @@ export async function getPublicPaymentLink(linkToken) {
   return data;
 }
 
+/** Public: simulated pay — no sign-in. Optional body.amount when the link has no fixed amount. */
+export async function simulatePublicPaymentLink(linkToken, body = {}) {
+  const res = await fetch(
+    joinBackendUrl(`/api/payment-links/public/${encodeURIComponent(linkToken)}/simulate-pay`),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body || {}),
+    },
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
 export async function createPaymentLink(userId, body, accessToken) {
   return apiRequest('/api/payment-links', {
     method: 'POST',

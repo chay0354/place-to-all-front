@@ -125,7 +125,7 @@ function RegisterPageContent() {
             </label>
           </div>
           <p style={{ fontSize: '0.8125rem', color: 'var(--dash-muted)', marginTop: '0.35rem' }}>
-            Regular accounts can create <strong>payment links</strong> from Account (request a fixed amount from someone). Agents also get a referral link for regular signups and earn 4% on those users’ buys (plus upline tiers when applicable). <strong>Super agent</strong> is not a signup option — register as an agent first; an app admin promotes you from the admin menu.
+            Regular accounts can create <strong>payment links</strong> from Account (payers don’t need an account). Agents also get a referral link for regular signups and earn 4% on those users’ buys (plus upline tiers when applicable). <strong>Super agent</strong> is not a signup option — register as an agent first; an app admin promotes you from the admin menu.
           </p>
         </div>
       )}

@@ -49,8 +49,17 @@ function BuyPageContent() {
   }, []);
 
   const buyQueryKey = searchParams.toString();
+  const payTo = searchParams.get('payTo') || '';
+  const payToken = searchParams.get('payToken') || '';
 
   useEffect(() => {
+    if (payTo && payToken) {
+      router.replace(`/pay/${encodeURIComponent(payToken)}`);
+    }
+  }, [router, payTo, payToken]);
+
+  useEffect(() => {
+    if (payTo && payToken) return;
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) {
@@ -61,10 +70,8 @@ function BuyPageContent() {
       setUserId(user.id);
       supabase.auth.getSession().then(({ data: { session } }) => setToken(session?.access_token));
     });
-  }, [router, buyQueryKey]);
+  }, [router, buyQueryKey, payTo, payToken]);
 
-  const payTo = searchParams.get('payTo') || '';
-  const payToken = searchParams.get('payToken') || '';
   const isPaymentLinkCheckout = Boolean(payTo && payToken);
 
   useEffect(() => {

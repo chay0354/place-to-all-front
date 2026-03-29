@@ -200,7 +200,7 @@ export default function AccountPage() {
           <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Payment links</h2>
           <div className="card card-lg">
             <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-              Create a fixed-amount link: recipients send that amount in crypto or log in and pay with card — funds credit your in-app wallet.
+              Create a fixed-amount link: anyone can open it and pay in one tap (no sign-in). Funds credit your in-app wallet; older links are retired when you create a new one.
             </p>
             <form
               onSubmit={async (e) => {
