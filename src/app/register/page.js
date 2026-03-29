@@ -4,7 +4,7 @@ import { Suspense, useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { joinBackendUrl } from '@/lib/api-base';
+import { toRelayUrl } from '@/lib/relay-url';
 
 function RegisterPageContent() {
   const searchParams = useSearchParams();
@@ -27,7 +27,7 @@ function RegisterPageContent() {
       setRecruiterRole(null);
       return;
     }
-    fetch(joinBackendUrl(`/api/auth/referral-preview?ref=${encodeURIComponent(ref)}`))
+    fetch(toRelayUrl(`/api/auth/referral-preview?ref=${encodeURIComponent(ref)}`), { credentials: 'include' })
       .then((r) => r.json())
       .then((d) => setRecruiterRole(d.valid ? d.recruiterRole : null))
       .catch(() => setRecruiterRole(null));
@@ -60,10 +60,11 @@ function RegisterPageContent() {
         } else {
           confirmBody.role = userType;
         }
-        const confirmRes = await fetch(joinBackendUrl('/api/auth/confirm-email'), {
+        const confirmRes = await fetch(toRelayUrl('/api/auth/confirm-email'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(confirmBody),
+          credentials: 'include',
         });
         const confirmData = await confirmRes.json().catch(() => ({}));
         if (!confirmRes.ok) {

@@ -5,7 +5,15 @@ import { proxyBackendGet } from '@/lib/backend-proxy';
 /** GET /api/profile/downline — proxy to backend (agents / referred users). */
 export async function GET() {
   try {
-    const supabase = await createClient();
+    let supabase;
+    try {
+      supabase = await createClient();
+    } catch (e) {
+      return NextResponse.json(
+        { error: 'Auth configuration', message: e?.message || 'Check NEXT_PUBLIC_SUPABASE_* env on Vercel' },
+        { status: 500 },
+      );
+    }
     const {
       data: { user },
     } = await supabase.auth.getUser();
