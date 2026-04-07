@@ -6,21 +6,30 @@ import { usePathname } from 'next/navigation';
 export function DashboardShell({ children }) {
   const pathname = usePathname() || '';
   const isHome = pathname === '/dashboard' || pathname === '/dashboard/';
-  const isTransfer = pathname.startsWith('/dashboard/transfer');
   const isBuy = pathname.startsWith('/dashboard/buy');
-  const isAccount = pathname.startsWith('/dashboard/account');
+  const isSend = pathname.startsWith('/dashboard/transfer');
+  const isSettings = pathname.startsWith('/dashboard/account');
+  const isAccount = isSettings;
 
   return (
     <div className="dashboard-wallet-ui">
       <header className="dash-header">
         <div className="dash-header-row">
-          <Link href="/dashboard/account" className="dash-profile" aria-label="Account" aria-hidden={isAccount} />
+          <Link href="/dashboard/account" className="dash-profile dash-profile--avatar" aria-label="Account" aria-hidden={isAccount}>
+            <span role="img" aria-hidden>
+              🦊
+            </span>
+          </Link>
+          <h1 className="dash-brand">place to all</h1>
           <div className="dash-header-actions">
             <button type="button" className="dash-header-icon" aria-label="Scan">
               <ScanIcon />
             </button>
             <button type="button" className="dash-header-icon" aria-label="Notifications">
               <BellIcon />
+            </button>
+            <button type="button" className="dash-header-icon" aria-label="Support">
+              <HeadsetIcon />
             </button>
           </div>
         </div>
@@ -33,23 +42,18 @@ export function DashboardShell({ children }) {
           <HomeIcon />
           Home
         </Link>
-        <Link href="/dashboard/transfer" className={isTransfer ? 'active' : ''}>
-          <SendIcon />
-          Transfer
-        </Link>
         <Link href="/dashboard/buy" className={isBuy ? 'active' : ''}>
-          <ReceiveIcon />
+          <CardIcon />
           Buy
         </Link>
-        <span
-          className="dash-bottom-nav-static"
-          role="button"
-          aria-disabled="true"
-          tabIndex={-1}
-        >
-          <SwapIcon />
-          Sell
-        </span>
+        <Link href="/dashboard/transfer" className={isSend ? 'active' : ''}>
+          <SendIcon />
+          Send
+        </Link>
+        <Link href="/dashboard/account" className={isSettings ? 'active' : ''}>
+          <SettingsIcon />
+          Settings
+        </Link>
       </nav>
     </div>
   );
@@ -59,6 +63,17 @@ function ScanIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M3 7V5a2 2 0 0 1 2-2h2M21 7V5a2 2 0 0 0-2-2h-2M3 17v2a2 2 0 0 0 2 2h2M21 17v2a2 2 0 0 1-2 2h-2M7 3h10M7 21h10M3 12h18" />
+    </svg>
+  );
+}
+
+function HeadsetIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4 13a8 8 0 0 1 16 0" />
+      <rect x="2" y="12" width="4" height="7" rx="2" />
+      <rect x="18" y="12" width="4" height="7" rx="2" />
+      <path d="M6 19a6 6 0 0 0 6 3h2" />
     </svg>
   );
 }
@@ -88,18 +103,20 @@ function SendIcon() {
   );
 }
 
-function ReceiveIcon() {
+function CardIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+      <rect x="2" y="5" width="20" height="14" rx="3" />
+      <path d="M2 10h20" />
     </svg>
   );
 }
 
-function SwapIcon() {
+function SettingsIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 14H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.6 1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.28.51.79.86 1.37.91H21a2 2 0 0 1 0 4h-.23c-.58.05-1.09.4-1.37.91z" />
     </svg>
   );
 }

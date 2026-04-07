@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getWalletsForDashboard } from '@/lib/api';
+import { getTransactions, getWalletsForDashboard } from '@/lib/api';
 import { assetLabel } from '@/lib/asset-names';
 
 const FALLBACK_PRICES = { BTC: 50000, ETH: 2000, USDT: 1, USDC: 1, BNB: 650, SOL: 150, XRP: 0.5 };
@@ -53,6 +53,8 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
   const [wallets, setWallets] = useState(() => ledgerRowsToWallets(initialWallets));
   const [walletError, setWalletError] = useState(null);
   const [walletReady, setWalletReady] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+  const [txReady, setTxReady] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -100,11 +102,38 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
     }
   }
 
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    setTxReady(false);
+    getTransactions()
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        if (!cancelled) {
+          setTransactions(list);
+          setTxReady(true);
+        }
+      })
+      .catch((e) => {
+        console.warn('[dashboard] getTransactions failed', e?.message || e);
+        if (!cancelled) {
+          setTransactions([]);
+          setTxReady(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, refreshKey]);
+
   const totalUsd = wallets.reduce((sum, w) => sum + toNum(w.balance) * usdUnitPrice(w.currency), 0);
   const balanceStr = totalUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const balanceParts = balanceStr.split('.');
-  const balanceWhole = balanceParts[0];
-  const balanceCents = balanceParts[1] ? `.${balanceParts[1]}` : '';
+  const topTransactions = transactions.slice(0, 4);
+  const txIncoming = topTransactions.filter((tx) => tx.direction === 'in');
+  const txOutgoing = topTransactions.filter((tx) => tx.direction !== 'in');
+  const incomingTotal = txIncoming.reduce((sum, tx) => sum + Math.abs(Number(tx.amount) || 0), 0);
+  const outgoingTotal = txOutgoing.reduce((sum, tx) => sum + Math.abs(Number(tx.amount) || 0), 0);
+  const latestTx = topTransactions[0] || null;
 
   if (walletError) {
     return (
@@ -136,47 +165,108 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
 
   return (
     <>
-      <div className="dash-balance-card">
-        <button type="button" className="dash-balance-settings" aria-label="Settings">
-          <SettingsIcon />
-        </button>
-        <div className="dash-balance-label">
-          <span>Current balance</span>
-          <span>USD</span>
+      <section className="dash-home-balance">
+        <div className="dash-home-estimate-row">
+          <span className="dash-home-estimate-label">Est. total value</span>
+          <button type="button" className="dash-home-eye" aria-label="Toggle balance visibility">
+            <EyeIcon />
+          </button>
         </div>
-        <div className="dash-balance-amount">
-          $<span className="dash-balance-whole">{balanceWhole}</span>
-          {balanceCents && <span className="dash-balance-cents">{balanceCents}</span>}
+        <div className="dash-home-total">
+          <span className="dash-home-total-value">{balanceStr}</span>
+          <span className="dash-home-total-currency">USD</span>
         </div>
+      </section>
+
+      <div className="dash-home-quick-actions">
+        <Link href="/dashboard/buy" className="dash-home-quick-action">
+          <span className="dash-home-quick-action-icon dash-home-quick-action-icon--light">
+            <PlusIcon />
+          </span>
+          <span>Deposit</span>
+        </Link>
+        <Link href="/dashboard/buy" className="dash-home-quick-action">
+          <span className="dash-home-quick-action-icon">
+            <CryptoIcon />
+          </span>
+          <span>Buy Crypto</span>
+        </Link>
+        <Link href="/dashboard/transfer" className="dash-home-quick-action">
+          <span className="dash-home-quick-action-icon">
+            <SwapIcon />
+          </span>
+          <span>Send</span>
+        </Link>
+        <Link href="/dashboard/market" className="dash-home-quick-action">
+          <span className="dash-home-quick-action-icon">
+            <MoreIcon />
+          </span>
+          <span>More</span>
+        </Link>
       </div>
 
-      <div className="dash-action-buttons">
-        <Link href="/dashboard/transfer" className="dash-action-btn">
-          <SendIcon />
-          Send
-        </Link>
-        <Link href="/dashboard/buy" className="dash-action-btn">
-          <ReceiveIcon />
-          Buy
-        </Link>
-        <Link href="/dashboard/market" className="dash-action-btn">
-          <MarketIcon />
-          Market
-        </Link>
-        <Link href="/dashboard" className="dash-action-btn">
-          <MoreIcon />
-          More
-        </Link>
-      </div>
+      <section className="dash-home-banner">
+        <div>
+          <p className="dash-home-banner-title">Invite friends</p>
+          <p className="dash-home-banner-text">Earn up to 40% commission!</p>
+        </div>
+        <div className="dash-home-banner-badge" aria-hidden>
+          <GiftIcon />
+        </div>
+      </section>
 
-      <div className="dash-assets-header">
-        <h2 className="dash-assets-title">Balances</h2>
-        <button type="button" className="dash-assets-filter">
-          All Chains
-          <ChevronDownIcon />
-        </button>
-      </div>
-      <div className="dash-balances-table" style={{ margin: '0 1.25rem', background: 'var(--dash-card)', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--dash-border)' }}>
+      <section className="dash-home-card">
+        <div className="dash-home-card-head">
+          <h2>Transactions</h2>
+          <button type="button" className="dash-home-card-menu" aria-label="More transaction actions">
+            <MoreIcon />
+          </button>
+        </div>
+        {txReady && topTransactions.length > 0 && (
+          <div className="dash-home-summary-grid">
+            <div className="dash-home-summary-tile">
+              <p className="dash-home-summary-label">Incoming</p>
+              <p className="dash-home-summary-value positive">+{incomingTotal.toFixed(2)}</p>
+            </div>
+            <div className="dash-home-summary-tile">
+              <p className="dash-home-summary-label">Outgoing</p>
+              <p className="dash-home-summary-value negative">-{outgoingTotal.toFixed(2)}</p>
+            </div>
+            <div className="dash-home-summary-tile">
+              <p className="dash-home-summary-label">Latest</p>
+              <p className="dash-home-summary-value">{latestTx?.currency || '-'}</p>
+            </div>
+          </div>
+        )}
+        {!txReady && <p className="dash-home-empty">Loading transactions...</p>}
+        {txReady && topTransactions.length === 0 && <p className="dash-home-empty">No transactions yet.</p>}
+        {txReady && topTransactions.length > 0 && (
+          <div className="dash-home-transactions">
+            {topTransactions.map((tx) => (
+              <article key={tx.id} className="dash-home-transaction-row">
+                <div className="dash-home-transaction-left">
+                  <span className="dash-home-transaction-icon">{tx.direction === 'in' ? '+' : '-'}</span>
+                  <div>
+                    <p className="dash-home-transaction-title">{tx.description || 'Transaction'}</p>
+                    <p className="dash-home-transaction-date">{formatTxDate(tx.created_at)}</p>
+                  </div>
+                </div>
+                <div className="dash-home-transaction-right">
+                  <p className="dash-home-transaction-amount">{formatTxAmount(tx)}</p>
+                  <p className={`dash-home-transaction-status ${tx.direction === 'in' ? 'ok' : ''}`}>
+                    {tx.direction === 'in' ? 'Successful' : 'Completed'}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="dash-assets-header">
+        <h2 className="dash-assets-title">Assets</h2>
+      </section>
+      <div className="dash-balances-table" style={{ margin: '0 1rem', background: 'var(--dash-card)', borderRadius: 16, overflow: 'hidden', border: '1px solid var(--dash-border)' }}>
         <div className="dash-balances-table-header" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 0, fontSize: '0.75rem', color: 'var(--dash-muted)', padding: '0.75rem 1rem', borderBottom: '1px solid var(--dash-border)' }}>
           <span>Asset</span>
           <span>Balance</span>
@@ -229,36 +319,56 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
   );
 }
 
-function SettingsIcon() {
+function formatTxAmount(tx) {
+  const amount = Math.abs(Number(tx?.amount) || 0);
+  const sign = tx?.direction === 'in' ? '+' : '-';
+  const currency = (tx?.currency || '').toUpperCase() || 'USD';
+  return `${sign}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} ${currency}`;
+}
+
+function formatTxDate(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = `${d.getMonth() + 1}`.padStart(2, '0');
+  const day = `${d.getDate()}`.padStart(2, '0');
+  const h = `${d.getHours()}`.padStart(2, '0');
+  const min = `${d.getMinutes()}`.padStart(2, '0');
+  const s = `${d.getSeconds()}`.padStart(2, '0');
+  return `${y}-${m}-${day} ${h}:${min}:${s}`;
+}
+
+function EyeIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
       <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
   );
 }
 
-function SendIcon() {
+function PlusIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M12 5v14M5 12h14" />
     </svg>
   );
 }
 
-function ReceiveIcon() {
+function CryptoIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
+      <circle cx="12" cy="12" r="4.5" />
     </svg>
   );
 }
 
-function MarketIcon() {
+function SwapIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M3 3v18h18" />
-      <path d="M7 16l4-4 4 4 6-8" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M7 8h12M7 8l3-3M7 8l3 3M17 16H5M17 16l-3-3M17 16l-3 3" />
     </svg>
   );
 }
@@ -273,10 +383,19 @@ function MoreIcon() {
   );
 }
 
-function ChevronDownIcon() {
+function GiftIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M6 9l6 6 6-6" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <rect x="3" y="8" width="18" height="13" rx="2" />
+      <path d="M12 8v13M3 13h18M7.5 8a2.5 2.5 0 1 1 0-5c2 0 4.5 3 4.5 5M16.5 8a2.5 2.5 0 1 0 0-5c-2 0-4.5 3-4.5 5" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="m9 18 6-6-6-6" />
     </svg>
   );
 }
