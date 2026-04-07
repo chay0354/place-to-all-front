@@ -144,6 +144,20 @@ export default function AccountPage() {
         </div>
       </div>
 
+      <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Card center</h2>
+      <div className="card card-lg">
+        <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
+          Issue your Place to All virtual Visa card, fund it from crypto wallets, and prepare it for Apple Pay / Google Pay.
+        </p>
+        <Link
+          href="/dashboard/card"
+          className="btn btn-primary"
+          style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none', width: '100%' }}
+        >
+          Open card center
+        </Link>
+      </div>
+
       {isAdminOperatorEmail(user?.email) && (
         <>
           <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Admin</h2>

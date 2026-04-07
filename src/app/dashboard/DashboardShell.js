@@ -8,8 +8,8 @@ export function DashboardShell({ children }) {
   const isHome = pathname === '/dashboard' || pathname === '/dashboard/';
   const isBuy = pathname.startsWith('/dashboard/buy');
   const isSend = pathname.startsWith('/dashboard/transfer');
-  const isSettings = pathname.startsWith('/dashboard/account');
-  const isAccount = isSettings;
+  const isCard = pathname.startsWith('/dashboard/card');
+  const isAccount = pathname.startsWith('/dashboard/account');
 
   return (
     <div className="dashboard-wallet-ui">
@@ -50,9 +50,9 @@ export function DashboardShell({ children }) {
           <SendIcon />
           Send
         </Link>
-        <Link href="/dashboard/account" className={isSettings ? 'active' : ''}>
-          <SettingsIcon />
-          Settings
+        <Link href="/dashboard/card" className={isCard ? 'active' : ''}>
+          <CardIcon />
+          Card
         </Link>
       </nav>
     </div>
@@ -112,11 +112,3 @@ function CardIcon() {
   );
 }
 
-function SettingsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 14H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.6 1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.28.51.79.86 1.37.91H21a2 2 0 0 1 0 4h-.23c-.58.05-1.09.4-1.37.91z" />
-    </svg>
-  );
-}

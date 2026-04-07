@@ -197,11 +197,11 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
           </span>
           <span>Send</span>
         </Link>
-        <Link href="/dashboard/market" className="dash-home-quick-action">
+        <Link href="/dashboard/card" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
-            <MoreIcon />
+            <CardIcon />
           </span>
-          <span>More</span>
+          <span>Card</span>
         </Link>
       </div>
 
@@ -379,6 +379,15 @@ function MoreIcon() {
       <circle cx="12" cy="12" r="1" />
       <circle cx="19" cy="12" r="1" />
       <circle cx="5" cy="12" r="1" />
+    </svg>
+  );
+}
+
+function CardIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <rect x="2" y="5" width="20" height="14" rx="3" />
+      <path d="M2 10h20" />
     </svg>
   );
 }

@@ -286,3 +286,47 @@ export async function getCoinbaseBalances(userId, accessToken) {
   const data = await apiRequest(path, { userId, cache: 'no-store' }, accessToken);
   return data.balances || [];
 }
+
+/** Card program: fetch user's virtual card and recent card events. */
+export async function getCardAccount(userId, accessToken) {
+  return apiRequest('/api/cards', { userId, cache: 'no-store' }, accessToken);
+}
+
+/** Card program: issue virtual Visa card for the current user. */
+export async function issueVirtualCard(userId, accessToken) {
+  return apiRequest(
+    '/api/cards/issue',
+    {
+      method: 'POST',
+      userId,
+      body: JSON.stringify({}),
+    },
+    accessToken,
+  );
+}
+
+/** Card program: fund card from a crypto wallet (auto-converted to USDT on server). */
+export async function fundCardFromCrypto(userId, { amount, currency }, accessToken) {
+  return apiRequest(
+    '/api/cards/fund',
+    {
+      method: 'POST',
+      userId,
+      body: JSON.stringify({ amount, currency }),
+    },
+    accessToken,
+  );
+}
+
+/** Card program: mark card as added to Apple Pay (system tokenization state). */
+export async function addCardToApplePay(userId, accessToken) {
+  return apiRequest(
+    '/api/cards/apple-pay/add',
+    {
+      method: 'POST',
+      userId,
+      body: JSON.stringify({}),
+    },
+    accessToken,
+  );
+}
