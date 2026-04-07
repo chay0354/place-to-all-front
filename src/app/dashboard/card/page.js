@@ -23,6 +23,17 @@ function eventTitle(t) {
   return 'Card update';
 }
 
+function isIosDevice() {
+  if (typeof navigator === 'undefined') return false;
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+}
+
+function openAppleWallet(deeplink) {
+  if (typeof window === 'undefined') return;
+  const url = deeplink || 'shoebox://';
+  window.location.href = url;
+}
+
 export default function CardPage() {
   const [userId, setUserId] = useState(null);
   const [token, setToken] = useState(null);
@@ -128,8 +139,14 @@ export default function CardPage() {
     setError('');
     setMessage('');
     try {
-      await addCardToApplePay(userId, token);
-      setMessage('Card added to Apple Pay.');
+      const res = await addCardToApplePay(userId, token);
+      const walletUrl = res?.applePay?.wallet_deeplink_url || 'shoebox://';
+      if (isIosDevice()) {
+        setMessage(cardData?.card?.apple_pay_provisioned ? 'Opening Apple Wallet...' : 'Card added. Opening Apple Wallet...');
+        openAppleWallet(walletUrl);
+      } else {
+        setMessage('Card added in system. Open this on iPhone to add it to Apple Wallet.');
+      }
       await loadData(userId, token);
     } catch (e) {
       setError(e?.message || 'Could not add card to Apple Pay.');
@@ -189,7 +206,7 @@ export default function CardPage() {
                 disabled={!card.apple_pay_enabled || busy}
                 onClick={handleAddApplePay}
               >
-                {card.apple_pay_provisioned ? 'Apple Pay connected' : 'Add to Apple Pay'}
+                {card.apple_pay_provisioned ? (isIosDevice() ? 'Open Apple Wallet' : 'Apple Pay connected') : 'Add to Apple Pay'}
               </button>
               <button type="button" className="btn btn-ghost" disabled={!card.google_pay_enabled}>Add to Google Pay</button>
             </div>
