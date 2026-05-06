@@ -1,6 +1,31 @@
 'use client';
 
 import { Suspense, useState } from 'react';
+
+/** Maps Supabase Auth errors (often HTTP 400 on /token) to actionable copy. */
+function formatLoginError(err) {
+  const raw = (err && (err.message || err.error_description)) || '';
+  const lower = String(raw).toLowerCase();
+  const code = err && (err.code || err.name);
+  if (
+    lower.includes('email not confirmed') ||
+    code === 'email_not_confirmed'
+  ) {
+    return (
+      'This email is not confirmed. After signing up, registration must call your backend POST /api/auth/confirm-email ' +
+      '(with the backend running), or in Supabase Dashboard → Authentication → Users, confirm the user manually. ' +
+      'Alternatively turn off “Confirm email” under Authentication → Providers → Email.'
+    );
+  }
+  if (
+    lower.includes('invalid login') ||
+    lower.includes('invalid credentials') ||
+    code === 'invalid_credentials'
+  ) {
+    return 'Invalid email or password. Check spelling and caps lock, or reset your password in Supabase if needed.';
+  }
+  return raw || 'Login failed. Check your email and password.';
+}
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -18,15 +43,23 @@ function LoginPageContent() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    const emailNorm = (email || '').trim().toLowerCase();
+    if (!emailNorm) {
+      setError('Please enter your email address.');
+      return;
+    }
     setLoading(true);
     try {
-      const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+      const { error: err } = await supabase.auth.signInWithPassword({
+        email: emailNorm,
+        password,
+      });
       if (err) throw err;
       const dest = nextPath && nextPath.startsWith('/') ? nextPath : '/dashboard';
       router.push(dest);
       router.refresh();
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(formatLoginError(err));
     } finally {
       setLoading(false);
     }

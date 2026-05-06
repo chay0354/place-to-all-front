@@ -43,3 +43,41 @@ export async function proxyBackendGet(apiPath, userId) {
   if (!res.ok) return NextResponse.json(data, { status: res.status });
   return NextResponse.json(data);
 }
+
+/**
+ * PATCH proxy to Express API with X-User-Id and JSON body.
+ */
+export async function proxyBackendPatch(apiPath, userId, body) {
+  const bad = misconfiguredOnVercel();
+  if (bad) {
+    return NextResponse.json({ error: 'Server configuration', detail: bad }, { status: 503 });
+  }
+
+  const path = apiPath.startsWith('/') ? apiPath : `/${apiPath}`;
+  let res;
+  try {
+    res = await fetch(joinBackendUrl(path), {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': userId,
+      },
+      body: body != null ? JSON.stringify(body) : '{}',
+      cache: 'no-store',
+    });
+  } catch (e) {
+    const msg = e?.message || String(e);
+    return NextResponse.json(
+      {
+        error: 'Backend unreachable',
+        message: msg,
+        hint: 'Check BACKEND_URL / NEXT_PUBLIC_API_URL and that the API is deployed.',
+      },
+      { status: 502 },
+    );
+  }
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return NextResponse.json(data, { status: res.status });
+  return NextResponse.json(data);
+}

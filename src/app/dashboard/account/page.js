@@ -15,7 +15,6 @@ export default function AccountPage() {
   const [txLoading, setTxLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
-  const [inviteCopied, setInviteCopied] = useState(false);
   const [paymentLinks, setPaymentLinks] = useState([]);
   const [plTitle, setPlTitle] = useState('');
   const [plCurrency, setPlCurrency] = useState('USDT');
@@ -92,8 +91,8 @@ export default function AccountPage() {
   }
 
   useEffect(() => {
-    if (canManagePaymentLinks && user?.id && token) refreshPaymentLinks();
-  }, [canManagePaymentLinks, user?.id, token]);
+    if (canManagePaymentLinks && !isAgentLike && user?.id && token) refreshPaymentLinks();
+  }, [canManagePaymentLinks, isAgentLike, user?.id, token]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -158,6 +157,25 @@ export default function AccountPage() {
         </Link>
       </div>
 
+      {isAgentLike && (
+        <>
+          <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Affiliations</h2>
+          <div className="card card-lg">
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
+              Invite links, payment requests, fee settings, your network, and downline activity live in the affiliation
+              dashboard.
+            </p>
+            <Link
+              href="/dashboard/affiliation"
+              className="btn btn-primary"
+              style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none', width: '100%' }}
+            >
+              Open affiliation dashboard
+            </Link>
+          </div>
+        </>
+      )}
+
       {isAdminOperatorEmail(user?.email) && (
         <>
           <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Admin</h2>
@@ -172,53 +190,7 @@ export default function AccountPage() {
         </>
       )}
 
-      {isAgentLike && (
-        <>
-          <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Invite link</h2>
-          <div className="card card-lg">
-            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-              {profile?.role === 'super_super_agent' ? (
-                <>
-                  Share this link to recruit <strong>super agents</strong> under you (they sign up as super agent — no self-serve choice). Same tools for you: referral link effects, payment links. You earn the usual super-tier <strong>4%</strong> where it applies, <strong>plus an additional 4%</strong> when you qualify as the super-super upline in the buyer’s chain (paid by the buyer).
-                </>
-              ) : profile?.role === 'super_agent' ? (
-                <>
-                  Share this link to recruit <strong>agents</strong> under you. They get the same agent tools (referral link for regular signups, payment links). You earn an extra <strong>4%</strong> on qualifying crypto buys they make and on buys by users they refer (on top of the <strong>4%</strong> direct affiliate on those buys). All fee portions are taken from the buyer’s side of each purchase.
-                </>
-              ) : (
-                <>
-                  Share this invite link. When someone signs up through it, they join as a <strong>regular</strong> user. You earn <strong>4%</strong> of each crypto purchase they make (direct affiliate). If your account sits under a super agent, they also earn <strong>4%</strong> on those buys; a <strong>super super agent</strong> above may earn another <strong>4%</strong>; the platform admin fee is <strong>4%</strong> — up to <strong>16%</strong> total from the buyer’s gross on a full chain.
-                </>
-              )}
-            </p>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <input
-                type="text"
-                readOnly
-                value={siteUrl(`/register?ref=${user.id}`)}
-                className="form-input"
-                style={{ flex: '1', minWidth: 200, fontFamily: 'monospace', fontSize: '0.8125rem' }}
-              />
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={async () => {
-                  const url = siteUrl(`/register?ref=${user.id}`);
-                  try {
-                    await navigator.clipboard.writeText(url);
-                    setInviteCopied(true);
-                    setTimeout(() => setInviteCopied(false), 2000);
-                  } catch (_) {}
-                }}
-              >
-                {inviteCopied ? 'Copied!' : 'Copy invite link'}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {canManagePaymentLinks && (
+      {canManagePaymentLinks && !isAgentLike && (
         <>
           <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Payment links</h2>
           <div className="card card-lg">

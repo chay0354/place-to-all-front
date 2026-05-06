@@ -2,6 +2,17 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { joinBackendUrl, getApiOrigin } from '@/lib/api-base';
 
+function relayUnreachablePayload(err) {
+  const origin = getApiOrigin();
+  return {
+    error: 'Backend unreachable',
+    message: err?.message || String(err),
+    attemptedOrigin: origin,
+    hint:
+      'Start the Place-to-All API (e.g. cd back && npm run dev — default port 4000), or set NEXT_PUBLIC_API_URL / BACKEND_URL in front/.env.local to your API base URL (no trailing slash).',
+  };
+}
+
 export const dynamic = 'force-dynamic';
 
 function misconfiguredOnVercel() {
@@ -94,10 +105,7 @@ async function handle(request, { params }) {
   try {
     res = await fetch(backendUrl, init);
   } catch (e) {
-    return NextResponse.json(
-      { error: 'Backend unreachable', message: e?.message || String(e) },
-      { status: 502 },
-    );
+    return NextResponse.json(relayUnreachablePayload(e), { status: 502 });
   }
 
   const text = await res.text();

@@ -84,9 +84,6 @@ export default function TransferPage() {
     <div className="page">
       <Link href="/dashboard" className="back-link">← Back to portfolio</Link>
       <h1 className="page-title">Transfer crypto</h1>
-      <p className="page-desc">
-        Send from your app balance using the recipient’s <strong>account email</strong> (the one they use to sign in). Pick which coin to send, then enter the amount.
-      </p>
 
       <div className="card card-lg">
         <form onSubmit={handleSubmit}>

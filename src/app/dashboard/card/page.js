@@ -34,6 +34,14 @@ function openAppleWallet(deeplink) {
   window.location.href = url;
 }
 
+function AppleLogo() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M16.37 12.13c.02 2.34 2.05 3.12 2.07 3.13-.02.05-.32 1.1-1.05 2.18-.63.94-1.29 1.88-2.33 1.9-1.03.02-1.36-.61-2.54-.61-1.18 0-1.54.59-2.52.63-1 .04-1.77-1-2.41-1.93-1.31-1.9-2.31-5.36-.97-7.69.66-1.16 1.84-1.9 3.12-1.92.98-.02 1.9.66 2.5.66.6 0 1.73-.81 2.91-.69.49.02 1.87.2 2.75 1.49-.07.04-1.64.95-1.63 2.85zm-2.13-5.02c.53-.64.89-1.52.79-2.4-.77.03-1.69.51-2.24 1.15-.49.56-.92 1.45-.8 2.31.86.07 1.72-.44 2.25-1.06z" />
+    </svg>
+  );
+}
+
 export default function CardPage() {
   const [userId, setUserId] = useState(null);
   const [token, setToken] = useState(null);
@@ -149,7 +157,12 @@ export default function CardPage() {
       }
       await loadData(userId, token);
     } catch (e) {
-      setError(e?.message || 'Could not add card to Apple Pay.');
+      const msg = e?.message || 'Could not add card to Apple Pay.';
+      if (/PassKit payload|push provisioning endpoint is not configured/i.test(msg)) {
+        setError('Apple Pay direct add needs native iOS integration (PassKit). This web screen cannot complete tokenization by itself.');
+      } else {
+        setError(msg);
+      }
     } finally {
       setBusy(false);
     }
@@ -189,6 +202,24 @@ export default function CardPage() {
                 {card.status}
               </span>
             </div>
+            <div style={{ marginTop: '0.85rem', padding: '0.85rem', borderRadius: 14, border: '1px solid var(--dash-border)', background: 'linear-gradient(145deg, rgba(26, 26, 31, 0.98) 0%, rgba(14, 14, 16, 0.98) 100%)' }}>
+              <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--dash-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Reap card design
+              </p>
+              <p style={{ margin: '0.35rem 0 0', fontSize: '1rem', fontWeight: 700, color: 'var(--dash-text)' }}>
+                {card.reap_card_design_name || 'Syncing design from Reap...'}
+              </p>
+              {card.reap_card_name && (
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.82rem', color: 'var(--dash-muted)' }}>
+                  Card name: {card.reap_card_name}
+                </p>
+              )}
+              {card.reap_card_design_id && (
+                <p style={{ margin: '0.18rem 0 0', fontSize: '0.72rem', color: 'var(--dash-muted)' }}>
+                  Design ID: {card.reap_card_design_id}
+                </p>
+              )}
+            </div>
             <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <div className="quote-box">
                 <strong>{formatAmt(card.available_balance_usdt, 4)} USDT</strong>
@@ -202,14 +233,19 @@ export default function CardPage() {
             <div className="action-row" style={{ marginTop: '1rem' }}>
               <button
                 type="button"
-                className="btn btn-ghost"
+                className="btn btn-apple-wallet"
                 disabled={!card.apple_pay_enabled || busy}
                 onClick={handleAddApplePay}
+                aria-label={card.apple_pay_provisioned ? 'Open in Apple Wallet' : 'Add to Apple Wallet'}
               >
-                {card.apple_pay_provisioned ? (isIosDevice() ? 'Open Apple Wallet' : 'Apple Pay connected') : 'Add to Apple Pay'}
+                <AppleLogo />
+                <span>{card.apple_pay_provisioned ? 'Open in Apple Wallet' : 'Add to Apple Wallet'}</span>
               </button>
               <button type="button" className="btn btn-ghost" disabled={!card.google_pay_enabled}>Add to Google Pay</button>
             </div>
+            <p className="form-hint" style={{ marginTop: '0.75rem' }}>
+              Apple Pay one-tap add requires native iOS PassKit integration from your mobile app.
+            </p>
             {card.apple_pay_provisioned && (
               <p className="form-hint" style={{ marginTop: '0.75rem' }}>
                 Apple Pay status: connected

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
 import { getTransactions, getWalletsForDashboard } from '@/lib/api';
 import { assetLabel } from '@/lib/asset-names';
@@ -38,15 +38,87 @@ function walletIconClass(currency) {
   const c = (currency || '').toLowerCase();
   if (c === 'btc') return 'btc';
   if (c === 'eth') return 'eth';
-  if (c === 'usdt' || c === 'usdc') return 'usdt';
+  if (c === 'usdt') return 'usdt';
+  if (c === 'usdc') return 'usdc';
+  if (c === 'sol') return 'sol';
+  if (c === 'bnb') return 'bnb';
   return 'other';
 }
 
-/** USD estimate for portfolio header (static — avoids live price API changing the total on every refresh). */
-function usdUnitPrice(currency) {
-  const c = currency || '';
-  if (c === 'USDT' || c === 'USDC') return 1;
-  return FALLBACK_PRICES[c] ?? 0;
+function AssetCircleIcon({ currency, imageUrl }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const c = (currency || '').toUpperCase();
+  const cls = walletIconClass(currency);
+
+  if (imageUrl && !imgFailed) {
+    return (
+      <span className={`dash-asset-icon dash-asset-icon--rich dash-asset-icon--photo`} aria-hidden>
+        <img
+          src={imageUrl}
+          alt=""
+          className="dash-asset-icon-img"
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onError={() => setImgFailed(true)}
+        />
+      </span>
+    );
+  }
+
+  let inner;
+  if (c === 'BTC') inner = <span className="dash-asset-icon-glyph">₿</span>;
+  else if (c === 'ETH') inner = <span className="dash-asset-icon-glyph">Ξ</span>;
+  else if (c === 'USDC') inner = <span className="dash-asset-icon-glyph">$</span>;
+  else if (c === 'USDT') inner = <span className="dash-asset-icon-glyph">₮</span>;
+  else if (c === 'SOL') inner = <SolanaGlyph />;
+  else if (c === 'BNB') inner = <BnbGlyph />;
+  else inner = <span className="dash-asset-icon-glyph">{(c || '?').slice(0, 1)}</span>;
+
+  return (
+    <span className={`dash-asset-icon dash-asset-icon--rich dash-asset-icon--${cls}`} aria-hidden>
+      {inner}
+    </span>
+  );
+}
+
+function SolanaGlyph() {
+  const gid = useId().replace(/:/g, '');
+  const gradId = `sol-grad-${gid}`;
+  return (
+    <svg className="dash-asset-icon-svg" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <defs>
+        <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#9945FF" />
+          <stop offset="50%" stopColor="#14F195" />
+          <stop offset="100%" stopColor="#00FFA3" />
+        </linearGradient>
+      </defs>
+      <path
+        fill={`url(#${gradId})`}
+        d="M6.5 14.5l2.2-2.2h9.6l-2.2 2.2H6.5zm0-5l2.2-2.2h9.6l-2.2 2.2H6.5zm3.3 2.5l2.2-2.2h6.3l-2.2 2.2H9.8z"
+      />
+    </svg>
+  );
+}
+
+function BnbGlyph() {
+  return (
+    <svg className="dash-asset-icon-svg" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path fill="currentColor" d="M7.5 4.5L12 7l4.5-2.5L12 2 7.5 4.5zm9 3L12 10 5.5 7.5v5L12 15l6.5-2.5v-5zm-9 8.5L12 22l4.5-2.5L12 17l-4.5 2.5z" />
+    </svg>
+  );
+}
+
+/** USD per 1 unit; stablecoins pegged to 1; then CoinGecko live prices; else static fallbacks. */
+function makeUsdUnitGetter(liveUsd) {
+  return (currency) => {
+    const c = currency || '';
+    if (c === 'USDT' || c === 'USDC') return 1;
+    const live = liveUsd && typeof liveUsd[c] === 'number' && liveUsd[c] > 0 ? liveUsd[c] : null;
+    if (live != null) return live;
+    return FALLBACK_PRICES[c] ?? 0;
+  };
 }
 
 export function DashboardClient({ initialWallets, userId, refreshKey }) {
@@ -55,6 +127,32 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
   const [walletReady, setWalletReady] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [txReady, setTxReady] = useState(false);
+  const [portfolioTab, setPortfolioTab] = useState('crypto');
+  const [detailWallet, setDetailWallet] = useState(null);
+  /** CoinGecko markets: USD prices + official image URLs (same request). */
+  const [coinGecko, setCoinGecko] = useState(null);
+
+  useEffect(() => {
+    const symbols = [...new Set(wallets.map((w) => w.currency).filter(Boolean))];
+    if (symbols.length === 0) {
+      setCoinGecko({ prices: {}, images: {} });
+      return;
+    }
+    const ac = new AbortController();
+    fetch(`/api/coingecko/prices?symbols=${encodeURIComponent(symbols.join(','))}`, {
+      signal: ac.signal,
+      cache: 'no-store',
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((d) =>
+        setCoinGecko({
+          prices: d.prices && typeof d.prices === 'object' ? d.prices : {},
+          images: d.images && typeof d.images === 'object' ? d.images : {},
+        }),
+      )
+      .catch(() => setCoinGecko(null));
+    return () => ac.abort();
+  }, [wallets]);
 
   useEffect(() => {
     if (!userId) return;
@@ -126,7 +224,8 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
     };
   }, [userId, refreshKey]);
 
-  const totalUsd = wallets.reduce((sum, w) => sum + toNum(w.balance) * usdUnitPrice(w.currency), 0);
+  const getUsdUnit = makeUsdUnitGetter(coinGecko?.prices ?? null);
+  const totalUsd = wallets.reduce((sum, w) => sum + toNum(w.balance) * getUsdUnit(w.currency), 0);
   const balanceStr = totalUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const topTransactions = transactions.slice(0, 4);
   const txIncoming = topTransactions.filter((tx) => tx.direction === 'in');
@@ -263,59 +362,185 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
         )}
       </section>
 
-      <section className="dash-assets-header">
-        <h2 className="dash-assets-title">Assets</h2>
-      </section>
-      <div className="dash-balances-table" style={{ margin: '0 1rem', background: 'var(--dash-card)', borderRadius: 16, overflow: 'hidden', border: '1px solid var(--dash-border)' }}>
-        <div className="dash-balances-table-header" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 0, fontSize: '0.75rem', color: 'var(--dash-muted)', padding: '0.75rem 1rem', borderBottom: '1px solid var(--dash-border)' }}>
-          <span>Asset</span>
-          <span>Balance</span>
+      <section className="dash-portfolio-card" aria-label="Portfolio">
+        <div className="dash-portfolio-tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={portfolioTab === 'crypto'}
+            className={`dash-portfolio-tab ${portfolioTab === 'crypto' ? 'dash-portfolio-tab--active' : ''}`}
+            onClick={() => setPortfolioTab('crypto')}
+          >
+            Crypto
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={portfolioTab === 'fiat'}
+            className={`dash-portfolio-tab ${portfolioTab === 'fiat' ? 'dash-portfolio-tab--active' : ''}`}
+            onClick={() => setPortfolioTab('fiat')}
+          >
+            Fiat
+          </button>
         </div>
-        <div className="dash-balances-table-rows">
-        {[...wallets]
-          .filter((w) => (Number(w.balance) || 0) > 0)
-          .sort((a, b) => {
-            const db = (Number(b.balance) || 0) - (Number(a.balance) || 0);
-            if (db !== 0) return db;
-            return String(a.currency).localeCompare(String(b.currency));
-          })
-          .map((w) => {
-          const bal = Number(w.balance) || 0;
-          const valueUsd = bal * usdUnitPrice(w.currency);
-          const balStr = bal >= 0.0001
-            ? bal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 })
-            : String(bal);
-          const subtitle = w.currency === 'ETH' ? 'ETH · App ledger' : w.currency === 'BTC' ? 'Bitcoin · App ledger' : w.currency === 'USDT' || w.currency === 'USDC' ? 'Stablecoin · App ledger' : `${w.currency} · App ledger`;
-          return (
-            <div key={w.id} className="dash-asset-row" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem 1rem', alignItems: 'center', padding: '1.25rem 1rem' }}>
-              <div className="dash-asset-left" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div className={`dash-asset-icon ${walletIconClass(w.currency)}`}>
-                  {w.currency === 'BTC' ? 'B' : w.currency === 'ETH' ? 'Ξ' : w.currency === 'USDT' || w.currency === 'USDC' ? '₮' : (w.currency || '?').slice(0, 1)}
-                </div>
-                <div>
-                  <div className="dash-asset-name" style={{ fontWeight: 600, fontSize: '0.9375rem' }}>{assetLabel(w.currency)}</div>
-                  <div className="dash-asset-chain" style={{ fontSize: '0.75rem', color: 'var(--dash-muted)', marginTop: 2 }}>{subtitle}</div>
-                </div>
-              </div>
-              <div className="dash-asset-right" style={{ textAlign: 'right' }}>
-                <div className="dash-asset-qty" style={{ fontWeight: 600, fontSize: '0.9375rem' }}>
-                  {balStr} {w.currency}
-                </div>
-                <div className="dash-asset-value" style={{ fontSize: '0.75rem', color: 'var(--dash-muted)', marginTop: 2 }}>
-                  ${valueUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
-                </div>
-              </div>
+
+        {portfolioTab === 'fiat' && (
+          <div className="dash-portfolio-fiat-empty">
+            <p>No fiat balances yet.</p>
+            <p className="dash-portfolio-fiat-hint">Fiat wallets can be linked here when available.</p>
+          </div>
+        )}
+
+        {portfolioTab === 'crypto' && (
+          <div className="dash-balances-table dash-balances-table--ref">
+            <div className="dash-balances-table-rows dash-balances-table-rows--flush">
+              {[...wallets]
+                .filter((w) => (Number(w.balance) || 0) > 0)
+                .sort((a, b) => {
+                  const db = (Number(b.balance) || 0) - (Number(a.balance) || 0);
+                  if (db !== 0) return db;
+                  return String(a.currency).localeCompare(String(b.currency));
+                })
+                .map((w) => {
+                  const bal = Number(w.balance) || 0;
+                  const valueUsd = bal * getUsdUnit(w.currency);
+                  const balStr =
+                    bal >= 0.0001
+                      ? bal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 })
+                      : String(bal);
+                  const ticker = (w.currency || '').toUpperCase();
+                  return (
+                    <button
+                      key={w.id}
+                      type="button"
+                      className="dash-asset-row dash-asset-row--list"
+                      onClick={() => setDetailWallet(w)}
+                    >
+                      <div className="dash-asset-left dash-asset-left--stack">
+                        <AssetCircleIcon
+                          currency={w.currency}
+                          imageUrl={coinGecko?.images?.[(w.currency || '').toUpperCase()]}
+                        />
+                        <div className="dash-asset-names-col">
+                          <span className="dash-asset-symbol">{ticker}</span>
+                          <span className="dash-asset-fullname">{assetLabel(w.currency)}</span>
+                        </div>
+                      </div>
+                      <div className="dash-asset-right dash-asset-right--stack">
+                        <span className="dash-asset-qty-row">
+                          {balStr} {ticker}
+                        </span>
+                        <span className="dash-asset-fiat-sub">
+                          ≈{' '}
+                          {valueUsd.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}{' '}
+                          USD
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
             </div>
-          );
-        })}
-        </div>
-      </div>
-      {wallets.filter((w) => (Number(w.balance) || 0) > 0).length === 0 && (
-        <div style={{ margin: '1rem 1.25rem', padding: '1.5rem', textAlign: 'center', color: 'var(--dash-muted)', fontSize: '0.875rem' }}>
-          No balances yet. <Link href="/dashboard/buy" style={{ color: 'var(--dash-primary)' }}>Buy crypto</Link> to see your assets here.
+          </div>
+        )}
+      </section>
+
+      {portfolioTab === 'crypto' && wallets.filter((w) => (Number(w.balance) || 0) > 0).length === 0 && (
+        <div className="dash-portfolio-empty-below">
+          No balances yet.{' '}
+          <Link href="/dashboard/buy" className="dash-portfolio-empty-link">
+            Buy crypto
+          </Link>{' '}
+          to see your assets here.
         </div>
       )}
+
+      {detailWallet && (
+        <AssetDetailOverlay
+          wallet={detailWallet}
+          onClose={() => setDetailWallet(null)}
+          getUsdUnitPrice={getUsdUnit}
+          coinImages={coinGecko?.images}
+        />
+      )}
     </>
+  );
+}
+
+function AssetDetailOverlay({ wallet, onClose, getUsdUnitPrice, coinImages }) {
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  const c = (wallet.currency || '').toUpperCase();
+  const bal = Number(wallet.balance) || 0;
+  const unit = getUsdUnitPrice(c);
+  const valueUsd = bal * unit;
+  const balStr =
+    bal >= 0.0001
+      ? bal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 })
+      : String(bal);
+
+  return (
+    <div className="dash-asset-overlay" role="dialog" aria-modal="true" aria-labelledby="dash-asset-overlay-title">
+      <button type="button" className="dash-asset-overlay-backdrop" aria-label="Close" onClick={onClose} />
+      <div className="dash-asset-overlay-panel">
+        <header className="dash-asset-overlay-top">
+          <button type="button" className="dash-asset-overlay-close" onClick={onClose} aria-label="Close">
+            <CloseIcon />
+          </button>
+        </header>
+        <div className="dash-asset-overlay-hero">
+          <div className="dash-asset-overlay-icon-wrap">
+            <AssetCircleIcon
+              currency={wallet.currency}
+              imageUrl={coinImages?.[(wallet.currency || '').toUpperCase()]}
+            />
+          </div>
+          <h2 id="dash-asset-overlay-title" className="dash-asset-overlay-title">
+            {assetLabel(wallet.currency)}
+          </h2>
+          <p className="dash-asset-overlay-ticker">{c}</p>
+        </div>
+        <div className="dash-asset-overlay-balances">
+          <p className="dash-asset-overlay-amount">
+            {balStr} <span className="dash-asset-overlay-unit">{c}</span>
+          </p>
+          <p className="dash-asset-overlay-usd">
+            ≈{' '}
+            {valueUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+          </p>
+          <p className="dash-asset-overlay-ledger">App ledger balance · USD estimate from CoinGecko when available</p>
+        </div>
+        <div className="dash-asset-overlay-actions">
+          <Link href="/dashboard/buy" className="dash-asset-overlay-btn dash-asset-overlay-btn--primary" onClick={onClose}>
+            Buy / Deposit
+          </Link>
+          <Link href="/dashboard/transfer" className="dash-asset-overlay-btn dash-asset-overlay-btn--ghost" onClick={onClose}>
+            Send
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
   );
 }
 

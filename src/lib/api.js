@@ -70,6 +70,36 @@ export async function getProfileDownline() {
   return data;
 }
 
+/** Agent+ dashboard payload: downline users with transactions + fee-flow history. */
+export async function getAffiliationDashboard() {
+  const res = await fetch('/api/profile/affiliation-dashboard', { credentials: 'include', cache: 'no-store' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+/** GET commission take settings — single affiliateTakePercent 0–6 (null = default 4%). */
+export async function getAffiliationFees() {
+  const res = await fetch('/api/profile/affiliation-fees', { credentials: 'include', cache: 'no-store' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+/** PATCH { affiliateTakePercent: number } — 0–6 */
+export async function patchAffiliationFees(body) {
+  const res = await fetch('/api/profile/affiliation-fees', {
+    method: 'PATCH',
+    credentials: 'include',
+    cache: 'no-store',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {}),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
 /** Get transaction history for the user. */
 export async function getTransactions(userId, accessToken) {
   return apiRequest('/api/transactions', { userId }, accessToken);

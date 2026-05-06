@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.join(__dirname, '..');
-const targets = ['.next', path.join('node_modules', '.cache')];
+const targets = ['.next', path.join('node_modules', '.cache'), '.turbo'];
 
 for (const rel of targets) {
   const dir = path.join(root, rel);
