@@ -14,6 +14,7 @@ import {
   getMoonPayPaymentLinkUrl,
 } from '@/lib/api';
 import { toRelayUrl } from '@/lib/relay-url';
+import { ProviderInertPayButtons } from '@/components/ProviderInertPayButtons';
 
 /** Coinbase-supported buyable codes — used if buy API is unavailable. */
 const BUYABLE_CODES = new Set([
@@ -288,7 +289,7 @@ function BuyPageContent() {
               )}
             </div>
             {error && <div className="alert alert-error">{error}</div>}
-            <div className="action-row action-row--moonpay-only">
+            <div className="action-row action-row--moonpay-only provider-pay-stack">
               <button
                 type="button"
                 onClick={handleMoonPay}
@@ -305,6 +306,7 @@ function BuyPageContent() {
                   draggable={false}
                 />
               </button>
+              <ProviderInertPayButtons />
             </div>
           </form>
           <div className="buy-card-footer">

@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { getPublicPaymentLink, simulatePublicPaymentLink, getCoinbasePrice, getCoinbaseSellQuote, getMoonPayPaymentLinkUrl } from '@/lib/api';
+import { ProviderInertPayButtons } from '@/components/ProviderInertPayButtons';
 
 function PayLinkPageInner() {
   const params = useParams();
@@ -269,23 +270,26 @@ function PayLinkPageInner() {
                 {paying ? 'Processing…' : 'Pay (simulated)'}
               </button>
               {moonPayForLink && (
-                <button
-                  type="button"
-                  className="btn-moonpay-image-only"
-                  style={{ width: '100%', maxWidth: 360, margin: '0 auto', display: 'block' }}
-                  disabled={paying || moonPayLoading || !(effectiveCrypto > 0)}
-                  onClick={handleMoonPay}
-                  aria-label={moonPayLoading ? 'Opening MoonPay…' : 'Continue with MoonPay'}
-                  aria-busy={moonPayLoading}
-                >
-                  <img
-                    src="/moonpay-continue-button.png"
-                    alt=""
-                    width={320}
-                    height={72}
-                    draggable={false}
-                  />
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="btn-moonpay-image-only"
+                    style={{ width: '100%', maxWidth: 360, margin: '0 auto', display: 'block' }}
+                    disabled={paying || moonPayLoading || !(effectiveCrypto > 0)}
+                    onClick={handleMoonPay}
+                    aria-label={moonPayLoading ? 'Opening MoonPay…' : 'Continue with MoonPay'}
+                    aria-busy={moonPayLoading}
+                  >
+                    <img
+                      src="/moonpay-continue-button.png"
+                      alt=""
+                      width={320}
+                      height={72}
+                      draggable={false}
+                    />
+                  </button>
+                  <ProviderInertPayButtons variant="paylink" />
+                </>
               )}
             </div>
           </>

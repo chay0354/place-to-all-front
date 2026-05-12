@@ -247,6 +247,34 @@ input, button, select, textarea {
   justify-content: center;
 }
 
+.action-row.provider-pay-stack {
+  flex-direction: column;
+  align-items: center;
+}
+
+.provider-inert-pay-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+}
+
+.provider-inert-pay-buttons--paylink {
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Inert provider rows: disabled for no action; keep readable (not browser default grey-out) */
+.btn-moonpay-image-only.btn-provider-image-inert:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.btn-moonpay-image-only.btn-provider-image-inert:disabled img {
+  opacity: 0.78;
+}
+
 .buy-card-footer {
   margin-top: 1rem;
   padding-top: 1rem;
