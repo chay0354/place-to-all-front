@@ -37,6 +37,7 @@ function isPublicRelay(method, pathname) {
     return true;
   }
   if (m === 'GET' && pathname.startsWith('/api/payment-links/public/')) return true;
+  if (m === 'GET' && pathname === '/api/moonpay/payment-link-url') return true;
   if (m === 'POST' && /^\/api\/payment-links\/public\/[^/]+\/simulate-pay$/.test(pathname)) return true;
   if (m === 'GET' && pathname.startsWith('/api/auth/referral-preview')) return true;
   if (m === 'POST' && pathname === '/api/auth/confirm-email') return true;

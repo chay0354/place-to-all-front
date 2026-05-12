@@ -213,13 +213,45 @@ export async function adminListRegularUsers(userId, accessToken) {
   return apiRequest('/api/admin/regular-users', { userId, cache: 'no-store' }, accessToken);
 }
 
-/** Get signed MoonPay widget URL. Pass baseCurrencyAmount (USD) to pre-fill amount so user goes straight to checkout. */
-export async function getMoonPayUrl(userId, { currencyCode = 'eth', baseCurrencyCode = 'usd', baseCurrencyAmount } = {}, accessToken) {
+/** Get signed MoonPay widget URL. Pass quoteCurrencyAmount (crypto) and baseCurrencyAmount (USD); amounts are locked in MoonPay by default. */
+export async function getMoonPayUrl(
+  userId,
+  { currencyCode = 'eth', baseCurrencyCode = 'usd', baseCurrencyAmount, quoteCurrencyAmount, lockAmount = true } = {},
+  accessToken,
+) {
   const q = new URLSearchParams();
   if (currencyCode) q.set('currencyCode', currencyCode);
   if (baseCurrencyCode) q.set('baseCurrencyCode', baseCurrencyCode);
-  if (baseCurrencyAmount != null && Number(baseCurrencyAmount) > 0) q.set('baseCurrencyAmount', String(Number(baseCurrencyAmount)));
+  if (baseCurrencyAmount != null && Number(baseCurrencyAmount) > 0) {
+    q.set('baseCurrencyAmount', String(Number(baseCurrencyAmount)));
+  }
+  if (quoteCurrencyAmount != null && Number(quoteCurrencyAmount) > 0) {
+    q.set('quoteCurrencyAmount', String(Number(quoteCurrencyAmount)));
+  }
+  if (lockAmount === false) q.set('lockAmount', 'false');
   return apiRequest(`/api/moonpay/url?${q.toString()}`, { userId }, accessToken);
+}
+
+/** Public: MoonPay URL for an active payment link — crypto goes to the recipient’s wallet; webhook credits their ledger. */
+export async function getMoonPayPaymentLinkUrl(
+  linkToken,
+  { baseCurrencyAmount, quoteCurrencyAmount, lockAmount = true } = {},
+) {
+  const q = new URLSearchParams();
+  q.set('token', linkToken);
+  if (baseCurrencyAmount != null && Number(baseCurrencyAmount) > 0) {
+    q.set('baseCurrencyAmount', String(Number(baseCurrencyAmount)));
+  }
+  if (quoteCurrencyAmount != null && Number(quoteCurrencyAmount) > 0) {
+    q.set('quoteCurrencyAmount', String(Number(quoteCurrencyAmount)));
+  }
+  if (lockAmount === false) q.set('lockAmount', 'false');
+  const path = `/api/moonpay/payment-link-url?${q.toString()}`;
+  const url = typeof window !== 'undefined' ? toRelayUrl(path) : joinBackendUrl(path);
+  const res = await fetch(url, { cache: 'no-store', credentials: typeof window !== 'undefined' ? 'include' : undefined });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
 }
 
 function coinbaseRelayUrl(pathWithQuery) {

@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { getPublicPaymentLink, simulatePublicPaymentLink, getCoinbasePrice, getCoinbaseSellQuote } from '@/lib/api';
+import { getPublicPaymentLink, simulatePublicPaymentLink, getCoinbasePrice, getCoinbaseSellQuote, getMoonPayPaymentLinkUrl } from '@/lib/api';
 
 function PayLinkPageInner() {
   const params = useParams();
@@ -11,6 +11,7 @@ function PayLinkPageInner() {
   const router = useRouter();
   const token = params?.token || '';
   const thankyou = searchParams.get('thankyou') === '1';
+  const moonpayReturn = searchParams.get('moonpay') === 'return';
 
   const [linkData, setLinkData] = useState(null);
   const [loadErr, setLoadErr] = useState('');
@@ -18,6 +19,8 @@ function PayLinkPageInner() {
   const [usdHint, setUsdHint] = useState(null);
   const [payErr, setPayErr] = useState('');
   const [paying, setPaying] = useState(false);
+  const [moonPayLoading, setMoonPayLoading] = useState(false);
+  const [moonPayErr, setMoonPayErr] = useState('');
 
   useEffect(() => {
     if (!token) return;
@@ -74,6 +77,93 @@ function PayLinkPageInner() {
       setPaying(false);
     }
   }, [token, effectiveCrypto, fixedAmount]);
+
+  const handleMoonPay = useCallback(async () => {
+    setMoonPayErr('');
+    if (!token) {
+      setMoonPayErr('Invalid payment link.');
+      return;
+    }
+    if (!(effectiveCrypto > 0)) {
+      setMoonPayErr(fixedAmount == null ? 'Enter an amount greater than 0.' : 'This link needs a valid amount.');
+      return;
+    }
+
+    const cur = linkData?.currency ? String(linkData.currency).toUpperCase() : '';
+    let usd = usdHint != null && Number(usdHint) > 0 ? Number(usdHint) : null;
+    if (!(usd > 0) && cur) {
+      try {
+        const { priceUsd } = await getCoinbasePrice(cur);
+        usd = effectiveCrypto * priceUsd;
+      } catch {
+        setMoonPayErr('Could not estimate USD for MoonPay. Try again in a moment.');
+        return;
+      }
+    }
+    if (!(usd > 0)) {
+      setMoonPayErr('Could not estimate USD for this payment.');
+      return;
+    }
+
+    setMoonPayLoading(true);
+    try {
+      const { url } = await getMoonPayPaymentLinkUrl(token, {
+        baseCurrencyAmount: usd,
+        quoteCurrencyAmount: effectiveCrypto,
+      });
+      if (!url) {
+        setMoonPayErr('MoonPay did not return a checkout URL.');
+        return;
+      }
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      setMoonPayErr(err?.message || 'Could not start MoonPay');
+    } finally {
+      setMoonPayLoading(false);
+    }
+  }, [token, effectiveCrypto, fixedAmount, usdHint, linkData?.currency]);
+
+  const moonPayForLink = !!linkData && !!linkData.currency;
+
+  if (moonpayReturn) {
+    return (
+      <div className="app-dark" style={{ minHeight: '100vh', padding: '1.5rem' }}>
+        <main style={{ maxWidth: 440, margin: '2rem auto', textAlign: 'center' }} className="auth-card">
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              margin: '0 auto 1.25rem',
+              borderRadius: '50%',
+              background: 'var(--success-muted, rgba(46, 160, 67, 0.2))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2rem',
+            }}
+            aria-hidden
+          >
+            ✓
+          </div>
+          <h1 className="auth-title" style={{ fontSize: '1.5rem' }}>
+            Returned from MoonPay
+          </h1>
+          <p className="auth-sub" style={{ marginTop: '0.75rem', lineHeight: 1.5 }}>
+            If you completed checkout, crypto is being sent to the recipient’s wallet address on file. Their in-app balance
+            may update shortly after MoonPay confirms (webhook). You can close this tab.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.75rem' }}>
+            <Link href="/" className="btn btn-primary" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', width: '100%' }}>
+              Home
+            </Link>
+            <Link href="/login" style={{ color: 'var(--dash-accent)', fontSize: '0.9375rem' }}>
+              Sign in to your wallet
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (thankyou) {
     return (
@@ -159,17 +249,44 @@ function PayLinkPageInner() {
               then close this link so it cannot be reused.
             </div>
 
-            <div style={{ marginTop: '1.25rem' }}>
-              {payErr && <div className="alert alert-error" style={{ marginBottom: '0.75rem' }}>{payErr}</div>}
+            {moonPayForLink && (
+              <p className="auth-sub" style={{ marginTop: '1rem', fontSize: '0.8125rem', lineHeight: 1.45 }}>
+                Or pay with card/bank via MoonPay. For EVM tokens on this link, crypto can go to the recipient’s linked
+                wallet when they have one; for other assets, MoonPay will ask for the correct receiving address in checkout.
+              </p>
+            )}
+
+            <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {payErr && <div className="alert alert-error">{payErr}</div>}
+              {moonPayErr && <div className="alert alert-error">{moonPayErr}</div>}
               <button
                 type="button"
                 className="btn btn-primary"
                 style={{ width: '100%' }}
-                disabled={paying || !(effectiveCrypto > 0)}
+                disabled={paying || moonPayLoading || !(effectiveCrypto > 0)}
                 onClick={handlePay}
               >
-                {paying ? 'Processing…' : 'Pay'}
+                {paying ? 'Processing…' : 'Pay (simulated)'}
               </button>
+              {moonPayForLink && (
+                <button
+                  type="button"
+                  className="btn-moonpay-image-only"
+                  style={{ width: '100%', maxWidth: 360, margin: '0 auto', display: 'block' }}
+                  disabled={paying || moonPayLoading || !(effectiveCrypto > 0)}
+                  onClick={handleMoonPay}
+                  aria-label={moonPayLoading ? 'Opening MoonPay…' : 'Continue with MoonPay'}
+                  aria-busy={moonPayLoading}
+                >
+                  <img
+                    src="/moonpay-continue-button.png"
+                    alt=""
+                    width={320}
+                    height={72}
+                    draggable={false}
+                  />
+                </button>
+              )}
             </div>
           </>
         )}

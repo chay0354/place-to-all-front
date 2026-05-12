@@ -131,13 +131,17 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
   const [detailWallet, setDetailWallet] = useState(null);
   /** CoinGecko markets: USD prices + official image URLs (same request). */
   const [coinGecko, setCoinGecko] = useState(null);
+  /** Avoid showing Est. total with static fallback prices, then jumping to live — wait for this fetch. */
+  const [usdPricesReady, setUsdPricesReady] = useState(false);
 
   useEffect(() => {
     const symbols = [...new Set(wallets.map((w) => w.currency).filter(Boolean))];
     if (symbols.length === 0) {
       setCoinGecko({ prices: {}, images: {} });
+      setUsdPricesReady(true);
       return;
     }
+    setUsdPricesReady(false);
     const ac = new AbortController();
     fetch(`/api/coingecko/prices?symbols=${encodeURIComponent(symbols.join(','))}`, {
       signal: ac.signal,
@@ -150,7 +154,10 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
           images: d.images && typeof d.images === 'object' ? d.images : {},
         }),
       )
-      .catch(() => setCoinGecko(null));
+      .catch(() => setCoinGecko({ prices: {}, images: {} }))
+      .finally(() => {
+        if (!ac.signal.aborted) setUsdPricesReady(true);
+      });
     return () => ac.abort();
   }, [wallets]);
 
@@ -227,6 +234,7 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
   const getUsdUnit = makeUsdUnitGetter(coinGecko?.prices ?? null);
   const totalUsd = wallets.reduce((sum, w) => sum + toNum(w.balance) * getUsdUnit(w.currency), 0);
   const balanceStr = totalUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const showPortfolioTotal = walletReady && usdPricesReady;
   const topTransactions = transactions.slice(0, 4);
   const txIncoming = topTransactions.filter((tx) => tx.direction === 'in');
   const txOutgoing = topTransactions.filter((tx) => tx.direction !== 'in');
@@ -271,9 +279,18 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
             <EyeIcon />
           </button>
         </div>
-        <div className="dash-home-total">
-          <span className="dash-home-total-value">{balanceStr}</span>
-          <span className="dash-home-total-currency">USD</span>
+        <div className="dash-home-total" aria-busy={!showPortfolioTotal}>
+          {showPortfolioTotal ? (
+            <>
+              <span className="dash-home-total-value">{balanceStr}</span>
+              <span className="dash-home-total-currency">USD</span>
+            </>
+          ) : (
+            <>
+              <span className="dash-home-total-value dash-home-total-value--pending">—</span>
+              <span className="dash-home-total-currency">USD</span>
+            </>
+          )}
         </div>
       </section>
 

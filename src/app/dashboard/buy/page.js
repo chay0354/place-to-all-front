@@ -4,7 +4,15 @@ import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { buyCrypto, getCoinbaseSellQuote, getCoinbasePrice, getCoinbaseCurrencies, getPublicPaymentLink } from '@/lib/api';
+import {
+  buyCrypto,
+  getCoinbaseSellQuote,
+  getCoinbasePrice,
+  getCoinbaseCurrencies,
+  getPublicPaymentLink,
+  getMoonPayUrl,
+  getMoonPayPaymentLinkUrl,
+} from '@/lib/api';
 import { toRelayUrl } from '@/lib/relay-url';
 
 /** Coinbase-supported buyable codes — used if buy API is unavailable. */
@@ -34,6 +42,7 @@ function BuyPageContent() {
   const [usdFromCrypto, setUsdFromCrypto] = useState(null);
   const [userId, setUserId] = useState(null);
   const [token, setToken] = useState(null);
+  const [moonPayLoading, setMoonPayLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -165,6 +174,67 @@ function BuyPageContent() {
     }
   }
 
+  async function handleMoonPay() {
+    setError('');
+    const cryptoNum = Number(amount);
+    if (!(cryptoNum > 0)) {
+      setError('Enter an amount greater than 0 before opening MoonPay.');
+      return;
+    }
+
+    let usd = usdFromCrypto != null && Number(usdFromCrypto) > 0 ? Number(usdFromCrypto) : null;
+    if (!(usd > 0)) {
+      try {
+        const { priceUsd } = await getCoinbasePrice(currency);
+        usd = cryptoNum * priceUsd;
+      } catch {
+        setError('Could not estimate USD for this amount. Try again or wait for the quote.');
+        return;
+      }
+    }
+
+    setMoonPayLoading(true);
+    try {
+      let data;
+      if (isPaymentLinkCheckout) {
+        if (!payToken) {
+          setError('Missing payment link.');
+          return;
+        }
+        data = await getMoonPayPaymentLinkUrl(payToken, {
+          baseCurrencyAmount: usd,
+          quoteCurrencyAmount: cryptoNum,
+        });
+      } else {
+        if (!userId || !token) {
+          setError('Please log in.');
+          return;
+        }
+        data = await getMoonPayUrl(
+          userId,
+          {
+            currencyCode: String(currency || 'eth').toLowerCase(),
+            baseCurrencyCode: 'usd',
+            baseCurrencyAmount: usd,
+            quoteCurrencyAmount: cryptoNum,
+          },
+          token,
+        );
+      }
+      const url = data?.url;
+      if (!url) {
+        setError('MoonPay did not return a checkout URL.');
+        return;
+      }
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      const msg = err.response?.error || err.message || 'Could not start MoonPay';
+      setError(msg);
+    } finally {
+      setMoonPayLoading(false);
+    }
+  }
+
   if (!userId) return null;
 
   return (
@@ -174,7 +244,7 @@ function BuyPageContent() {
         <p className="page-desc">
           {isPaymentLinkCheckout
             ? 'Confirm the asset and amount, then use Pay now to simulate a successful payment. The recipient is credited on the ledger (demo).'
-            : 'Choose asset and amount for an estimate, then use instant test to simulate a buy (development).'}
+            : 'Choose asset and amount for an estimate. Use instant test to simulate a buy in development, or buy with MoonPay (card/bank). EVM assets use your linked wallet; other assets are completed in the MoonPay widget.'}
         </p>
         {isPaymentLinkCheckout && (
           <div className="alert alert-success" style={{ margin: '0 0 1rem', borderRadius: 12 }}>
@@ -218,17 +288,35 @@ function BuyPageContent() {
               )}
             </div>
             {error && <div className="alert alert-error">{error}</div>}
-            <div className="action-row">
+            <div className="action-row action-row--moonpay-only">
               <button
                 type="button"
-                onClick={handleInstantTest}
-                disabled={loading || !currency}
-                className="btn btn-primary"
+                onClick={handleMoonPay}
+                disabled={loading || moonPayLoading || !currency || !(Number(amount) > 0)}
+                className="btn-moonpay-image-only"
+                aria-label={moonPayLoading ? 'Opening MoonPay…' : 'Continue with MoonPay'}
+                aria-busy={moonPayLoading}
               >
-                {loading ? '…' : isPaymentLinkCheckout ? 'Pay now (simulated)' : 'Instant test (dev)'}
+                <img
+                  src="/moonpay-continue-button.png"
+                  alt=""
+                  width={320}
+                  height={72}
+                  draggable={false}
+                />
               </button>
             </div>
           </form>
+          <div className="buy-card-footer">
+            <button
+              type="button"
+              onClick={handleInstantTest}
+              disabled={loading || moonPayLoading || !currency}
+              className="buy-text-button"
+            >
+              {loading ? '…' : isPaymentLinkCheckout ? 'Pay now (simulated)' : 'Instant test (dev)'}
+            </button>
+          </div>
         </div>
     </div>
   );

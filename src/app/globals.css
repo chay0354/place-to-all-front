@@ -207,6 +207,88 @@ input, button, select, textarea {
   opacity: 0.6;
 }
 
+/* MoonPay image button — layout only; no filters/color-scheme so the PNG matches the file */
+.btn-moonpay-image-only {
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  line-height: 0;
+  display: inline-block;
+  vertical-align: middle;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.btn-moonpay-image-only:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 999px;
+}
+.btn-moonpay-image-only:disabled {
+  cursor: not-allowed;
+}
+.btn-moonpay-image-only:not(:disabled) {
+  cursor: pointer;
+}
+.btn-moonpay-image-only img {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  vertical-align: top;
+}
+
+.dashboard-wallet-ui .btn-moonpay-image-only {
+  min-height: unset;
+  padding: 0;
+}
+
+.action-row--moonpay-only {
+  justify-content: center;
+}
+
+.buy-card-footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.buy-text-button {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.buy-text-button:hover:not(:disabled) {
+  color: var(--primary);
+}
+.buy-text-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  text-decoration: none;
+}
+
+.dashboard-wallet-ui .buy-card-footer {
+  border-color: var(--dash-border);
+}
+.dashboard-wallet-ui .buy-text-button {
+  color: var(--dash-muted);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.dashboard-wallet-ui .buy-text-button:hover:not(:disabled) {
+  color: var(--dash-accent);
+}
+
 /* Page container */
 .page {
   max-width: 560px;
@@ -329,6 +411,12 @@ input, button, select, textarea {
   background: rgba(248, 81, 73, 0.14);
   color: #ff8a84;
   border: 1px solid rgba(248, 81, 73, 0.35);
+}
+
+.alert-info {
+  background: rgba(90, 169, 255, 0.12);
+  color: #9ec8ff;
+  border: 1px solid rgba(90, 169, 255, 0.28);
 }
 
 /* Wallet cards (dashboard) */
@@ -709,6 +797,12 @@ input, button, select, textarea {
   letter-spacing: -0.04em;
   color: var(--dash-text);
   font-variant-numeric: tabular-nums;
+}
+
+.dash-home-total-value--pending {
+  color: var(--dash-muted);
+  font-weight: 600;
+  opacity: 0.85;
 }
 
 .dash-home-total-currency {
@@ -1894,6 +1988,12 @@ input, button, select, textarea {
   background: rgba(248, 81, 73, 0.15);
   color: var(--dash-danger);
   border-color: rgba(248, 81, 73, 0.3);
+}
+
+.dashboard-wallet-ui .alert-info {
+  background: rgba(90, 169, 255, 0.12);
+  color: #a8cfff;
+  border-color: rgba(90, 169, 255, 0.28);
 }
 
 .dashboard-wallet-ui .btn-primary {
