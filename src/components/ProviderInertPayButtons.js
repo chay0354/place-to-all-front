@@ -1,6 +1,6 @@
 /**
- * Paybis + Transak image rows (inert until integrations are wired).
- * Replace `public/paybis.png` and `public/trans.png` with your brand assets when ready.
+ * Paybis + Trans image rows (inert until integrations are wired).
+ * Brand files: `public/paybis.png`, `public/trans.png` (keep in sync with `assets/` if you store sources there).
  */
 export function ProviderInertPayButtons({ variant = 'default' }) {
   const wrap =
@@ -21,7 +21,7 @@ export function ProviderInertPayButtons({ variant = 'default' }) {
         type="button"
         disabled
         className="btn-moonpay-image-only btn-provider-image-inert"
-        aria-label="Transak (coming soon)"
+        aria-label="Trans (coming soon)"
       >
         <img src="/trans.png" alt="" width={320} height={72} draggable={false} />
       </button>
