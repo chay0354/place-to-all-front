@@ -242,11 +242,6 @@ function BuyPageContent() {
     <div className="page">
       <Link href="/dashboard" className="back-link">← Back to portfolio</Link>
         <h1 className="page-title">{isPaymentLinkCheckout ? 'Complete payment' : 'Buy crypto'}</h1>
-        <p className="page-desc">
-          {isPaymentLinkCheckout
-            ? 'Confirm the asset and amount, then use Pay now to simulate a successful payment. The recipient is credited on the ledger (demo).'
-            : 'Choose asset and amount for an estimate. Use instant test to simulate a buy in development, or buy with MoonPay (card/bank). EVM assets use your linked wallet; other assets are completed in the MoonPay widget.'}
-        </p>
         {isPaymentLinkCheckout && (
           <div className="alert alert-success" style={{ margin: '0 0 1rem', borderRadius: 12 }}>
             Demo mode: Pay now does not charge a real card — it records a simulated payment and credits the recipient in the app.
@@ -267,9 +262,6 @@ function BuyPageContent() {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-              <p className="form-hint">
-                {isPaymentLinkCheckout ? 'Credited to the recipient’s ledger after payment.' : 'Coinbase-supported assets — credited to your ledger after payment'}
-              </p>
             </div>
             <div className="form-group">
               <label className="form-label">Amount</label>

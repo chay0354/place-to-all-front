@@ -266,13 +266,13 @@ input, button, select, textarea {
   margin-right: auto;
 }
 
-/* Inert provider rows: disabled for no action; keep readable (not browser default grey-out) */
-.btn-moonpay-image-only.btn-provider-image-inert:disabled {
-  opacity: 1;
+/* Inert provider rows: same visual weight as MoonPay (no disabled UA dimming) */
+.btn-moonpay-image-only.btn-provider-image-inert {
   cursor: default;
+  pointer-events: none;
 }
-.btn-moonpay-image-only.btn-provider-image-inert:disabled img {
-  opacity: 0.78;
+.btn-moonpay-image-only.btn-provider-image-inert img {
+  opacity: 1;
 }
 
 .buy-card-footer {
