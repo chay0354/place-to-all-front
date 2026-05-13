@@ -282,22 +282,24 @@ function BuyPageContent() {
             </div>
             {error && <div className="alert alert-error">{error}</div>}
             <div className="action-row action-row--moonpay-only provider-pay-stack">
-              <button
-                type="button"
-                onClick={handleMoonPay}
-                disabled={loading || moonPayLoading || !currency || !(Number(amount) > 0)}
-                className="btn-moonpay-image-only"
-                aria-label={moonPayLoading ? 'Opening MoonPay…' : 'Continue with MoonPay'}
-                aria-busy={moonPayLoading}
-              >
-                <img
-                  src="/moonpay-continue-button.png"
-                  alt=""
-                  width={320}
-                  height={72}
-                  draggable={false}
-                />
-              </button>
+              <div className="provider-pay-button-wrap">
+                <button
+                  type="button"
+                  onClick={handleMoonPay}
+                  disabled={loading || moonPayLoading || !currency || !(Number(amount) > 0)}
+                  className="btn-moonpay-image-only"
+                  aria-label={moonPayLoading ? 'Opening MoonPay…' : 'Continue with MoonPay'}
+                  aria-busy={moonPayLoading}
+                >
+                  <img
+                    src="/moonpay-continue-button.png"
+                    alt=""
+                    width={320}
+                    height={72}
+                    draggable={false}
+                  />
+                </button>
+              </div>
               <ProviderInertPayButtons />
             </div>
           </form>
