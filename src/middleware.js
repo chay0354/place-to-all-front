@@ -58,6 +58,6 @@ export const config = {
      * "Cannot read properties of undefined (reading 'bind')" on setHeader).
      * Skip static assets by extension.
      */
-    '/((?!_next/|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
