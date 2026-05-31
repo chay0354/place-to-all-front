@@ -191,7 +191,7 @@ export function IdVerificationModal({ open, onClose, userId, onComplete }) {
                 📷
               </span>
               <span className="idv-dropzone-text">Tap to add photo</span>
-              <span className="idv-dropzone-hint">JPG, PNG or WebP · max 5 MB</span>
+              <span className="idv-dropzone-hint">JPG, PNG or WebP · large photos are compressed automatically</span>
             </>
           )}
         </button>
