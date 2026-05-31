@@ -278,6 +278,166 @@ input, button, select, textarea {
   opacity: 1;
 }
 
+/* Buy page — provider comparison list */
+.buy-provider-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.buy-provider-item-wrap {
+  width: 100%;
+}
+
+.buy-provider-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+  color: #111;
+  text-align: left;
+  cursor: default;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+
+.buy-provider-item--active:not(:disabled) {
+  cursor: pointer;
+}
+
+.buy-provider-item--active:not(:disabled):hover {
+  border-color: rgba(124, 58, 237, 0.45);
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.12);
+}
+
+.buy-provider-item--loading {
+  border-color: rgba(14, 165, 233, 0.55);
+  box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.15);
+}
+
+.buy-provider-item:disabled {
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.buy-provider-logo {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buy-provider-logo-svg {
+  width: 40px;
+  height: 40px;
+  display: block;
+}
+
+.buy-provider-logo-img {
+  width: 40px;
+  height: 40px;
+  display: block;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.buy-provider-logo-fallback {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: block;
+}
+
+.buy-provider-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.buy-provider-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.buy-provider-name {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #111;
+}
+
+.buy-provider-badge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+}
+
+.buy-provider-badge--muted {
+  background: rgba(0, 0, 0, 0.06);
+  color: #6b7280;
+}
+
+.buy-provider-quote {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #374151;
+  font-variant-numeric: tabular-nums;
+}
+
+.buy-provider-fee {
+  font-size: 0.6875rem;
+  color: #9ca3af;
+}
+
+.buy-provider-spinner {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(14, 165, 233, 0.25);
+  border-top-color: #0ea5e9;
+  border-radius: 50%;
+  animation: buy-provider-spin 0.7s linear infinite;
+}
+
+@keyframes buy-provider-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.buy-provider-disclaimer {
+  margin: 0.35rem 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--dash-muted, #9ca3af);
+  text-align: center;
+}
+
+.dashboard-wallet-ui .buy-provider-item {
+  background: #fff;
+}
+
+.dashboard-wallet-ui .buy-provider-disclaimer {
+  color: var(--dash-muted);
+}
+
 .buy-card-footer {
   margin-top: 1rem;
   padding-top: 1rem;
