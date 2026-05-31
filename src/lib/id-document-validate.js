@@ -1,3 +1,5 @@
+import { getOpenAiApiKey } from '@/lib/server-env';
+
 const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_BYTES = 4 * 1024 * 1024;
 
@@ -87,12 +89,15 @@ export function assertValidIdImageFile(file, buffer, mimeType) {
 }
 
 export async function validateIdDocumentWithOpenAI(file, side) {
-  const apiKey = (process.env.OPENAI_API_KEY || '').trim();
+  const apiKey = getOpenAiApiKey();
   if (!apiKey) {
-    throw new IdValidateError('ID verification is not configured on the server. Set OPENAI_API_KEY in Vercel.', {
-      code: 'config',
-      status: 503,
-    });
+    throw new IdValidateError(
+      'ID verification is not configured. Add OPENAI_API_KEY to the front Vercel project (Production) and redeploy.',
+      {
+        code: 'config',
+        status: 503,
+      },
+    );
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
