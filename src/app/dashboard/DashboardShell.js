@@ -1,24 +1,74 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import { getProfile } from '@/lib/api';
+import { PROFILE_AVATAR_EVENT } from '@/lib/profile-avatar';
+
+function emailInitial(email) {
+  const e = String(email || '').trim();
+  if (!e) return 'P';
+  return e.charAt(0).toUpperCase();
+}
 
 export function DashboardShell({ children }) {
   const pathname = usePathname() || '';
+  const [userEmail, setUserEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const isHome = pathname === '/dashboard' || pathname === '/dashboard/';
   const isSend = pathname.startsWith('/dashboard/transfer');
   const isCard = pathname.startsWith('/dashboard/card');
   const isAssets = pathname.startsWith('/dashboard/market');
   const isAccount = pathname.startsWith('/dashboard/account');
 
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUserEmail(user?.email?.trim() || '');
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user?.email?.trim() || '');
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    getProfile()
+      .then((p) => setAvatarUrl(p?.avatar_url || ''))
+      .catch(() => setAvatarUrl(''));
+    const onAvatar = (e) => setAvatarUrl(e.detail?.url || '');
+    window.addEventListener(PROFILE_AVATAR_EVENT, onAvatar);
+    return () => window.removeEventListener(PROFILE_AVATAR_EVENT, onAvatar);
+  }, []);
+
   return (
     <div className="dashboard-wallet-ui">
+      {!isAccount && (
       <header className="dash-header">
         <div className="dash-header-row">
           <Link href="/dashboard/account" className="dash-profile dash-profile--avatar" aria-label="Account" aria-hidden={isAccount}>
-            P
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="dash-profile-img" draggable={false} />
+            ) : (
+              emailInitial(userEmail)
+            )}
           </Link>
-          <h1 className="dash-brand">place to all</h1>
+          <div className="dash-header-brand-block">
+            <h1 className="dash-brand">place to all</h1>
+            {userEmail ? (
+              <Link href="/dashboard/account" className="dash-header-email" title={userEmail}>
+                {userEmail}
+              </Link>
+            ) : (
+              <span className="dash-header-email dash-header-email--placeholder" aria-hidden="true">
+                &nbsp;
+              </span>
+            )}
+          </div>
           <div className="dash-header-actions">
             <button type="button" className="dash-header-icon" aria-label="Scan">
               <ScanIcon />
@@ -34,6 +84,7 @@ export function DashboardShell({ children }) {
           </div>
         </div>
       </header>
+      )}
 
       <main>{children}</main>
 

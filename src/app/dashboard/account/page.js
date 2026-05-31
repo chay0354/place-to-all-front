@@ -7,6 +7,35 @@ import { createClient } from '@/lib/supabase/client';
 import { getTransactions, getProfile, getProfileDownline, createPaymentLink, listPaymentLinks } from '@/lib/api';
 import { isAdminOperatorEmail } from '@/lib/admin-config';
 import { siteUrl } from '@/lib/site-url';
+import { ProfileAvatar } from '@/components/ProfileAvatar';
+import { IdDocumentUpload } from '@/components/IdDocumentUpload';
+
+const APP_VERSION = '1.0.0';
+
+function maskEmail(email) {
+  const e = String(email || '').trim();
+  const [local, domain] = e.split('@');
+  if (!domain) return e;
+  if (local.length <= 3) return `${local[0] || ''}****@${domain}`;
+  return `${local.slice(0, 3)}****@${domain}`;
+}
+
+function displayUid(userId) {
+  if (!userId) return '—';
+  let h = 0;
+  for (let i = 0; i < userId.length; i += 1) {
+    h = (Math.imul(31, h) + userId.charCodeAt(i)) >>> 0;
+  }
+  return String(h).padStart(10, '0').slice(0, 10);
+}
+
+function roleLabel(role) {
+  if (role === 'super_super_agent') return 'Super super agent';
+  if (role === 'super_agent') return 'Super agent';
+  if (role === 'agent') return 'Agent';
+  if (role === 'admin') return 'Admin';
+  return 'Member';
+}
 
 export default function AccountPage() {
   const [user, setUser] = useState(null);
@@ -23,6 +52,8 @@ export default function AccountPage() {
   const [plMessage, setPlMessage] = useState('');
   const [downline, setDownline] = useState(null);
   const [downlineLoading, setDownlineLoading] = useState(false);
+  const [view, setView] = useState('hub');
+  const [copied, setCopied] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -101,6 +132,16 @@ export default function AccountPage() {
     router.refresh();
   }
 
+  async function copyText(key, text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(key);
+      setTimeout(() => setCopied((c) => (c === key ? '' : c)), 2000);
+    } catch {
+      /* ignore */
+    }
+  }
+
   function formatAmount(amount, currency) {
     const n = Number(amount);
     if (currency === 'USDT' || currency === 'USDC') return n.toFixed(2);
@@ -109,94 +150,228 @@ export default function AccountPage() {
     return n.toFixed(8);
   }
 
+  function goHub() {
+    setView('hub');
+  }
+
+  function handleAvatarChange(url) {
+    setProfile((p) => ({ ...(p || {}), avatar_url: url }));
+  }
+
+  function handleIdUploaded({ path, backPath, uploadedAt }) {
+    setProfile((p) => ({
+      ...(p || {}),
+      id_document_path: path,
+      id_document_back_path: backPath,
+      id_document_uploaded_at: uploadedAt,
+    }));
+  }
+
   if (loading || !user) return null;
 
-  return (
-    <div className="page">
-      <Link href="/dashboard" className="back-link">← Back to portfolio</Link>
-      <h1 className="page-title">Account</h1>
+  const uid = displayUid(user.id);
+  const masked = maskEmail(user.email);
+  const memberSince = user.created_at
+    ? new Date(user.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' })
+    : null;
 
-      <div className="card card-lg">
-        <div className="form-group">
-          <label className="form-label">Email</label>
-          <p className="form-input" style={{ background: 'var(--bg-muted)', cursor: 'default' }}>
-            {user.email}
-          </p>
-        </div>
-        {user.created_at && (
-          <div className="form-group">
-            <label className="form-label">Member since</label>
-            <p className="form-input" style={{ background: 'var(--bg-muted)', cursor: 'default' }}>
-              {new Date(user.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' })}
-            </p>
-          </div>
+  const hubTitle =
+    view === 'profile'
+      ? 'Profile'
+      : view === 'payment-links'
+        ? 'Payment links'
+        : view === 'transactions'
+          ? 'Transaction history'
+          : view === 'downline'
+            ? profile?.role === 'super_super_agent'
+              ? 'Your team'
+              : profile?.role === 'super_agent'
+                ? 'Your agents'
+                : 'Users you referred'
+            : view === 'about'
+              ? 'About'
+              : 'Profile';
+
+  return (
+    <div className="account-hub">
+      <header className="account-hub-toolbar">
+        {view === 'hub' ? (
+          <Link href="/dashboard" className="account-hub-icon-btn" aria-label="Back to home">
+            <BackIcon />
+          </Link>
+        ) : (
+          <button type="button" className="account-hub-icon-btn" aria-label="Back" onClick={goHub}>
+            <BackIcon />
+          </button>
         )}
-        <div style={{ marginTop: '1.5rem' }}>
+        <span className="account-hub-toolbar-title">{view === 'hub' ? '' : hubTitle}</span>
+        <div className="account-hub-toolbar-actions">
+          <button type="button" className="account-hub-icon-btn" aria-label="Support" title="Support">
+            <SupportIcon />
+          </button>
           <button
             type="button"
-            onClick={handleLogout}
-            className="btn btn-primary"
-            style={{ width: '100%' }}
+            className="account-hub-icon-btn"
+            aria-label="Account settings"
+            onClick={() => setView('profile')}
           >
+            <SettingsIcon />
+          </button>
+        </div>
+      </header>
+
+      {view === 'hub' && (
+        <>
+          <button type="button" className="account-profile-row" onClick={() => setView('profile')}>
+            <ProfileAvatar
+              userId={user.id}
+              email={user.email}
+              avatarUrl={profile?.avatar_url}
+              size="sm"
+              editable
+              onAvatarChange={handleAvatarChange}
+              onEditClick={(e) => e.stopPropagation()}
+            />
+            <div className="account-profile-meta">
+              <div className="account-profile-email">{masked}</div>
+              <div className="account-profile-uid">
+                <span>UID: {uid}</span>
+                <span
+                  role="button"
+                  tabIndex={0}
+                  className="account-profile-copy"
+                  aria-label="Copy UID"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copyText('uid', uid);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      copyText('uid', uid);
+                    }
+                  }}
+                >
+                  <CopyIcon />
+                </span>
+                {copied === 'uid' && <span className="account-copied-hint">Copied</span>}
+              </div>
+              {memberSince && (
+                <span className="account-profile-badge">Member since {memberSince}</span>
+              )}
+            </div>
+            <ChevronRightIcon />
+          </button>
+
+          <nav className="account-menu" aria-label="Account menu">
+            <AccountMenuRow
+              icon={<LockIcon />}
+              label="Security"
+              onClick={() => setView('profile')}
+            />
+            <AccountMenuLink icon={<CardIcon />} label="Card center" href="/dashboard/card" />
+            {isAgentLike && (
+              <AccountMenuLink icon={<UsersIcon />} label="Affiliation dashboard" href="/dashboard/affiliation" />
+            )}
+            {canManagePaymentLinks && !isAgentLike && (
+              <AccountMenuRow
+                icon={<PaymentIcon />}
+                label="Payment links"
+                onClick={() => setView('payment-links')}
+              />
+            )}
+            <AccountMenuRow
+              icon={<HistoryIcon />}
+              label="Transaction history"
+              onClick={() => setView('transactions')}
+            />
+            {isAgentLike && (
+              <AccountMenuRow
+                icon={<UsersIcon />}
+                label={
+                  profile?.role === 'super_super_agent'
+                    ? 'Your team'
+                    : profile?.role === 'super_agent'
+                      ? 'Your agents'
+                      : 'Users you referred'
+                }
+                onClick={() => setView('downline')}
+              />
+            )}
+            {isAdminOperatorEmail(user?.email) && (
+              <AccountMenuLink icon={<ShieldIcon />} label="Admin" href="/dashboard/admin" />
+            )}
+            <AccountMenuRow
+              icon={<InfoIcon />}
+              label="About us"
+              trailing={`V${APP_VERSION}`}
+              onClick={() => setView('about')}
+            />
+          </nav>
+        </>
+      )}
+
+      {view === 'profile' && (
+        <div className="account-subview">
+          <div className="account-profile-hero">
+            <ProfileAvatar
+              userId={user.id}
+              email={user.email}
+              avatarUrl={profile?.avatar_url}
+              size="lg"
+              editable
+              onAvatarChange={handleAvatarChange}
+            />
+            <p className="account-profile-hero-email">{masked}</p>
+          </div>
+          <div className="account-info-card">
+            <div className="account-info-row">
+              <span className="account-info-label">UID</span>
+              <span className="account-info-value">
+                {uid}
+                <button type="button" className="account-info-action" aria-label="Copy UID" onClick={() => copyText('uid-profile', uid)}>
+                  <CopyIcon />
+                </button>
+                {copied === 'uid-profile' && <span className="account-copied-inline">Copied</span>}
+              </span>
+            </div>
+            <div className="account-info-row">
+              <span className="account-info-label">Email</span>
+              <span className="account-info-value account-info-value--muted">{user.email}</span>
+            </div>
+            {memberSince && (
+              <div className="account-info-row">
+                <span className="account-info-label">Member since</span>
+                <span className="account-info-value account-info-value--muted">{memberSince}</span>
+              </div>
+            )}
+            <div className="account-info-row account-info-row--last">
+              <span className="account-info-label">Account type</span>
+              <span className="account-info-pill">{roleLabel(profile?.role)}</span>
+            </div>
+          </div>
+
+          <IdDocumentUpload
+            userId={user.id}
+            documentPath={profile?.id_document_path}
+            documentBackPath={profile?.id_document_back_path}
+            uploadedAt={profile?.id_document_uploaded_at}
+            onUploaded={handleIdUploaded}
+          />
+
+          <button type="button" className="account-logout-btn" onClick={handleLogout}>
             Log out
           </button>
         </div>
-      </div>
-
-      <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Card center</h2>
-      <div className="card card-lg">
-        <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-          Issue your Place to All virtual Visa card, fund it from crypto wallets, and prepare it for Apple Pay / Google Pay.
-        </p>
-        <Link
-          href="/dashboard/card"
-          className="btn btn-primary"
-          style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none', width: '100%' }}
-        >
-          Open card center
-        </Link>
-      </div>
-
-      {isAgentLike && (
-        <>
-          <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Affiliations</h2>
-          <div className="card card-lg">
-            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-              Invite links, payment requests, fee settings, your network, and downline activity live in the affiliation
-              dashboard.
-            </p>
-            <Link
-              href="/dashboard/affiliation"
-              className="btn btn-primary"
-              style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none', width: '100%' }}
-            >
-              Open affiliation dashboard
-            </Link>
-          </div>
-        </>
       )}
 
-      {isAdminOperatorEmail(user?.email) && (
-        <>
-          <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Admin</h2>
-          <div className="card card-lg">
-            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-              View agents, super agents, and super super agents; promote <strong>agents</strong> to <strong>super agent</strong>, and <strong>super agents</strong> to <strong>super super agent</strong>, only when they have no invited users. (Operator account only.)
-            </p>
-            <Link href="/dashboard/admin" className="btn btn-primary" style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none', width: '100%' }}>
-              Open admin menu
-            </Link>
-          </div>
-        </>
-      )}
-
-      {canManagePaymentLinks && !isAgentLike && (
-        <>
-          <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Payment links</h2>
-          <div className="card card-lg">
-            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-              Create a fixed-amount link: anyone can open it and pay in one tap (no sign-in). Funds credit your in-app wallet; older links are retired when you create a new one.
-            </p>
+      {view === 'payment-links' && canManagePaymentLinks && !isAgentLike && (
+        <div className="account-subview">
+          <p className="account-subview-lead">
+            Create a fixed-amount link: anyone can open it and pay in one tap (no sign-in). Funds credit your in-app wallet.
+          </p>
+          <div className="account-panel">
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
@@ -225,11 +400,11 @@ export default function AccountPage() {
             >
               <div className="form-group">
                 <label className="form-label">Title (optional)</label>
-                <input className="form-input" value={plTitle} onChange={(e) => setPlTitle(e.target.value)} placeholder="e.g. Invoice #12" />
+                <input className="form-input account-input" value={plTitle} onChange={(e) => setPlTitle(e.target.value)} placeholder="e.g. Invoice #12" />
               </div>
               <div className="form-group">
                 <label className="form-label">Currency</label>
-                <select className="form-select" value={plCurrency} onChange={(e) => setPlCurrency(e.target.value)}>
+                <select className="form-select account-input" value={plCurrency} onChange={(e) => setPlCurrency(e.target.value)}>
                   <option value="USDT">USDT</option>
                   <option value="USDC">USDC</option>
                   <option value="ETH">ETH</option>
@@ -239,7 +414,7 @@ export default function AccountPage() {
               <div className="form-group">
                 <label className="form-label">Amount</label>
                 <input
-                  className="form-input"
+                  className="form-input account-input"
                   type="number"
                   step="any"
                   min="0"
@@ -249,146 +424,258 @@ export default function AccountPage() {
                   placeholder="e.g. 50"
                 />
               </div>
-              {plMessage && <p style={{ marginBottom: '0.75rem', fontSize: '0.875rem' }}>{plMessage}</p>}
-              <button type="submit" className="btn btn-primary" disabled={plLoading}>
+              {plMessage && <p className="account-form-msg">{plMessage}</p>}
+              <button type="submit" className="account-primary-btn" disabled={plLoading}>
                 {plLoading ? 'Creating…' : 'Create payment link'}
               </button>
             </form>
             {paymentLinks.length > 0 && (
-              <div style={{ marginTop: '1.5rem' }}>
-                <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>Your links</h3>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {paymentLinks.map((pl) => (
-                    <li key={pl.id} style={{ padding: '0.75rem', background: 'var(--bg-muted)', borderRadius: 8, fontSize: '0.875rem' }}>
-                      <div style={{ fontWeight: 600 }}>{pl.title || 'Payment request'}</div>
-                      <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>{pl.currency}{pl.amount != null && Number(pl.amount) > 0 ? ` · ${pl.amount}` : ' · any amount'}</div>
-                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                        <input
-                          readOnly
-                          className="form-input"
-                          style={{ flex: 1, minWidth: 180, fontFamily: 'monospace', fontSize: '0.75rem' }}
-                          value={siteUrl(`/pay/${pl.token}`)}
-                        />
-                        <button
-                          type="button"
-                          className="btn btn-ghost"
-                          onClick={() => navigator.clipboard.writeText(siteUrl(`/pay/${pl.token}`))}
-                        >
-                          Copy
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+              <div className="account-link-list">
+                <h3 className="account-link-list-title">Your links</h3>
+                {paymentLinks.map((pl) => (
+                  <div key={pl.id} className="account-link-item">
+                    <div className="account-link-item-head">
+                      <strong>{pl.title || 'Payment request'}</strong>
+                      <span>
+                        {pl.currency}
+                        {pl.amount != null && Number(pl.amount) > 0 ? ` · ${pl.amount}` : ' · any amount'}
+                      </span>
+                    </div>
+                    <div className="account-link-copy-row">
+                      <input readOnly className="account-link-url" value={siteUrl(`/pay/${pl.token}`)} />
+                      <button
+                        type="button"
+                        className="account-secondary-btn"
+                        onClick={() => copyText(`pl-${pl.id}`, siteUrl(`/pay/${pl.token}`))}
+                      >
+                        {copied === `pl-${pl.id}` ? 'Copied' : 'Copy'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
-        </>
+        </div>
       )}
 
-      <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>Transaction history</h2>
-      <div className="card card-lg">
-        {txLoading ? (
-          <p style={{ color: 'var(--text-muted)', padding: '1rem 0' }}>Loading…</p>
-        ) : transactions.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)', padding: '1rem 0' }}>No transactions yet.</p>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table className="form-input" style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--bg-muted)', borderRadius: 8 }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
-                  <th style={{ padding: '0.75rem', fontWeight: 600 }}>Date</th>
-                  <th style={{ padding: '0.75rem', fontWeight: 600 }}>Type</th>
-                  <th style={{ padding: '0.75rem', fontWeight: 600 }}>Amount</th>
-                  <th style={{ padding: '0.75rem', fontWeight: 600 }}>Currency</th>
-                  <th style={{ padding: '0.75rem', fontWeight: 600 }}>Direction</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((tx) => (
-                  <tr key={tx.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '0.75rem', whiteSpace: 'nowrap' }}>
-                      {new Date(tx.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
-                    </td>
-                    <td style={{ padding: '0.75rem' }}>{tx.description || tx.type}</td>
-                    <td style={{ padding: '0.75rem', fontVariantNumeric: 'tabular-nums' }}>
-                      {formatAmount(tx.amount, tx.currency)}
-                    </td>
-                    <td style={{ padding: '0.75rem' }}>{tx.currency}</td>
-                    <td style={{ padding: '0.75rem' }}>
-                      <span style={{ color: tx.direction === 'in' ? 'var(--success, green)' : 'var(--text-muted)' }}>
-                        {tx.direction === 'in' ? 'In' : 'Out'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {isAgentLike && (
-        <>
-          <h2 className="page-title" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>
-            {profile?.role === 'super_super_agent'
-              ? 'Your team'
-              : profile?.role === 'super_agent'
-                ? 'Your agents'
-                : 'Users you referred'}
-          </h2>
-          <div className="card card-lg">
-            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-              {profile?.role === 'super_super_agent'
-                ? 'Super agents (and any legacy agents) who signed up with your invite link.'
-                : profile?.role === 'super_agent'
-                  ? 'Agents who signed up with your super-agent invite link.'
-                  : 'Regular users who joined with your invite link.'}
-            </p>
-            {downlineLoading ? (
-              <p style={{ color: 'var(--text-muted)', padding: '0.5rem 0' }}>Loading…</p>
-            ) : !downline?.members?.length ? (
-              <p style={{ color: 'var(--text-muted)', padding: '0.5rem 0' }}>No one yet.</p>
+      {view === 'transactions' && (
+        <div className="account-subview">
+          <div className="account-panel account-panel--flush">
+            {txLoading ? (
+              <p className="account-empty">Loading…</p>
+            ) : transactions.length === 0 ? (
+              <p className="account-empty">No transactions yet.</p>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table
-                  className="form-input"
-                  style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--bg-muted)', borderRadius: 8 }}
-                >
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
-                      <th style={{ padding: '0.75rem', fontWeight: 600 }}>Email</th>
-                      <th style={{ padding: '0.75rem', fontWeight: 600 }}>Name</th>
-                      {profile?.role === 'super_super_agent' && (
-                        <th style={{ padding: '0.75rem', fontWeight: 600 }}>Role</th>
-                      )}
-                      <th style={{ padding: '0.75rem', fontWeight: 600 }}>Joined</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {downline.members.map((m) => (
-                      <tr key={m.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '0.75rem', fontSize: '0.875rem' }}>{m.email || '—'}</td>
-                        <td style={{ padding: '0.75rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                          {m.display_name || m.username || '—'}
-                        </td>
-                        {profile?.role === 'super_super_agent' && (
-                          <td style={{ padding: '0.75rem', fontSize: '0.8125rem' }}>
-                            {m.role === 'super_agent' ? 'Super agent' : m.role === 'agent' ? 'Agent' : m.role || '—'}
-                          </td>
-                        )}
-                        <td style={{ padding: '0.75rem', whiteSpace: 'nowrap', fontSize: '0.875rem' }}>
-                          {m.created_at ? new Date(m.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ul className="account-tx-list">
+                {transactions.map((tx) => (
+                  <li key={tx.id} className="account-tx-item">
+                    <div className="account-tx-main">
+                      <span className="account-tx-type">{tx.description || tx.type}</span>
+                      <span className={`account-tx-amount ${tx.direction === 'in' ? 'account-tx-amount--in' : ''}`}>
+                        {tx.direction === 'in' ? '+' : '−'}
+                        {formatAmount(tx.amount, tx.currency)} {tx.currency}
+                      </span>
+                    </div>
+                    <div className="account-tx-meta">
+                      {new Date(tx.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
-        </>
+        </div>
+      )}
+
+      {view === 'downline' && isAgentLike && (
+        <div className="account-subview">
+          <p className="account-subview-lead">
+            {profile?.role === 'super_super_agent'
+              ? 'Super agents (and any legacy agents) who signed up with your invite link.'
+              : profile?.role === 'super_agent'
+                ? 'Agents who signed up with your super-agent invite link.'
+                : 'Regular users who joined with your invite link.'}
+          </p>
+          <div className="account-panel account-panel--flush">
+            {downlineLoading ? (
+              <p className="account-empty">Loading…</p>
+            ) : !downline?.members?.length ? (
+              <p className="account-empty">No one yet.</p>
+            ) : (
+              <ul className="account-member-list">
+                {downline.members.map((m) => (
+                  <li key={m.id} className="account-member-item">
+                    <div className="account-member-email">{m.email || '—'}</div>
+                    <div className="account-member-meta">
+                      {m.display_name || m.username || '—'}
+                      {profile?.role === 'super_super_agent' && (
+                        <> · {m.role === 'super_agent' ? 'Super agent' : m.role === 'agent' ? 'Agent' : m.role || '—'}</>
+                      )}
+                    </div>
+                    {m.created_at && (
+                      <div className="account-member-date">
+                        Joined {new Date(m.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
+      {view === 'about' && (
+        <div className="account-subview">
+          <div className="account-about-hero">
+            <div className="account-about-logo">PtA</div>
+            <h2 className="account-about-name">Place to All</h2>
+            <p className="account-about-tagline">Buy, sell, and transfer crypto — one wallet app.</p>
+          </div>
+          <div className="account-info-card">
+            <div className="account-info-row">
+              <span className="account-info-label">Version</span>
+              <span className="account-info-value">V{APP_VERSION}</span>
+            </div>
+            <div className="account-info-row account-info-row--last">
+              <span className="account-info-label">Website</span>
+              <a href={siteUrl('/')} className="account-info-link">
+                place-to-all-front.vercel.app
+              </a>
+            </div>
+          </div>
+        </div>
       )}
     </div>
+  );
+}
+
+function AccountMenuRow({ icon, label, trailing, onClick }) {
+  return (
+    <button type="button" className="account-menu-row" onClick={onClick}>
+      <span className="account-menu-icon">{icon}</span>
+      <span className="account-menu-label">{label}</span>
+      {trailing && <span className="account-menu-trailing">{trailing}</span>}
+      <ChevronRightIcon />
+    </button>
+  );
+}
+
+function AccountMenuLink({ icon, label, href, trailing }) {
+  return (
+    <Link href={href} className="account-menu-row account-menu-row--link">
+      <span className="account-menu-icon">{icon}</span>
+      <span className="account-menu-label">{label}</span>
+      {trailing && <span className="account-menu-trailing">{trailing}</span>}
+      <ChevronRightIcon />
+    </Link>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function SupportIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H3v-6z" />
+      <path d="M21 11h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3v-6z" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg className="account-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CopyIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <rect x="9" y="9" width="13" height="13" rx="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <rect x="3" y="11" width="18" height="11" rx="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function CardIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20" />
+    </svg>
+  );
+}
+
+function PaymentIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="4" />
+    </svg>
+  );
+}
+
+function HistoryIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
+    </svg>
+  );
+}
+
+function UsersIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 16v-4M12 8h.01" />
+    </svg>
   );
 }

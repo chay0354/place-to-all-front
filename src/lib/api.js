@@ -1,5 +1,6 @@
 import { joinBackendUrl } from './api-base.js';
 import { toRelayUrl } from './relay-url.js';
+import { getProfileFromSupabase, updateProfileViaSupabase } from './profile-client.js';
 
 export async function apiRequest(path, options = {}, accessToken) {
   const headers = {
@@ -56,9 +57,49 @@ export async function getWalletsForDashboard() {
 
 /** Get current user's profile (role, referred_by_id). Uses app /api/profile with credentials. */
 export async function getProfile() {
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch('/api/profile', { credentials: 'include', cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) return data;
+    } catch {
+      /* fall through to Supabase */
+    }
+    return getProfileFromSupabase();
+  }
+
   const res = await fetch('/api/profile', { credentials: 'include', cache: 'no-store' });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+/** PATCH profile fields (e.g. avatar_url after storage upload). */
+export async function updateProfile(body) {
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) return data;
+    } catch {
+      /* fall through to Supabase */
+    }
+    return updateProfileViaSupabase(body);
+  }
+
+  const res = await fetch('/api/profile', {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || res.statusText);
   return data;
 }
 
