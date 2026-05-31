@@ -43,6 +43,7 @@ export default function AccountPage() {
   const [transactions, setTransactions] = useState([]);
   const [txLoading, setTxLoading] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [profileReady, setProfileReady] = useState(false);
   const [profile, setProfile] = useState(null);
   const [paymentLinks, setPaymentLinks] = useState([]);
   const [plTitle, setPlTitle] = useState('');
@@ -76,14 +77,21 @@ export default function AccountPage() {
   }, [user?.id, token]);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setProfileReady(false);
+      return;
+    }
     let cancelled = false;
+    setProfileReady(false);
     getProfile()
       .then((p) => {
-        if (!cancelled) setProfile(p || {});
+        if (!cancelled) setProfile(p || { role: 'regular' });
       })
       .catch(() => {
         if (!cancelled) setProfile({ role: 'regular' });
+      })
+      .finally(() => {
+        if (!cancelled) setProfileReady(true);
       });
     return () => {
       cancelled = true;
@@ -264,7 +272,15 @@ export default function AccountPage() {
             <ChevronRightIcon />
           </button>
 
-          <nav className="account-menu" aria-label="Account menu">
+          <nav className="account-menu" aria-label="Account menu" aria-busy={!profileReady}>
+            {!profileReady ? (
+              <>
+                {Array.from({ length: 7 }, (_, i) => (
+                  <div key={i} className="account-menu-skeleton" aria-hidden />
+                ))}
+              </>
+            ) : (
+              <>
             <AccountMenuRow
               icon={<LockIcon />}
               label="Security"
@@ -308,6 +324,8 @@ export default function AccountPage() {
               trailing={`V${APP_VERSION}`}
               onClick={() => setView('about')}
             />
+              </>
+            )}
           </nav>
         </>
       )}
