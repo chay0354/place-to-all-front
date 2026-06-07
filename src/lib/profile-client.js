@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 
 const PROFILE_FIELDS =
-  'id, role, referred_by_id, username, display_name, avatar_url, id_document_path, id_document_back_path, id_document_uploaded_at';
+  'id, role, referred_by_id, username, display_name, avatar_url, id_document_path, id_document_back_path, id_document_uploaded_at, nps_score, nps_submitted_at';
 
 /** Read the signed-in user's profile row directly from Supabase (RLS). */
 export async function getProfileFromSupabase() {
@@ -64,17 +64,28 @@ export async function updateProfileViaSupabase(body) {
       updates.id_document_uploaded_at = new Date().toISOString();
     }
   }
+  const { data: existing, error: readErr } = await supabase
+    .from('profiles')
+    .select('id, nps_score')
+    .eq('id', user.id)
+    .maybeSingle();
+  if (readErr) throw readErr;
+
+  if (body.nps_score !== undefined) {
+    const n = body.nps_score;
+    if (!Number.isInteger(n) || n < 1 || n > 10) {
+      throw new Error('Score must be between 1 and 10');
+    }
+    if (existing?.nps_score != null) {
+      throw new Error('Feedback already submitted');
+    }
+    updates.nps_score = n;
+    updates.nps_submitted_at = new Date().toISOString();
+  }
 
   if (Object.keys(updates).length <= 1) {
     throw new Error('No fields to update');
   }
-
-  const { data: existing, error: readErr } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('id', user.id)
-    .maybeSingle();
-  if (readErr) throw readErr;
 
   if (existing) {
     const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);

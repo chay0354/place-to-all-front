@@ -9,6 +9,8 @@ import { isAdminOperatorEmail } from '@/lib/admin-config';
 import { siteUrl } from '@/lib/site-url';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { IdDocumentUpload } from '@/components/IdDocumentUpload';
+import { AccountCommunity } from '@/components/AccountCommunity';
+import { AccountAbout } from '@/components/AccountAbout';
 
 const APP_VERSION = '1.0.0';
 
@@ -197,8 +199,10 @@ export default function AccountPage() {
                 ? 'Your agents'
                 : 'Users you referred'
             : view === 'about'
-              ? 'About'
-              : 'Profile';
+              ? 'About us'
+              : view === 'community'
+                ? 'Community'
+                : 'Profile';
 
   return (
     <div className="account-hub">
@@ -212,7 +216,10 @@ export default function AccountPage() {
             <BackIcon />
           </button>
         )}
-        <span className="account-hub-toolbar-title">{view === 'hub' ? '' : hubTitle}</span>
+        <span className="account-hub-toolbar-title">
+          {view === 'hub' ? '' : hubTitle}
+        </span>
+        {view !== 'community' && view !== 'about' && (
         <div className="account-hub-toolbar-actions">
           <button type="button" className="account-hub-icon-btn" aria-label="Support" title="Support">
             <SupportIcon />
@@ -226,6 +233,8 @@ export default function AccountPage() {
             <SettingsIcon />
           </button>
         </div>
+        )}
+        {(view === 'community' || view === 'about') && <div className="account-hub-toolbar-spacer" aria-hidden />}
       </header>
 
       {view === 'hub' && (
@@ -318,6 +327,11 @@ export default function AccountPage() {
             {isAdminOperatorEmail(user?.email) && (
               <AccountMenuLink icon={<ShieldIcon />} label="Admin" href="/dashboard/admin" />
             )}
+            <AccountMenuRow
+              icon={<CommunityIcon />}
+              label="Community"
+              onClick={() => setView('community')}
+            />
             <AccountMenuRow
               icon={<InfoIcon />}
               label="About us"
@@ -544,26 +558,20 @@ export default function AccountPage() {
         </div>
       )}
 
+      {view === 'community' && <AccountCommunity />}
+
       {view === 'about' && (
-        <div className="account-subview">
-          <div className="account-about-hero">
-            <div className="account-about-logo">PtA</div>
-            <h2 className="account-about-name">Place to All</h2>
-            <p className="account-about-tagline">Buy, sell, and transfer crypto — one wallet app.</p>
-          </div>
-          <div className="account-info-card">
-            <div className="account-info-row">
-              <span className="account-info-label">Version</span>
-              <span className="account-info-value">V{APP_VERSION}</span>
-            </div>
-            <div className="account-info-row account-info-row--last">
-              <span className="account-info-label">Website</span>
-              <a href={siteUrl('/')} className="account-info-link">
-                place-to-all-front.vercel.app
-              </a>
-            </div>
-          </div>
-        </div>
+        <AccountAbout
+          version={APP_VERSION}
+          npsScore={profile?.nps_score ?? null}
+          onNpsSaved={(score) =>
+            setProfile((p) => ({
+              ...p,
+              nps_score: score,
+              nps_submitted_at: new Date().toISOString(),
+            }))
+          }
+        />
       )}
     </div>
   );
@@ -694,6 +702,17 @@ function InfoIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 16v-4M12 8h.01" />
+    </svg>
+  );
+}
+
+function CommunityIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <circle cx="9" cy="8" r="3.5" />
+      <circle cx="17" cy="9" r="2.5" />
+      <path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" />
+      <path d="M14.5 17.5c.5-1.5 1.8-2.5 3.5-2.5 1.2 0 2.2.4 3 1.1" />
     </svg>
   );
 }

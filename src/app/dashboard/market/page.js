@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getMarketOverview, getWalletsForDashboard } from '@/lib/api';
 import { assetLabel } from '@/lib/asset-names';
+import { CoinIcon } from '@/components/CoinIcon';
 
 /** Match dashboard wallet normalization so tickers align with market overview codes. */
 function normCurrency(currency) {
@@ -45,54 +46,6 @@ function formatUsd(price) {
     return `$${n.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 })}`;
   }
   return `$${n.toPrecision(4)}`;
-}
-
-/** Defined in this file so webpack does not split a separate chunk (reduces missing-chunk errors on Windows dev). */
-function iconClassForCode(code) {
-  const c = String(code || '').toLowerCase();
-  if (c === 'btc') return 'btc';
-  if (c === 'eth') return 'eth';
-  if (c === 'usdt' || c === 'usdc') return 'usdt';
-  if (c === 'sol') return 'sol';
-  if (c === 'bnb') return 'bnb';
-  return 'other';
-}
-
-function initialForCode(code) {
-  const u = String(code || '').toUpperCase();
-  if (u === 'BTC') return 'B';
-  if (u === 'ETH') return 'Ξ';
-  if (u === 'USDT' || u === 'USDC') return '₮';
-  return u.slice(0, 1) || '?';
-}
-
-function MarketCoinIcon({ code, imageUrl, sizeClass = 'market-row-icon' }) {
-  const [failed, setFailed] = useState(false);
-
-  if (imageUrl && String(imageUrl).startsWith('http') && !failed) {
-    return (
-      <div
-        className={`dash-asset-icon dash-asset-icon--rich dash-asset-icon--photo coin-icon ${sizeClass}`}
-        aria-hidden
-      >
-        <img
-          src={imageUrl}
-          alt=""
-          className="dash-asset-icon-img"
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          onError={() => setFailed(true)}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className={`dash-asset-icon ${sizeClass} ${iconClassForCode(code)}`} aria-hidden>
-      {initialForCode(code)}
-    </div>
-  );
 }
 
 export default function MarketPage() {
@@ -209,8 +162,14 @@ export default function MarketPage() {
             aria-label="Search assets"
           />
         </div>
-        <button type="button" className="btn btn-primary market-refresh" onClick={load} disabled={loading}>
-          {loading ? 'Updating…' : 'Refresh'}
+        <button
+          type="button"
+          className="market-refresh-btn"
+          onClick={load}
+          disabled={loading}
+          aria-label={loading ? 'Updating assets' : 'Refresh assets'}
+        >
+          <RefreshIcon className={loading ? 'market-refresh-icon--spin' : ''} />
         </button>
       </div>
 
@@ -237,9 +196,10 @@ export default function MarketPage() {
               {filtered.map((a) => (
                 <li key={a.code} className="market-row">
                   <div className="market-row-left">
-                    <MarketCoinIcon
+                    <CoinIcon
                       code={a.code}
                       imageUrl={coinImages[String(a.code || '').toUpperCase()]}
+                      sizeClass="market-row-icon"
                     />
                     <div>
                       <div className="market-row-name">{assetLabel(a.code)}</div>
@@ -268,5 +228,23 @@ export default function MarketPage() {
         <p className="market-updated">Updated {new Date(updatedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</p>
       )}
     </div>
+  );
+}
+
+function RefreshIcon({ className = '' }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden
+    >
+      <path d="M21 12a9 9 0 1 1-2.64-6.36" strokeLinecap="round" />
+      <path d="M21 3v6h-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }

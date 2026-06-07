@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { uploadProfileAvatar } from '@/lib/profile-avatar';
+import { useState } from 'react';
+import { ProfileAvatarEditorModal } from '@/components/ProfileAvatarEditorModal';
 
 function emailInitial(email) {
   const e = String(email || '').trim();
@@ -10,7 +10,7 @@ function emailInitial(email) {
 }
 
 /**
- * Circular profile avatar — optional pencil to change photo (uploads to Supabase Storage).
+ * Circular profile avatar — pencil opens edit sheet (presets + custom upload).
  */
 export function ProfileAvatar({
   userId,
@@ -22,30 +22,14 @@ export function ProfileAvatar({
   className = '',
   onEditClick,
 }) {
-  const inputRef = useRef(null);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState('');
 
-  async function handleFile(file) {
-    if (!file || !userId) return;
-    setUploading(true);
-    setError('');
-    try {
-      const url = await uploadProfileAvatar(userId, file);
-      onAvatarChange?.(url);
-    } catch (e) {
-      setError(e?.message || 'Upload failed');
-    } finally {
-      setUploading(false);
-      if (inputRef.current) inputRef.current.value = '';
-    }
-  }
-
-  function openPicker(e) {
+  function openEditor(e) {
     e.preventDefault();
     e.stopPropagation();
     onEditClick?.(e);
-    if (!uploading) inputRef.current?.click();
+    if (!uploading) setEditorOpen(true);
   }
 
   const wrapClass = [
@@ -59,46 +43,40 @@ export function ProfileAvatar({
     .join(' ');
 
   return (
-    <div className={wrapClass}>
-      {avatarUrl ? (
-        <img src={avatarUrl} alt="" className="profile-avatar-img" draggable={false} />
-      ) : (
-        <span className="profile-avatar-initial" aria-hidden>
-          {emailInitial(email)}
-        </span>
-      )}
-      {editable && (
-        <>
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="profile-avatar-file"
-            tabIndex={-1}
-            aria-hidden
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleFile(f);
-            }}
-            onClick={(e) => e.stopPropagation()}
-          />
+    <>
+      <div className={wrapClass}>
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" className="profile-avatar-img" draggable={false} />
+        ) : (
+          <span className="profile-avatar-initial" aria-hidden>
+            {emailInitial(email)}
+          </span>
+        )}
+        {editable && (
           <button
             type="button"
             className="profile-avatar-edit"
-            aria-label={uploading ? 'Uploading photo…' : 'Change profile photo'}
+            aria-label="Change profile photo"
             disabled={uploading}
-            onClick={openPicker}
+            onClick={openEditor}
           >
             {uploading ? <span className="profile-avatar-spinner" aria-hidden /> : <PencilIcon />}
           </button>
-        </>
+        )}
+      </div>
+
+      {editable && (
+        <ProfileAvatarEditorModal
+          open={editorOpen}
+          onClose={() => setEditorOpen(false)}
+          userId={userId}
+          email={email}
+          avatarUrl={avatarUrl}
+          onSavingChange={setUploading}
+          onSaved={(url) => onAvatarChange?.(url)}
+        />
       )}
-      {error && (
-        <span className="profile-avatar-error" role="status">
-          {error}
-        </span>
-      )}
-    </div>
+    </>
   );
 }
 
