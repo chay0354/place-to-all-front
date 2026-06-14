@@ -8,23 +8,8 @@ const STEPS = [
   { key: 'back', label: 'Back', title: 'Back of ID' },
 ];
 
-function StepIcon({ done, active, number }) {
-  if (done) {
-    return (
-      <span className="idv-step-icon idv-step-icon--done" aria-hidden>
-        ✓
-      </span>
-    );
-  }
-  return (
-    <span className={`idv-step-icon ${active ? 'idv-step-icon--active' : ''}`} aria-hidden>
-      {number}
-    </span>
-  );
-}
-
 /**
- * Two-step ID verification modal: validate front & back with OpenAI before upload.
+ * Two-step ID verification — full-screen flow with AI validation before upload.
  */
 export function IdVerificationModal({ open, onClose, userId, onComplete }) {
   const inputRef = useRef(null);
@@ -45,6 +30,8 @@ export function IdVerificationModal({ open, onClose, userId, onComplete }) {
 
   useEffect(() => {
     if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     setStep(0);
     setFrontFile(null);
     setBackFile(null);
@@ -55,6 +42,9 @@ export function IdVerificationModal({ open, onClose, userId, onComplete }) {
     setChecking(false);
     setSubmitting(false);
     setError('');
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, [open]);
 
   useEffect(() => {
@@ -90,7 +80,7 @@ export function IdVerificationModal({ open, onClose, userId, onComplete }) {
 
   async function verifyCurrent() {
     if (!currentFile) {
-      setError('Please select a photo first.');
+      setError('Please add a photo first.');
       return;
     }
     setChecking(true);
@@ -132,106 +122,157 @@ export function IdVerificationModal({ open, onClose, userId, onComplete }) {
   }
 
   const busy = checking || submitting;
+  const primaryLabel = submitting
+    ? 'Saving…'
+    : checking
+      ? 'Verifying…'
+      : step === 1
+        ? 'Verify & submit'
+        : 'Verify & continue';
 
   return (
-    <div className="idv-overlay" role="dialog" aria-modal="true" aria-labelledby="idv-title">
-      <button type="button" className="idv-backdrop" aria-label="Close" onClick={onClose} disabled={busy} />
-      <div className="idv-panel">
-        <header className="idv-header">
-          <div>
-            <p className="idv-eyebrow">Identity verification</p>
-            <h2 id="idv-title" className="idv-title">
-              {STEPS[step].title}
-            </h2>
-          </div>
-          <button type="button" className="idv-close" onClick={onClose} disabled={busy} aria-label="Close">
-            ×
+    <div className="idv-overlay idv-overlay--fullscreen" role="dialog" aria-modal="true" aria-labelledby="idv-title">
+      <div className="idv-panel idv-panel--fullscreen">
+        <header className="idv-fs-toolbar">
+          <button
+            type="button"
+            className="idv-fs-icon-btn"
+            aria-label={step > 0 ? 'Previous step' : 'Close'}
+            onClick={step > 0 ? goBack : onClose}
+            disabled={busy && step === 0}
+          >
+            <BackIcon />
+          </button>
+          <span className="idv-fs-toolbar-title">Identity verification</span>
+          <button type="button" className="idv-fs-icon-btn" onClick={onClose} disabled={busy} aria-label="Close">
+            <CloseIcon />
           </button>
         </header>
 
-        <div className="idv-steps" aria-label="Verification progress">
-          {STEPS.map((s, i) => (
-            <div key={s.key} className={`idv-step ${i === step ? 'idv-step--current' : ''} ${i < step || (i === 0 && frontOk) ? 'idv-step--done' : ''}`}>
-              <StepIcon done={(i === 0 && frontOk) || (i === 1 && backOk)} active={i === step} number={i + 1} />
-              <span className="idv-step-label">{s.label}</span>
-            </div>
-          ))}
+        <div className="idv-fs-progress" aria-label="Verification progress">
+          {STEPS.map((s, i) => {
+            const done = (i === 0 && frontOk) || (i === 1 && backOk);
+            const active = i === step;
+            return (
+              <div key={s.key} className={`idv-fs-progress-item ${active ? 'idv-fs-progress-item--active' : ''} ${done ? 'idv-fs-progress-item--done' : ''}`}>
+                <span className="idv-fs-progress-dot" aria-hidden>
+                  {done ? <CheckIcon /> : i + 1}
+                </span>
+                <span className="idv-fs-progress-label">{s.label}</span>
+              </div>
+            );
+          })}
+          <div className="idv-fs-progress-track" aria-hidden>
+            <div className="idv-fs-progress-fill" style={{ width: step === 0 ? '50%' : '100%' }} />
+          </div>
         </div>
 
-        <p className="idv-lead">
-          {step === 0
-            ? 'Photograph the front of your passport, national ID, or driver’s license. Ensure all corners are visible and text is readable.'
-            : 'Now photograph the back of your ID card, or the visa / data page if you uploaded a passport.'}
-        </p>
-
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="profile-avatar-file"
-          aria-hidden
-          tabIndex={-1}
-          onChange={(e) => {
-            handleFileSelected(e.target.files?.[0]);
-            e.target.value = '';
-          }}
-        />
-
-        <button
-          type="button"
-          className={`idv-dropzone ${currentPreview ? 'idv-dropzone--filled' : ''}`}
-          onClick={pickFile}
-          disabled={busy}
-        >
-          {currentPreview ? (
-            <img src={currentPreview} alt="" className="idv-preview-img" />
-          ) : (
-            <>
-              <span className="idv-dropzone-icon" aria-hidden>
-                📷
-              </span>
-              <span className="idv-dropzone-text">Tap to add photo</span>
-              <span className="idv-dropzone-hint">JPG, PNG or WebP · large photos are compressed automatically</span>
-            </>
-          )}
-        </button>
-
-        {currentPreview && !busy && (
-          <button type="button" className="idv-retake" onClick={pickFile}>
-            Choose a different photo
-          </button>
-        )}
-
-        {frontOk && step === 1 && (
-          <p className="idv-pass" role="status">
-            Front verified — continue with the back side.
+        <div className="idv-fs-body">
+          <h2 id="idv-title" className="idv-fs-title">
+            {STEPS[step].title}
+          </h2>
+          <p className="idv-fs-lead">
+            {step === 0
+              ? 'Photograph the front of your passport, national ID, or driver’s license. All corners must be visible and text readable.'
+              : 'Photograph the back of your ID card, or the visa / data page if you uploaded a passport.'}
           </p>
-        )}
 
-        {error && (
-          <p className="idv-error" role="alert">
-            {error}
-          </p>
-        )}
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="profile-avatar-file"
+            aria-hidden
+            tabIndex={-1}
+            onChange={(e) => {
+              handleFileSelected(e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
 
-        <div className="idv-actions">
-          {step > 0 && (
-            <button type="button" className="idv-btn idv-btn--ghost" onClick={goBack} disabled={busy}>
-              Back
-            </button>
+          <button
+            type="button"
+            className={`idv-fs-dropzone ${currentPreview ? 'idv-fs-dropzone--filled' : ''}`}
+            onClick={pickFile}
+            disabled={busy}
+          >
+            {currentPreview ? (
+              <>
+                <img src={currentPreview} alt="" className="idv-fs-preview-img" />
+                <span className="idv-fs-dropzone-overlay">Tap to replace photo</span>
+              </>
+            ) : (
+              <div className="idv-fs-dropzone-empty">
+                <span className="idv-fs-dropzone-icon" aria-hidden>
+                  <CameraIcon />
+                </span>
+                <span className="idv-fs-dropzone-text">Tap to add photo</span>
+                <span className="idv-fs-dropzone-hint">JPG, PNG or WebP</span>
+              </div>
+            )}
+          </button>
+
+          {frontOk && step === 1 && (
+            <p className="idv-fs-pass" role="status">
+              Front verified — add the back side to finish.
+            </p>
           )}
-          <button type="button" className="idv-btn idv-btn--ghost" onClick={onClose} disabled={busy}>
-            Cancel
-          </button>
-          <button type="button" className="idv-btn idv-btn--primary" onClick={verifyCurrent} disabled={busy || !currentFile}>
-            {submitting ? 'Saving…' : checking ? 'Verifying…' : step === 1 ? 'Verify & submit' : 'Verify & continue'}
-          </button>
+
+          {error && (
+            <p className="idv-fs-error" role="alert">
+              {error}
+            </p>
+          )}
+
+          <p className="idv-fs-footnote">
+            Photos are checked automatically and stored securely. Only you can access your documents.
+          </p>
         </div>
 
-        <p className="idv-footnote">
-          Photos are checked automatically and stored securely. Only you can access your documents.
-        </p>
+        <footer className="idv-fs-footer">
+          <button
+            type="button"
+            className="idv-fs-cta"
+            onClick={verifyCurrent}
+            disabled={busy || !currentFile}
+          >
+            {primaryLabel}
+          </button>
+        </footer>
       </div>
     </div>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CameraIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+      <path d="M4 8h3l2-3h6l2 3h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden>
+      <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }

@@ -86,8 +86,12 @@ export async function updateProfile(body) {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) return data;
-    } catch {
-      /* fall through to Supabase */
+      if (res.status >= 400 && res.status < 500) {
+        throw new Error(data.error || data.message || res.statusText);
+      }
+    } catch (e) {
+      if (e?.message && !String(e.message).includes('Failed to fetch')) throw e;
+      /* fall through to Supabase on network / 5xx */
     }
     return updateProfileViaSupabase(body);
   }

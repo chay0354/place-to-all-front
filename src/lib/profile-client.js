@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/client';
+import { hashSecurityPin, verifySecurityPin } from '@/lib/security-pin';
 
 const PROFILE_FIELDS =
-  'id, role, referred_by_id, username, display_name, avatar_url, id_document_path, id_document_back_path, id_document_uploaded_at, nps_score, nps_submitted_at';
+  'id, role, referred_by_id, username, display_name, avatar_url, id_document_path, id_document_back_path, id_document_uploaded_at, nps_score, nps_submitted_at, security_pin_set_at';
 
 /** Read the signed-in user's profile row directly from Supabase (RLS). */
 export async function getProfileFromSupabase() {
@@ -81,6 +82,38 @@ export async function updateProfileViaSupabase(body) {
     }
     updates.nps_score = n;
     updates.nps_submitted_at = new Date().toISOString();
+  }
+
+  if (body.security_pin !== undefined || body.clear_security_pin === true) {
+    const { data: pinRow, error: pinReadErr } = await supabase
+      .from('profiles')
+      .select('security_pin_hash')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (pinReadErr) throw pinReadErr;
+    const hasPin = Boolean(pinRow?.security_pin_hash);
+
+    if (body.clear_security_pin === true || body.security_pin === null) {
+      if (hasPin) {
+        if (!body.current_pin) throw new Error('Enter your current PIN to remove it');
+        if (!verifySecurityPin(body.current_pin, user.id, pinRow.security_pin_hash)) {
+          throw new Error('Current PIN is incorrect');
+        }
+      }
+      updates.security_pin_hash = null;
+      updates.security_pin_set_at = null;
+    } else if (typeof body.security_pin === 'string') {
+      if (hasPin) {
+        if (!body.current_pin) throw new Error('Enter your current PIN to change it');
+        if (!verifySecurityPin(body.current_pin, user.id, pinRow.security_pin_hash)) {
+          throw new Error('Current PIN is incorrect');
+        }
+      }
+      updates.security_pin_hash = hashSecurityPin(body.security_pin, user.id);
+      updates.security_pin_set_at = new Date().toISOString();
+    } else {
+      throw new Error('Invalid PIN');
+    }
   }
 
   if (Object.keys(updates).length <= 1) {

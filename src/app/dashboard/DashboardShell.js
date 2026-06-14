@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { getProfile } from '@/lib/api';
 import { PROFILE_AVATAR_EVENT } from '@/lib/profile-avatar';
+import { PinUnlockGate } from '@/components/PinUnlockGate';
 
 function emailInitial(email) {
   const e = String(email || '').trim();
@@ -46,7 +47,8 @@ export function DashboardShell({ children }) {
   }, []);
 
   return (
-    <div className="dashboard-wallet-ui">
+    <PinUnlockGate>
+      <div className="dashboard-wallet-ui">
       {!isAccount && (
       <header className="dash-header">
         <div className="dash-header-row">
@@ -106,7 +108,8 @@ export function DashboardShell({ children }) {
           Assets
         </Link>
       </nav>
-    </div>
+      </div>
+    </PinUnlockGate>
   );
 }
 

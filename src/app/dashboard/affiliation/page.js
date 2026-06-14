@@ -15,6 +15,45 @@ import {
 import { siteUrl } from '@/lib/site-url';
 
 const AGENT_ROLES = new Set(['agent', 'super_agent', 'super_super_agent']);
+const MOVEMENT_TYPES = new Set(['buy', 'sell', 'transfer']);
+const VOLUME_MILESTONES = [
+  { id: 'starter', label: 'Starter', target: 0 },
+  { id: 'bronze', label: 'Bronze', target: 1000 },
+  { id: 'silver', label: 'Silver', target: 5000 },
+  { id: 'gold', label: 'Gold', target: 25000 },
+  { id: 'platinum', label: 'Platinum', target: 100000 },
+];
+
+function formatUsd(amount) {
+  const n = Number(amount) || 0;
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1000) return `$${(n / 1000).toFixed(1)}k`;
+  return `$${n.toFixed(2)}`;
+}
+
+function getVolumeProgress(volume) {
+  const vol = Math.max(0, Number(volume) || 0);
+  let current = VOLUME_MILESTONES[0];
+  let next = VOLUME_MILESTONES[1];
+
+  for (let i = 0; i < VOLUME_MILESTONES.length - 1; i += 1) {
+    if (vol >= VOLUME_MILESTONES[i].target) {
+      current = VOLUME_MILESTONES[i];
+      next = VOLUME_MILESTONES[i + 1] || null;
+    }
+  }
+
+  if (vol >= VOLUME_MILESTONES[VOLUME_MILESTONES.length - 1].target) {
+    current = VOLUME_MILESTONES[VOLUME_MILESTONES.length - 1];
+    next = null;
+  }
+
+  const progress = next
+    ? Math.min(100, Math.max(0, ((vol - current.target) / (next.target - current.target)) * 100))
+    : 100;
+
+  return { current, next, progress, volume: vol };
+}
 
 function roleLabel(role) {
   if (role === 'super_super_agent') return 'Super super agent';
@@ -170,10 +209,34 @@ export default function AffiliationDashboardPage() {
     [members, feesByMember],
   );
 
-  const invitedUsersTxTotal = useMemo(
-    () => txRows.reduce((sum, tx) => sum + Math.abs(Number(tx.amount) || 0), 0),
-    [txRows],
+
+  const downlineVolume = useMemo(
+    () =>
+      members.reduce((sum, m) => {
+        const memberVol = (m.transactions || [])
+          .filter((tx) => MOVEMENT_TYPES.has(tx.type))
+          .reduce((s, tx) => s + Math.abs(Number(tx.amount) || 0), 0);
+        return sum + memberVol;
+      }, 0),
+    [members],
   );
+
+  const volumeProgress = useMemo(() => getVolumeProgress(downlineVolume), [downlineVolume]);
+
+  const memberVolumeRows = useMemo(() => {
+    const rows = members
+      .map((m) => ({
+        id: m.id,
+        label: m.email || m.display_name || m.username || 'User',
+        volume: (m.transactions || [])
+          .filter((tx) => MOVEMENT_TYPES.has(tx.type))
+          .reduce((s, tx) => s + Math.abs(Number(tx.amount) || 0), 0),
+      }))
+      .filter((r) => r.volume > 0)
+      .sort((a, b) => b.volume - a.volume);
+    const peak = rows[0]?.volume || 1;
+    return rows.map((r) => ({ ...r, share: (r.volume / peak) * 100 }));
+  }, [members]);
 
   const feesCollectedByYou = useMemo(
     () =>
@@ -235,7 +298,7 @@ export default function AffiliationDashboardPage() {
       <section className="aff-stat-grid" aria-label="Summary">
         <div className="aff-stat-card blue">
           <p>Downline volume</p>
-          <strong>${invitedUsersTxTotal.toFixed(2)}</strong>
+          <strong>{formatUsd(downlineVolume)}</strong>
         </div>
         <div className="aff-stat-card green">
           <p>Fees to you</p>
@@ -286,6 +349,82 @@ export default function AffiliationDashboardPage() {
 
       <section className="aff-inline-panel" aria-label="Payment links">
         <h2 className="aff-section-title">Payment links</h2>
+
+        <div className="aff-volume-progress" aria-label="Downline volume progress">
+          <div className="aff-volume-progress-head">
+            <div className="aff-volume-progress-copy">
+              <p className="aff-volume-kicker">Volume moved under you</p>
+              <strong className="aff-volume-total">{formatUsd(downlineVolume)}</strong>
+              <p className="aff-volume-sub">
+                {downlineLoading
+                  ? 'Calculating network activity…'
+                  : `${totalAgents} ${totalAgents === 1 ? 'person' : 'people'} in your network`}
+              </p>
+            </div>
+            <span className={`aff-volume-tier aff-volume-tier--${volumeProgress.current.id}`}>
+              {volumeProgress.current.label}
+            </span>
+          </div>
+
+          <div className="aff-volume-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(volumeProgress.progress)}>
+            <div className="aff-volume-fill" style={{ width: `${volumeProgress.progress}%` }} />
+          </div>
+
+          <div className="aff-volume-meta">
+            {volumeProgress.next ? (
+              <>
+                <span>
+                  {formatUsd(volumeProgress.next.target - volumeProgress.volume)} to{' '}
+                  <strong>{volumeProgress.next.label}</strong>
+                </span>
+                <span>{Math.round(volumeProgress.progress)}%</span>
+              </>
+            ) : (
+              <span>
+                <strong>Platinum</strong> tier reached — keep growing your network
+              </span>
+            )}
+          </div>
+
+          <ul className="aff-volume-steps" aria-hidden>
+            {VOLUME_MILESTONES.map((milestone) => {
+              const reached = downlineVolume >= milestone.target;
+              const active = volumeProgress.current.id === milestone.id;
+              return (
+                <li
+                  key={milestone.id}
+                  className={`aff-volume-step${reached ? ' aff-volume-step--done' : ''}${active ? ' aff-volume-step--active' : ''}`}
+                >
+                  <span className="aff-volume-step-dot" />
+                  <span className="aff-volume-step-label">{milestone.label}</span>
+                  <span className="aff-volume-step-target">{formatUsd(milestone.target)}</span>
+                </li>
+              );
+            })}
+          </ul>
+
+          {memberVolumeRows.length > 0 && (
+            <div className="aff-volume-members">
+              <h3 className="aff-subtitle">Top movers in your network</h3>
+              <ul className="aff-volume-member-list">
+                {memberVolumeRows.slice(0, 5).map((row) => (
+                  <li key={row.id} className="aff-volume-member-row">
+                    <div className="aff-volume-member-top">
+                      <span className="aff-volume-member-name" title={row.label}>
+                        {truncateMiddle(row.label, 16, 8)}
+                      </span>
+                      <span className="aff-volume-member-amount">{formatUsd(row.volume)}</span>
+                    </div>
+                    <div className="aff-volume-member-track">
+                      <div className="aff-volume-member-fill" style={{ width: `${row.share}%` }} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
         <form
           className="aff-payment-form"
           onSubmit={async (e) => {

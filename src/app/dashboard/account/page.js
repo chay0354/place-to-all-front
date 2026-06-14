@@ -11,6 +11,8 @@ import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { IdDocumentUpload } from '@/components/IdDocumentUpload';
 import { AccountCommunity } from '@/components/AccountCommunity';
 import { AccountAbout } from '@/components/AccountAbout';
+import { AccountSecurity } from '@/components/AccountSecurity';
+import { clearPinUnlocked } from '@/lib/quick-pin-session';
 
 const APP_VERSION = '1.0.0';
 
@@ -164,6 +166,14 @@ export default function AccountPage() {
     setView('hub');
   }
 
+  function goBack() {
+    if (view === 'identity') {
+      setView('security');
+      return;
+    }
+    goHub();
+  }
+
   function handleAvatarChange(url) {
     setProfile((p) => ({ ...(p || {}), avatar_url: url }));
   }
@@ -202,7 +212,9 @@ export default function AccountPage() {
               ? 'About us'
               : view === 'community'
                 ? 'Community'
-                : 'Profile';
+                : view === 'security' || view === 'identity'
+                  ? ''
+                  : 'Profile';
 
   return (
     <div className="account-hub">
@@ -212,14 +224,14 @@ export default function AccountPage() {
             <BackIcon />
           </Link>
         ) : (
-          <button type="button" className="account-hub-icon-btn" aria-label="Back" onClick={goHub}>
+          <button type="button" className="account-hub-icon-btn" aria-label="Back" onClick={goBack}>
             <BackIcon />
           </button>
         )}
         <span className="account-hub-toolbar-title">
           {view === 'hub' ? '' : hubTitle}
         </span>
-        {view !== 'community' && view !== 'about' && (
+        {view !== 'community' && view !== 'about' && view !== 'security' && view !== 'identity' && (
         <div className="account-hub-toolbar-actions">
           <button type="button" className="account-hub-icon-btn" aria-label="Support" title="Support">
             <SupportIcon />
@@ -234,7 +246,9 @@ export default function AccountPage() {
           </button>
         </div>
         )}
-        {(view === 'community' || view === 'about') && <div className="account-hub-toolbar-spacer" aria-hidden />}
+        {(view === 'community' || view === 'about' || view === 'security' || view === 'identity') && (
+          <div className="account-hub-toolbar-spacer" aria-hidden />
+        )}
       </header>
 
       {view === 'hub' && (
@@ -293,17 +307,14 @@ export default function AccountPage() {
             <AccountMenuRow
               icon={<LockIcon />}
               label="Security"
-              onClick={() => setView('profile')}
+              onClick={() => setView('security')}
             />
             <AccountMenuLink icon={<CardIcon />} label="Card center" href="/dashboard/card" />
             {isAgentLike && (
-              <AccountMenuLink icon={<UsersIcon />} label="Affiliation dashboard" href="/dashboard/affiliation" />
-            )}
-            {canManagePaymentLinks && !isAgentLike && (
               <AccountMenuRow
-                icon={<PaymentIcon />}
-                label="Payment links"
-                onClick={() => setView('payment-links')}
+                icon={<UsersIcon />}
+                label="Affiliation dashboard"
+                onClick={() => router.push('/dashboard/affiliation')}
               />
             )}
             <AccountMenuRow
@@ -383,14 +394,6 @@ export default function AccountPage() {
               <span className="account-info-pill">{roleLabel(profile?.role)}</span>
             </div>
           </div>
-
-          <IdDocumentUpload
-            userId={user.id}
-            documentPath={profile?.id_document_path}
-            documentBackPath={profile?.id_document_back_path}
-            uploadedAt={profile?.id_document_uploaded_at}
-            onUploaded={handleIdUploaded}
-          />
 
           <button type="button" className="account-logout-btn" onClick={handleLogout}>
             Log out
@@ -559,6 +562,42 @@ export default function AccountPage() {
       )}
 
       {view === 'community' && <AccountCommunity />}
+
+      {view === 'security' && (
+        <AccountSecurity
+          email={user.email}
+          phone={user.phone}
+          profile={profile}
+          onOpenIdentity={() => setView('identity')}
+          onQuickPinSaved={(setAt) => {
+            setProfile((p) => ({
+              ...(p || {}),
+              security_pin_set_at: setAt,
+            }));
+            if (!setAt && user?.id) clearPinUnlocked(user.id);
+          }}
+          onPhoneVerified={async (verifiedPhone) => {
+            const supabase = createClient();
+            const { data: { user: u } } = await supabase.auth.getUser();
+            if (u) {
+              setUser({ ...u, phone: verifiedPhone || null });
+            }
+          }}
+        />
+      )}
+
+      {view === 'identity' && (
+        <IdDocumentUpload
+          userId={user.id}
+          email={user.email}
+          uid={uid}
+          memberSince={memberSince}
+          documentPath={profile?.id_document_path}
+          documentBackPath={profile?.id_document_back_path}
+          uploadedAt={profile?.id_document_uploaded_at}
+          onUploaded={handleIdUploaded}
+        />
+      )}
 
       {view === 'about' && (
         <AccountAbout

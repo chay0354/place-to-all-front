@@ -29,6 +29,7 @@ function formatLoginError(err) {
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { clearPinUnlocked } from '@/lib/quick-pin-session';
 
 function LoginPageContent() {
   const searchParams = useSearchParams();
@@ -55,6 +56,10 @@ function LoginPageContent() {
         password,
       });
       if (err) throw err;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user?.id) clearPinUnlocked(user.id);
       const dest = nextPath && nextPath.startsWith('/') ? nextPath : '/dashboard';
       router.push(dest);
       router.refresh();

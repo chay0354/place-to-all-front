@@ -1,7 +1,8 @@
 import { joinBackendUrl } from '@/lib/api-base';
+import { hashSecurityPin, isValidSecurityPin, verifySecurityPin } from '@/lib/security-pin';
 
 const PROFILE_FIELDS =
-  'id, role, referred_by_id, username, display_name, avatar_url, id_document_path, id_document_back_path, id_document_uploaded_at, nps_score, nps_submitted_at';
+  'id, role, referred_by_id, username, display_name, avatar_url, id_document_path, id_document_back_path, id_document_uploaded_at, nps_score, nps_submitted_at, security_pin_set_at';
 
 function avatarPublicUrl(supabase, path) {
   const { data } = supabase.storage.from('avatars').getPublicUrl(path);
@@ -75,6 +76,38 @@ export async function updateProfileViaSupabaseServer(supabase, userId, body) {
     updates.nps_submitted_at = new Date().toISOString();
   }
 
+  if (body.security_pin !== undefined || body.clear_security_pin === true) {
+    const { data: pinRow, error: pinReadErr } = await supabase
+      .from('profiles')
+      .select('security_pin_hash')
+      .eq('id', userId)
+      .maybeSingle();
+    if (pinReadErr) throw pinReadErr;
+    const hasPin = Boolean(pinRow?.security_pin_hash);
+
+    if (body.clear_security_pin === true || body.security_pin === null) {
+      if (hasPin) {
+        if (!body.current_pin) throw new Error('Enter your current PIN to remove it');
+        if (!verifySecurityPin(body.current_pin, userId, pinRow.security_pin_hash)) {
+          throw new Error('Current PIN is incorrect');
+        }
+      }
+      updates.security_pin_hash = null;
+      updates.security_pin_set_at = null;
+    } else if (typeof body.security_pin === 'string') {
+      if (hasPin) {
+        if (!body.current_pin) throw new Error('Enter your current PIN to change it');
+        if (!verifySecurityPin(body.current_pin, userId, pinRow.security_pin_hash)) {
+          throw new Error('Current PIN is incorrect');
+        }
+      }
+      updates.security_pin_hash = hashSecurityPin(body.security_pin, userId);
+      updates.security_pin_set_at = new Date().toISOString();
+    } else {
+      throw new Error('Invalid PIN');
+    }
+  }
+
   if (Object.keys(updates).length <= 1) {
     throw new Error('No fields to update');
   }
@@ -92,6 +125,51 @@ export async function updateProfileViaSupabaseServer(supabase, userId, body) {
   }
 
   return { ok: true, ...updates };
+}
+
+/** Verify quick PIN — backend first, Supabase fallback. */
+export async function verifyPinWithFallback(supabase, userId, pin) {
+  if (!isValidSecurityPin(pin)) {
+    const e = new Error('PIN must be exactly 6 digits');
+    e.status = 400;
+    throw e;
+  }
+
+  try {
+    const res = await fetch(joinBackendUrl('/api/profile/verify-pin'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': userId,
+      },
+      body: JSON.stringify({ pin }),
+      cache: 'no-store',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return data;
+    if (res.status >= 400 && res.status < 500) {
+      const e = new Error(data.error || data.message || res.statusText);
+      e.status = res.status;
+      throw e;
+    }
+  } catch (e) {
+    if (e.status && e.status < 500) throw e;
+    /* fall through */
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('security_pin_hash, security_pin_set_at')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.security_pin_hash) return { ok: true, skipped: true };
+  if (!verifySecurityPin(pin, userId, data.security_pin_hash)) {
+    const e = new Error('Incorrect PIN');
+    e.status = 401;
+    throw e;
+  }
+  return { ok: true };
 }
 
 /** Try Express API first; fall back to Supabase when backend is down or misconfigured. */
