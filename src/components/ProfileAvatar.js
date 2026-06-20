@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ProfileAvatarEditorModal } from '@/components/ProfileAvatarEditorModal';
+import { countryFlagUrl, countryNameFromIso } from '@/lib/phone-country';
 
 function emailInitial(email) {
   const e = String(email || '').trim();
@@ -18,6 +19,7 @@ export function ProfileAvatar({
   avatarUrl,
   size = 'md',
   editable = false,
+  countryIso = null,
   onAvatarChange,
   className = '',
   onEditClick,
@@ -42,6 +44,9 @@ export function ProfileAvatar({
     .filter(Boolean)
     .join(' ');
 
+  const flagUrl = countryIso ? countryFlagUrl(countryIso) : null;
+  const flagLabel = countryIso ? countryNameFromIso(countryIso) : null;
+
   return (
     <>
       <div className={wrapClass}>
@@ -52,10 +57,15 @@ export function ProfileAvatar({
             {emailInitial(email)}
           </span>
         )}
+        {flagUrl && (
+          <span className="profile-avatar-flag" aria-label={flagLabel ? `Country: ${flagLabel}` : undefined} title={flagLabel || countryIso}>
+            <img src={flagUrl} alt="" className="profile-avatar-flag-img" draggable={false} />
+          </span>
+        )}
         {editable && (
           <button
             type="button"
-            className="profile-avatar-edit"
+            className={`profile-avatar-edit${flagUrl ? ' profile-avatar-edit--with-flag' : ''}`}
             aria-label="Change profile photo"
             disabled={uploading}
             onClick={openEditor}

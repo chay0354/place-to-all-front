@@ -13,8 +13,9 @@ import {
   listPaymentLinks,
 } from '@/lib/api';
 import { siteUrl } from '@/lib/site-url';
+import { isAdminOperatorEmail } from '@/lib/admin-config';
 
-const AGENT_ROLES = new Set(['agent', 'super_agent', 'super_super_agent']);
+const AGENT_ROLES = new Set(['agent', 'super_agent', 'super_super_agent', 'admin']);
 const MOVEMENT_TYPES = new Set(['buy', 'sell', 'transfer']);
 const VOLUME_MILESTONES = [
   { id: 'starter', label: 'Starter', target: 0 },
@@ -123,7 +124,10 @@ export default function AffiliationDashboardPage() {
     })();
   }, [router]);
 
-  const isAgentLike = useMemo(() => AGENT_ROLES.has(profile?.role), [profile?.role]);
+  const isAgentLike = useMemo(
+    () => AGENT_ROLES.has(profile?.role) || isAdminOperatorEmail(user?.email),
+    [profile?.role, user?.email],
+  );
 
   useEffect(() => {
     if (!isAgentLike) return;

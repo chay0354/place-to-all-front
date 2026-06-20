@@ -1003,6 +1003,41 @@ input, button, select, textarea {
   height: 28px;
 }
 
+/* When a country flag occupies the bottom-right, move the edit pencil to the top-right. */
+.profile-avatar-edit--with-flag {
+  top: -2px;
+  bottom: auto;
+}
+
+.profile-avatar-flag {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--dash-bg, #000);
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  background: #1c1c20;
+  pointer-events: none;
+}
+
+.profile-avatar-flag-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-avatar-wrap--lg .profile-avatar-flag {
+  width: 26px;
+  height: 26px;
+}
+
 .profile-avatar-spinner {
   width: 12px;
   height: 12px;
@@ -1531,7 +1566,9 @@ input, button, select, textarea {
 }
 
 .account-profile-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   margin-top: 0.45rem;
   padding: 0.25rem 0.55rem;
   border-radius: var(--radius-pill);
@@ -1540,6 +1577,61 @@ input, button, select, textarea {
   color: var(--dash-muted);
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.account-profile-badge--verified {
+  color: #6ee7a8;
+  background: rgba(46, 204, 113, 0.12);
+  border-color: rgba(46, 204, 113, 0.35);
+  font-weight: 600;
+}
+
+.account-profile-badge--kyc {
+  color: #f5c518;
+  background: rgba(245, 197, 24, 0.1);
+  border-color: rgba(245, 197, 24, 0.28);
+}
+
+.account-profile-badge--clickable {
+  cursor: pointer;
+}
+
+.account-profile-badge--clickable:hover {
+  filter: brightness(1.12);
+}
+
+.account-profile-badge--kyc-partial {
+  color: #ff8b7b;
+  background: rgba(255, 90, 78, 0.1);
+  border-color: rgba(255, 90, 78, 0.28);
+}
+
+.account-kyc-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #6ee7a8;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.account-kyc-upload {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--dash-primary, #ff5a4e);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.account-kyc-upload:hover {
+  text-decoration: underline;
+}
+
+.account-info-row--kyc .account-info-value {
+  justify-content: flex-end;
 }
 
 .account-copied-hint,
@@ -1556,6 +1648,163 @@ input, button, select, textarea {
   flex-shrink: 0;
   color: var(--dash-muted);
   opacity: 0.7;
+}
+
+.account-invite-card {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 90, 78, 0.25);
+  background: linear-gradient(135deg, rgba(255, 90, 78, 0.12) 0%, rgba(217, 178, 106, 0.08) 100%);
+}
+
+.account-hub-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1.25rem;
+  padding: 0 0.25rem;
+}
+
+.account-buy-crypto-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.05rem;
+  border-radius: 16px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(245, 197, 24, 0.22) 0%, transparent 55%),
+    linear-gradient(135deg, rgba(255, 90, 78, 0.18) 0%, rgba(28, 28, 32, 0.95) 48%, rgba(14, 14, 16, 1) 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.account-buy-crypto-card:hover {
+  text-decoration: none;
+  color: inherit;
+  transform: translateY(-1px);
+  border-color: rgba(245, 197, 24, 0.35);
+}
+
+.account-buy-crypto-card:active {
+  transform: translateY(0);
+}
+
+.account-buy-crypto-card .account-chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+.account-buy-crypto-icon {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(145deg, #ff5a4e 0%, #f5c518 100%);
+  box-shadow: 0 4px 14px rgba(255, 90, 78, 0.35);
+}
+
+.account-buy-crypto-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.account-buy-crypto-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--dash-text, #fff);
+}
+
+.account-buy-crypto-sub {
+  font-size: 0.78rem;
+  color: var(--dash-muted, #a0a0a0);
+}
+
+.account-invite-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin-bottom: 0.85rem;
+}
+
+.account-invite-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff8b7b;
+  background: rgba(255, 90, 78, 0.16);
+}
+
+.account-invite-copy {
+  min-width: 0;
+}
+
+.account-invite-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--dash-text);
+}
+
+.account-invite-sub {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--dash-muted);
+}
+
+.account-invite-link-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.account-invite-url {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--dash-border);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--dash-text);
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+
+.account-invite-url:focus {
+  outline: none;
+  border-color: rgba(255, 90, 78, 0.5);
+}
+
+.account-invite-copy-btn {
+  flex-shrink: 0;
+  padding: 0.6rem 1.1rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--dash-primary, #ff5a4e);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-invite-copy-btn:hover {
+  filter: brightness(1.05);
 }
 
 .account-referral-card {
@@ -3861,8 +4110,8 @@ input, button, select, textarea {
 }
 
 .dash-home-quick-action-icon {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -3879,8 +4128,8 @@ input, button, select, textarea {
 }
 
 .dash-home-quick-action-icon svg {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: block;
   overflow: visible;
   flex-shrink: 0;
@@ -4033,49 +4282,73 @@ input, button, select, textarea {
   color: var(--dash-muted);
 }
 
+.dash-home-card--transactions {
+  padding: 1rem 1rem 1.125rem;
+}
+
+.dash-home-card--transactions .dash-home-card-head {
+  margin-bottom: 1rem;
+}
+
+.dash-home-card--transactions .dash-home-card-head h2 {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--dash-muted);
+}
+
+.dash-home-card--transactions .dash-home-card-menu svg {
+  width: 20px;
+  height: 20px;
+  color: var(--dash-muted);
+}
+
 .dash-home-empty {
   margin: 0;
   color: var(--dash-muted);
-  font-size: 0.875rem;
-  padding: 0.5rem 0;
+  font-size: 0.8125rem;
+  padding: 0.25rem 0 0.5rem;
 }
 
 .dash-home-transactions {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1.125rem;
   margin-top: 0;
 }
 
 .dash-home-transaction-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
   gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 12px;
-  border: 1px solid var(--dash-border);
-  background: var(--bg);
-}
-
-.dash-home-transaction-left {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
 }
 
 .dash-home-transaction-icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: var(--dash-card-hover);
-  color: var(--dash-text);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.72);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-weight: 700;
+}
+
+.dash-home-transaction-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.dash-home-transaction-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
 }
 
 .dash-home-transaction-title,
@@ -4086,36 +4359,43 @@ input, button, select, textarea {
 }
 
 .dash-home-transaction-title {
-  font-size: 0.9375rem;
-  font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--dash-text);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dash-home-transaction-date {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: var(--dash-muted);
-  margin-top: 0.15rem;
+  line-height: 1.35;
 }
 
 .dash-home-transaction-right {
   text-align: right;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-top: 0.05rem;
 }
 
 .dash-home-transaction-amount {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: var(--dash-text);
   font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
 .dash-home-transaction-status {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: var(--dash-muted);
-  margin-top: 0.15rem;
-}
-
-.dash-home-transaction-status.ok {
-  color: var(--dash-success);
+  line-height: 1.35;
 }
 
 .dash-balance-card {
@@ -5121,6 +5401,26 @@ input, button, select, textarea {
 
 .app-dark .auth-footer a {
   color: var(--dash-accent);
+}
+
+.auth-country-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.auth-country-flag {
+  width: 28px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.auth-country-select {
+  flex: 1;
+  min-width: 0;
 }
 
 .app-dark .form-label {

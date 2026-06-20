@@ -1,8 +1,14 @@
 import { createClient } from '@/lib/supabase/client';
 import { hashSecurityPin, verifySecurityPin } from '@/lib/security-pin';
 
-const PROFILE_FIELDS =
+const PROFILE_BASE_FIELDS =
   'id, role, referred_by_id, username, display_name, avatar_url, id_document_path, id_document_back_path, id_document_uploaded_at, nps_score, nps_submitted_at, security_pin_set_at';
+const PROFILE_FIELDS = `${PROFILE_BASE_FIELDS}, country_code`;
+
+function isMissingCountryColumn(error) {
+  const msg = error?.message || '';
+  return /country_code/i.test(msg) && /(column|does not exist|schema cache)/i.test(msg);
+}
 
 /** Read the signed-in user's profile row directly from Supabase (RLS). */
 export async function getProfileFromSupabase() {
@@ -12,14 +18,13 @@ export async function getProfileFromSupabase() {
   } = await supabase.auth.getUser();
   if (!user) throw new Error('Unauthorized');
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(PROFILE_FIELDS)
-    .eq('id', user.id)
-    .maybeSingle();
-
+  let { data, error } = await supabase.from('profiles').select(PROFILE_FIELDS).eq('id', user.id).maybeSingle();
+  if (error && isMissingCountryColumn(error)) {
+    ({ data, error } = await supabase.from('profiles').select(PROFILE_BASE_FIELDS).eq('id', user.id).maybeSingle());
+  }
   if (error) throw error;
-  const base = data || { id: user.id, role: 'regular', referred_by_id: null };
+  const base = data || { id: user.id, role: 'regular', referred_by_id: null, country_code: 'IL' };
+  if (!base.country_code) base.country_code = 'IL';
   return hydrateAvatarFromStorage(supabase, user.id, base);
 }
 
@@ -49,6 +54,13 @@ export async function updateProfileViaSupabase(body) {
 
   if (body.avatar_url !== undefined) {
     updates.avatar_url = body.avatar_url;
+  }
+  if (body.country_code !== undefined) {
+    const code = String(body.country_code || '')
+      .trim()
+      .toUpperCase();
+    if (!/^[A-Z]{2}$/.test(code)) throw new Error('Invalid country code');
+    updates.country_code = code;
   }
   if (body.id_document_path !== undefined) {
     updates.id_document_path = body.id_document_path;
@@ -121,14 +133,18 @@ export async function updateProfileViaSupabase(body) {
   }
 
   if (existing) {
-    const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
+    let { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
+    if (error && isMissingCountryColumn(error) && 'country_code' in updates) {
+      const { country_code, ...safe } = updates;
+      ({ error } = await supabase.from('profiles').update(safe).eq('id', user.id));
+    }
     if (error) throw error;
   } else {
-    const { error } = await supabase.from('profiles').insert({
-      id: user.id,
-      role: 'regular',
-      ...updates,
-    });
+    let { error } = await supabase.from('profiles').insert({ id: user.id, role: 'regular', ...updates });
+    if (error && isMissingCountryColumn(error) && 'country_code' in updates) {
+      const { country_code, ...safe } = updates;
+      ({ error } = await supabase.from('profiles').insert({ id: user.id, role: 'regular', ...safe }));
+    }
     if (error) throw error;
   }
 

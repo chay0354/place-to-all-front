@@ -61,14 +61,16 @@ export function DashboardShell({ children }) {
           </Link>
           <div className="dash-header-brand-block">
             <h1 className="dash-brand">place to all</h1>
-            {userEmail ? (
-              <Link href="/dashboard/account" className="dash-header-email" title={userEmail}>
-                {userEmail}
-              </Link>
-            ) : (
-              <span className="dash-header-email dash-header-email--placeholder" aria-hidden="true">
-                &nbsp;
-              </span>
+            {!isHome && (
+              userEmail ? (
+                <Link href="/dashboard/account" className="dash-header-email" title={userEmail}>
+                  {userEmail}
+                </Link>
+              ) : (
+                <span className="dash-header-email dash-header-email--placeholder" aria-hidden="true">
+                  &nbsp;
+                </span>
+              )
             )}
           </div>
           <div className="dash-header-actions">
@@ -95,17 +97,17 @@ export function DashboardShell({ children }) {
           <HomeIcon />
           Home
         </Link>
-        <Link href="/dashboard/card" className={isCard ? 'active' : ''}>
-          <CardIcon />
-          Card
+        <Link href="/dashboard/market" className={isAssets ? 'active' : ''}>
+          <AssetsIcon />
+          Assets
         </Link>
         <Link href="/dashboard/transfer" className={isSend ? 'active' : ''}>
           <SendIcon />
           Send
         </Link>
-        <Link href="/dashboard/market" className={isAssets ? 'active' : ''}>
-          <AssetsIcon />
-          Assets
+        <Link href="/dashboard/card" className={isCard ? 'active' : ''}>
+          <MoreIcon />
+          More
         </Link>
       </nav>
       </div>
@@ -166,11 +168,12 @@ function BuyIcon() {
   );
 }
 
-function CardIcon() {
+function MoreIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="2" y="5" width="20" height="14" rx="3" />
-      <path d="M2 10h20" />
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <circle cx="5" cy="12" r="1.75" />
+      <circle cx="12" cy="12" r="1.75" />
+      <circle cx="19" cy="12" r="1.75" />
     </svg>
   );
 }

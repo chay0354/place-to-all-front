@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { toRelayUrl } from '@/lib/relay-url';
+import { COUNTRY_OPTIONS, DEFAULT_COUNTRY_CODE } from '@/lib/countries';
+import { countryFlagUrl } from '@/lib/phone-country';
 
 function RegisterPageContent() {
   const searchParams = useSearchParams();
@@ -15,6 +17,7 @@ function RegisterPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userType, setUserType] = useState('regular');
+  const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_CODE);
   const [recruiterRole, setRecruiterRole] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,7 +57,7 @@ function RegisterPageContent() {
         throw new Error(typeof msg === 'string' ? msg : 'Sign up failed. Try a different email or password.');
       }
       if (data?.user?.id) {
-        const confirmBody = { userId: data.user.id };
+        const confirmBody = { userId: data.user.id, countryCode };
         if (isFromAffiliateLink) {
           confirmBody.referredBy = refParam.trim();
         } else {
@@ -131,6 +134,32 @@ function RegisterPageContent() {
         </div>
       )}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className="form-group">
+          <label className="form-label" htmlFor="reg-country">Country</label>
+          <div className="auth-country-row">
+            {countryFlagUrl(countryCode, 40) && (
+              <img
+                src={countryFlagUrl(countryCode, 40)}
+                alt=""
+                className="auth-country-flag"
+                aria-hidden
+              />
+            )}
+            <select
+              id="reg-country"
+              className="form-select auth-country-select"
+              value={countryCode}
+              onChange={(e) => setCountryCode(e.target.value)}
+              required
+            >
+              {COUNTRY_OPTIONS.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div className="form-group">
           <label className="form-label" htmlFor="reg-email">Email</label>
           <input

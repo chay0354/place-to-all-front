@@ -35,7 +35,6 @@ export function IdDocumentUpload({
   userId,
   email,
   uid,
-  memberSince,
   documentPath,
   documentBackPath,
   uploadedAt,
@@ -141,12 +140,6 @@ export function IdDocumentUpload({
                 <dt>UID</dt>
                 <dd>{uid || '—'}</dd>
               </div>
-              {memberSince && (
-                <div className="id-auth-details-item">
-                  <dt>Member since</dt>
-                  <dd>{memberSince}</dd>
-                </div>
-              )}
               <div className="id-auth-details-item">
                 <dt>Verification status</dt>
                 <dd>{hasDoc ? 'Verified' : hasPartial ? 'Incomplete' : 'Not verified'}</dd>

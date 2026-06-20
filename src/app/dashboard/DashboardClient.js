@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getTransactions, getWalletsForDashboard } from '@/lib/api';
-import { assetLabel } from '@/lib/asset-names';
-import { CoinIcon } from '@/components/CoinIcon';
 
 const FALLBACK_PRICES = { BTC: 50000, ETH: 2000, USDT: 1, USDC: 1, BNB: 650, SOL: 150, XRP: 0.5 };
 
@@ -52,8 +50,6 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
   const [walletReady, setWalletReady] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [txReady, setTxReady] = useState(false);
-  const [portfolioTab, setPortfolioTab] = useState('crypto');
-  const [detailWallet, setDetailWallet] = useState(null);
   /** CoinGecko markets: USD prices + official image URLs (same request). */
   const [coinGecko, setCoinGecko] = useState(null);
   /** Avoid showing Est. total with static fallback prices, then jumping to live — wait for this fetch. */
@@ -160,12 +156,7 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
   const totalUsd = wallets.reduce((sum, w) => sum + toNum(w.balance) * getUsdUnit(w.currency), 0);
   const balanceStr = totalUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const showPortfolioTotal = walletReady && usdPricesReady;
-  const topTransactions = transactions.slice(0, 4);
-  const txIncoming = topTransactions.filter((tx) => tx.direction === 'in');
-  const txOutgoing = topTransactions.filter((tx) => tx.direction !== 'in');
-  const incomingTotal = txIncoming.reduce((sum, tx) => sum + Math.abs(Number(tx.amount) || 0), 0);
-  const outgoingTotal = txOutgoing.reduce((sum, tx) => sum + Math.abs(Number(tx.amount) || 0), 0);
-  const latestTx = topTransactions[0] || null;
+  const topTransactions = transactions.slice(0, 3);
 
   if (walletError) {
     return (
@@ -256,234 +247,36 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
         </div>
       </section>
 
-      <section className="dash-home-card">
+      <section className="dash-home-card dash-home-card--transactions">
         <div className="dash-home-card-head">
           <h2>Transactions</h2>
           <button type="button" className="dash-home-card-menu" aria-label="More transaction actions">
             <MoreIcon />
           </button>
         </div>
-        {txReady && topTransactions.length > 0 && (
-          <div className="dash-home-summary-grid">
-            <div className="dash-home-summary-tile">
-              <p className="dash-home-summary-label">Incoming</p>
-              <p className="dash-home-summary-value positive">+{incomingTotal.toFixed(2)}</p>
-            </div>
-            <div className="dash-home-summary-tile">
-              <p className="dash-home-summary-label">Outgoing</p>
-              <p className="dash-home-summary-value negative">-{outgoingTotal.toFixed(2)}</p>
-            </div>
-            <div className="dash-home-summary-tile">
-              <p className="dash-home-summary-label">Latest</p>
-              <p className="dash-home-summary-value">{latestTx?.currency || '-'}</p>
-            </div>
-          </div>
-        )}
         {!txReady && <p className="dash-home-empty">Loading transactions...</p>}
         {txReady && topTransactions.length === 0 && <p className="dash-home-empty">No transactions yet.</p>}
         {txReady && topTransactions.length > 0 && (
           <div className="dash-home-transactions">
             {topTransactions.map((tx) => (
               <article key={tx.id} className="dash-home-transaction-row">
-                <div className="dash-home-transaction-left">
-                  <span className="dash-home-transaction-icon">{tx.direction === 'in' ? '+' : '-'}</span>
-                  <div>
-                    <p className="dash-home-transaction-title">{tx.description || 'Transaction'}</p>
-                    <p className="dash-home-transaction-date">{formatTxDate(tx.created_at)}</p>
-                  </div>
+                <span className="dash-home-transaction-icon" aria-hidden>
+                  <TxTypeIcon tx={tx} />
+                </span>
+                <div className="dash-home-transaction-meta">
+                  <p className="dash-home-transaction-title">{tx.description || 'Transaction'}</p>
+                  <p className="dash-home-transaction-date">{formatTxDate(tx.created_at)}</p>
                 </div>
                 <div className="dash-home-transaction-right">
                   <p className="dash-home-transaction-amount">{formatTxAmount(tx)}</p>
-                  <p className={`dash-home-transaction-status ${tx.direction === 'in' ? 'ok' : ''}`}>
-                    {tx.direction === 'in' ? 'Successful' : 'Completed'}
-                  </p>
+                  <p className="dash-home-transaction-status">{formatTxStatus(tx)}</p>
                 </div>
               </article>
             ))}
           </div>
         )}
       </section>
-
-      <section className="dash-portfolio-card" aria-label="Portfolio">
-        <div className="dash-portfolio-tabs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={portfolioTab === 'crypto'}
-            className={`dash-portfolio-tab ${portfolioTab === 'crypto' ? 'dash-portfolio-tab--active' : ''}`}
-            onClick={() => setPortfolioTab('crypto')}
-          >
-            Crypto
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={portfolioTab === 'fiat'}
-            className={`dash-portfolio-tab ${portfolioTab === 'fiat' ? 'dash-portfolio-tab--active' : ''}`}
-            onClick={() => setPortfolioTab('fiat')}
-          >
-            Fiat
-          </button>
-        </div>
-
-        {portfolioTab === 'fiat' && (
-          <div className="dash-portfolio-fiat-empty">
-            <p>No fiat balances yet.</p>
-            <p className="dash-portfolio-fiat-hint">Fiat wallets can be linked here when available.</p>
-          </div>
-        )}
-
-        {portfolioTab === 'crypto' && (
-          <div className="dash-balances-table dash-balances-table--ref">
-            <div className="dash-balances-table-rows dash-balances-table-rows--flush">
-              {[...wallets]
-                .filter((w) => (Number(w.balance) || 0) > 0)
-                .sort((a, b) => {
-                  const db = (Number(b.balance) || 0) - (Number(a.balance) || 0);
-                  if (db !== 0) return db;
-                  return String(a.currency).localeCompare(String(b.currency));
-                })
-                .map((w) => {
-                  const bal = Number(w.balance) || 0;
-                  const valueUsd = bal * getUsdUnit(w.currency);
-                  const balStr =
-                    bal >= 0.0001
-                      ? bal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 })
-                      : String(bal);
-                  const ticker = (w.currency || '').toUpperCase();
-                  return (
-                    <button
-                      key={w.id}
-                      type="button"
-                      className="dash-asset-row dash-asset-row--list"
-                      onClick={() => setDetailWallet(w)}
-                    >
-                      <div className="dash-asset-left dash-asset-left--stack">
-                        <CoinIcon
-                          currency={w.currency}
-                          imageUrl={coinGecko?.images?.[(w.currency || '').toUpperCase()]}
-                          sizeClass="market-row-icon"
-                        />
-                        <div className="dash-asset-names-col">
-                          <span className="dash-asset-symbol">{ticker}</span>
-                          <span className="dash-asset-fullname">{assetLabel(w.currency)}</span>
-                        </div>
-                      </div>
-                      <div className="dash-asset-right dash-asset-right--stack">
-                        <span className="dash-asset-qty-row">
-                          {balStr} {ticker}
-                        </span>
-                        <span className="dash-asset-fiat-sub">
-                          ≈{' '}
-                          {valueUsd.toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}{' '}
-                          USD
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {portfolioTab === 'crypto' && wallets.filter((w) => (Number(w.balance) || 0) > 0).length === 0 && (
-        <div className="dash-portfolio-empty-below">
-          No balances yet.{' '}
-          <Link href="/dashboard/buy" className="dash-portfolio-empty-link">
-            Buy crypto
-          </Link>{' '}
-          to see your assets here.
-        </div>
-      )}
-
-      {detailWallet && (
-        <AssetDetailOverlay
-          wallet={detailWallet}
-          onClose={() => setDetailWallet(null)}
-          getUsdUnitPrice={getUsdUnit}
-          coinImages={coinGecko?.images}
-        />
-      )}
     </>
-  );
-}
-
-function AssetDetailOverlay({ wallet, onClose, getUsdUnitPrice, coinImages }) {
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
-  const c = (wallet.currency || '').toUpperCase();
-  const bal = Number(wallet.balance) || 0;
-  const unit = getUsdUnitPrice(c);
-  const valueUsd = bal * unit;
-  const balStr =
-    bal >= 0.0001
-      ? bal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 })
-      : String(bal);
-
-  return (
-    <div className="dash-asset-overlay" role="dialog" aria-modal="true" aria-labelledby="dash-asset-overlay-title">
-      <button type="button" className="dash-asset-overlay-backdrop" aria-label="Close" onClick={onClose} />
-      <div className="dash-asset-overlay-panel">
-        <header className="dash-asset-overlay-top">
-          <button type="button" className="dash-asset-overlay-close" onClick={onClose} aria-label="Close">
-            <CloseIcon />
-          </button>
-        </header>
-        <div className="dash-asset-overlay-hero">
-          <div className="dash-asset-overlay-icon-wrap">
-            <CoinIcon
-              currency={wallet.currency}
-              imageUrl={coinImages?.[(wallet.currency || '').toUpperCase()]}
-            />
-          </div>
-          <h2 id="dash-asset-overlay-title" className="dash-asset-overlay-title">
-            {assetLabel(wallet.currency)}
-          </h2>
-          <p className="dash-asset-overlay-ticker">{c}</p>
-        </div>
-        <div className="dash-asset-overlay-balances">
-          <p className="dash-asset-overlay-amount">
-            {balStr} <span className="dash-asset-overlay-unit">{c}</span>
-          </p>
-          <p className="dash-asset-overlay-usd">
-            ≈{' '}
-            {valueUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
-          </p>
-          <p className="dash-asset-overlay-ledger">App ledger balance · USD estimate from CoinGecko when available</p>
-        </div>
-        <div className="dash-asset-overlay-actions">
-          <Link href="/dashboard/buy" className="dash-asset-overlay-btn dash-asset-overlay-btn--primary" onClick={onClose}>
-            Buy / Deposit
-          </Link>
-          <Link href="/dashboard/transfer" className="dash-asset-overlay-btn dash-asset-overlay-btn--ghost" onClick={onClose}>
-            Send
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M18 6 6 18M6 6l12 12" />
-    </svg>
   );
 }
 
@@ -491,7 +284,52 @@ function formatTxAmount(tx) {
   const amount = Math.abs(Number(tx?.amount) || 0);
   const sign = tx?.direction === 'in' ? '+' : '-';
   const currency = (tx?.currency || '').toUpperCase() || 'USD';
-  return `${sign}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} ${currency}`;
+  return `${sign}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
+}
+
+function formatTxStatus(tx) {
+  if (tx?.direction === 'in') return 'Successful';
+  if (tx?.type === 'buy' || tx?.metadata?.source === 'moonpay') return 'Authorized';
+  return 'Completed';
+}
+
+function TxTypeIcon({ tx }) {
+  const type = tx?.type || '';
+  if (type === 'buy' || tx?.metadata?.source === 'moonpay') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+        <circle cx="12" cy="12" r="3.5" />
+      </svg>
+    );
+  }
+  if (type === 'sell') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+        <path d="M12 3v18M5 12h14" />
+      </svg>
+    );
+  }
+  if (type === 'transfer') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+        <path d="M7 8h12M7 8l3-3M7 8l3 3M17 16H5M17 16l-3 3M17 16l-3-3" />
+      </svg>
+    );
+  }
+  if (type === 'affiliate') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+        <path d="M12 2 15 8.5 22 9.5 17 14.5 18.5 22 12 18.5 5.5 22 7 14.5 2 9.5 9 8.5Z" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <rect x="3" y="6" width="18" height="12" rx="2" />
+      <path d="M3 10h18" />
+    </svg>
+  );
 }
 
 function formatTxDate(value) {
@@ -543,10 +381,10 @@ function SwapIcon() {
 
 function MoreIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="1" />
-      <circle cx="19" cy="12" r="1" />
-      <circle cx="5" cy="12" r="1" />
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <circle cx="5" cy="12" r="1.75" />
+      <circle cx="12" cy="12" r="1.75" />
+      <circle cx="19" cy="12" r="1.75" />
     </svg>
   );
 }
@@ -569,10 +407,3 @@ function GiftIcon() {
   );
 }
 
-function ChevronRightIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}

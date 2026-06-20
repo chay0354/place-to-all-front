@@ -8,7 +8,9 @@ import { getTransactions, getProfile, getProfileDownline, createPaymentLink, lis
 import { isAdminOperatorEmail } from '@/lib/admin-config';
 import { siteUrl } from '@/lib/site-url';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
+import { resolveUserCountryIso } from '@/lib/phone-country';
 import { IdDocumentUpload } from '@/components/IdDocumentUpload';
+import { IdVerificationModal } from '@/components/IdVerificationModal';
 import { AccountCommunity } from '@/components/AccountCommunity';
 import { AccountAbout } from '@/components/AccountAbout';
 import { AccountSecurity } from '@/components/AccountSecurity';
@@ -58,6 +60,7 @@ export default function AccountPage() {
   const [downline, setDownline] = useState(null);
   const [downlineLoading, setDownlineLoading] = useState(false);
   const [view, setView] = useState('hub');
+  const [idModalOpen, setIdModalOpen] = useState(false);
   const [copied, setCopied] = useState('');
   const router = useRouter();
 
@@ -119,6 +122,11 @@ export default function AccountPage() {
 
   const isAgentLike =
     profile?.role === 'agent' || profile?.role === 'super_agent' || profile?.role === 'super_super_agent';
+  const isAdmin = profile?.role === 'admin' || isAdminOperatorEmail(user?.email);
+  const canSeeAffiliation = isAgentLike || isAdmin;
+
+  const idVerified = Boolean(profile?.id_document_path && profile?.id_document_back_path);
+  const idPartial = Boolean(profile?.id_document_path || profile?.id_document_back_path) && !idVerified;
 
   const canManagePaymentLinks = useMemo(() => {
     if (profile == null) return false;
@@ -191,9 +199,6 @@ export default function AccountPage() {
 
   const uid = displayUid(user.id);
   const masked = maskEmail(user.email);
-  const memberSince = user.created_at
-    ? new Date(user.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' })
-    : null;
 
   const hubTitle =
     view === 'profile'
@@ -259,9 +264,7 @@ export default function AccountPage() {
               email={user.email}
               avatarUrl={profile?.avatar_url}
               size="sm"
-              editable
-              onAvatarChange={handleAvatarChange}
-              onEditClick={(e) => e.stopPropagation()}
+              countryIso={resolveUserCountryIso(profile, user.phone)}
             />
             <div className="account-profile-meta">
               <div className="account-profile-email">{masked}</div>
@@ -288,8 +291,30 @@ export default function AccountPage() {
                 </span>
                 {copied === 'uid' && <span className="account-copied-hint">Copied</span>}
               </div>
-              {memberSince && (
-                <span className="account-profile-badge">Member since {memberSince}</span>
+              {idVerified ? (
+                <span className="account-profile-badge account-profile-badge--verified">
+                  <VerifiedCheckIcon />
+                  Verified account
+                </span>
+              ) : (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  className={`account-profile-badge account-profile-badge--kyc account-profile-badge--clickable${idPartial ? ' account-profile-badge--kyc-partial' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setView('identity');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setView('identity');
+                    }
+                  }}
+                >
+                  {idPartial ? 'ID verification incomplete' : 'Verify ID'}
+                </span>
               )}
             </div>
             <ChevronRightIcon />
@@ -310,7 +335,7 @@ export default function AccountPage() {
               onClick={() => setView('security')}
             />
             <AccountMenuLink icon={<CardIcon />} label="Card center" href="/dashboard/card" />
-            {isAgentLike && (
+            {canSeeAffiliation && (
               <AccountMenuRow
                 icon={<UsersIcon />}
                 label="Affiliation dashboard"
@@ -352,6 +377,53 @@ export default function AccountPage() {
               </>
             )}
           </nav>
+
+          {profileReady && (
+            <div className="account-hub-footer">
+              <Link href="/dashboard/buy" className="account-buy-crypto-card">
+                <span className="account-buy-crypto-icon" aria-hidden>
+                  <BuyCryptoIcon />
+                </span>
+                <span className="account-buy-crypto-copy">
+                  <span className="account-buy-crypto-title">Buy crypto</span>
+                  <span className="account-buy-crypto-sub">BTC, ETH, USDT & more</span>
+                </span>
+                <ChevronRightIcon />
+              </Link>
+
+              {canSeeAffiliation && (
+            <div className="account-invite-card">
+              <div className="account-invite-head">
+                <span className="account-invite-icon" aria-hidden>
+                  <GiftIcon />
+                </span>
+                <div className="account-invite-copy">
+                  <p className="account-invite-title">Invite a friend</p>
+                  <p className="account-invite-sub">
+                    Share your link — you earn rewards when they join and trade.
+                  </p>
+                </div>
+              </div>
+              <div className="account-invite-link-row">
+                <input
+                  readOnly
+                  className="account-invite-url"
+                  value={siteUrl(`/register?ref=${user.id}`)}
+                  aria-label="Your invite link"
+                  onFocus={(e) => e.target.select()}
+                />
+                <button
+                  type="button"
+                  className="account-invite-copy-btn"
+                  onClick={() => copyText('invite', siteUrl(`/register?ref=${user.id}`))}
+                >
+                  {copied === 'invite' ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+            </div>
+              )}
+            </div>
+          )}
         </>
       )}
 
@@ -379,16 +451,25 @@ export default function AccountPage() {
                 {copied === 'uid-profile' && <span className="account-copied-inline">Copied</span>}
               </span>
             </div>
+            <div className="account-info-row account-info-row--kyc">
+              <span className="account-info-label">Identity</span>
+              <span className="account-info-value">
+                {idVerified ? (
+                  <span className="account-kyc-verified">
+                    <VerifiedCheckIcon />
+                    Verified account
+                  </span>
+                ) : (
+                  <button type="button" className="account-kyc-upload" onClick={() => setIdModalOpen(true)}>
+                    {idPartial ? 'Continue ID upload' : 'Upload passport / ID'}
+                  </button>
+                )}
+              </span>
+            </div>
             <div className="account-info-row">
               <span className="account-info-label">Email</span>
               <span className="account-info-value account-info-value--muted">{user.email}</span>
             </div>
-            {memberSince && (
-              <div className="account-info-row">
-                <span className="account-info-label">Member since</span>
-                <span className="account-info-value account-info-value--muted">{memberSince}</span>
-              </div>
-            )}
             <div className="account-info-row account-info-row--last">
               <span className="account-info-label">Account type</span>
               <span className="account-info-pill">{roleLabel(profile?.role)}</span>
@@ -398,6 +479,16 @@ export default function AccountPage() {
           <button type="button" className="account-logout-btn" onClick={handleLogout}>
             Log out
           </button>
+
+          <IdVerificationModal
+            open={idModalOpen}
+            onClose={() => setIdModalOpen(false)}
+            userId={user.id}
+            onComplete={(result) => {
+              handleIdUploaded(result);
+              setIdModalOpen(false);
+            }}
+          />
         </div>
       )}
 
@@ -591,7 +682,6 @@ export default function AccountPage() {
           userId={user.id}
           email={user.email}
           uid={uid}
-          memberSince={memberSince}
           documentPath={profile?.id_document_path}
           documentBackPath={profile?.id_document_back_path}
           uploadedAt={profile?.id_document_uploaded_at}
@@ -635,6 +725,35 @@ function AccountMenuLink({ icon, label, href, trailing }) {
       {trailing && <span className="account-menu-trailing">{trailing}</span>}
       <ChevronRightIcon />
     </Link>
+  );
+}
+
+function VerifiedCheckIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden>
+      <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function GiftIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <rect x="3" y="8" width="18" height="13" rx="2" />
+      <path d="M3 12h18" strokeLinecap="round" />
+      <path d="M12 8v13" strokeLinecap="round" />
+      <path d="M12 8S10.5 3.5 8 4.2 8 8 8 8h4zM12 8s1.5-4.5 4-3.8S16 8 16 8h-4z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function BuyCryptoIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v10" strokeLinecap="round" />
+      <path d="M8 11h8" strokeLinecap="round" />
+    </svg>
   );
 }
 

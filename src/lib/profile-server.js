@@ -1,8 +1,14 @@
 import { joinBackendUrl } from '@/lib/api-base';
 import { hashSecurityPin, isValidSecurityPin, verifySecurityPin } from '@/lib/security-pin';
 
-const PROFILE_FIELDS =
+const PROFILE_BASE_FIELDS =
   'id, role, referred_by_id, username, display_name, avatar_url, id_document_path, id_document_back_path, id_document_uploaded_at, nps_score, nps_submitted_at, security_pin_set_at';
+const PROFILE_FIELDS = `${PROFILE_BASE_FIELDS}, country_code`;
+
+function isMissingCountryColumn(error) {
+  const msg = error?.message || '';
+  return /country_code/i.test(msg) && /(column|does not exist|schema cache)/i.test(msg);
+}
 
 function avatarPublicUrl(supabase, path) {
   const { data } = supabase.storage.from('avatars').getPublicUrl(path);
@@ -25,13 +31,13 @@ async function hydrateAvatarFromStorage(supabase, userId, profile) {
 
 /** Read profile from Supabase (server client + RLS). */
 export async function getProfileFromSupabaseServer(supabase, userId) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(PROFILE_FIELDS)
-    .eq('id', userId)
-    .maybeSingle();
+  let { data, error } = await supabase.from('profiles').select(PROFILE_FIELDS).eq('id', userId).maybeSingle();
+  if (error && isMissingCountryColumn(error)) {
+    ({ data, error } = await supabase.from('profiles').select(PROFILE_BASE_FIELDS).eq('id', userId).maybeSingle());
+  }
   if (error) throw error;
-  const base = data || { id: userId, role: 'regular', referred_by_id: null };
+  const base = data || { id: userId, role: 'regular', referred_by_id: null, country_code: 'IL' };
+  if (!base.country_code) base.country_code = 'IL';
   return hydrateAvatarFromStorage(supabase, userId, base);
 }
 
@@ -41,6 +47,13 @@ export async function updateProfileViaSupabaseServer(supabase, userId, body) {
 
   if (body.avatar_url !== undefined) {
     updates.avatar_url = body.avatar_url;
+  }
+  if (body.country_code !== undefined) {
+    const code = String(body.country_code || '')
+      .trim()
+      .toUpperCase();
+    if (!/^[A-Z]{2}$/.test(code)) throw new Error('Invalid country code');
+    updates.country_code = code;
   }
   if (body.id_document_path !== undefined) {
     updates.id_document_path = body.id_document_path;
@@ -113,14 +126,18 @@ export async function updateProfileViaSupabaseServer(supabase, userId, body) {
   }
 
   if (existing) {
-    const { error } = await supabase.from('profiles').update(updates).eq('id', userId);
+    let { error } = await supabase.from('profiles').update(updates).eq('id', userId);
+    if (error && isMissingCountryColumn(error) && 'country_code' in updates) {
+      const { country_code, ...safe } = updates;
+      ({ error } = await supabase.from('profiles').update(safe).eq('id', userId));
+    }
     if (error) throw error;
   } else {
-    const { error } = await supabase.from('profiles').insert({
-      id: userId,
-      role: 'regular',
-      ...updates,
-    });
+    let { error } = await supabase.from('profiles').insert({ id: userId, role: 'regular', ...updates });
+    if (error && isMissingCountryColumn(error) && 'country_code' in updates) {
+      const { country_code, ...safe } = updates;
+      ({ error } = await supabase.from('profiles').insert({ id: userId, role: 'regular', ...safe }));
+    }
     if (error) throw error;
   }
 
