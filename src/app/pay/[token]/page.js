@@ -1,14 +1,15 @@
 'use client';
 
-import { Suspense, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { getPublicPaymentLink, simulatePublicPaymentLink, getCoinbasePrice, getCoinbaseSellQuote, getMoonPayPaymentLinkUrl } from '@/lib/api';
 import { ProviderInertPayButtons } from '@/components/ProviderInertPayButtons';
+import { useClientSearchParams } from '@/lib/use-query-param';
 
 function PayLinkPageInner() {
   const params = useParams();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const router = useRouter();
   const token = params?.token || '';
   const thankyou = searchParams.get('thankyou') === '1';
@@ -304,18 +305,6 @@ function PayLinkPageInner() {
   );
 }
 
-function PayLinkFallback() {
-  return (
-    <div className="app-dark" style={{ minHeight: '100vh', padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p className="auth-sub">Loading…</p>
-    </div>
-  );
-}
-
 export default function PayLinkPage() {
-  return (
-    <Suspense fallback={<PayLinkFallback />}>
-      <PayLinkPageInner />
-    </Suspense>
-  );
+  return <PayLinkPageInner />;
 }

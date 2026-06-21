@@ -1,7 +1,8 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useClientSearchParams } from '@/lib/use-query-param';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -45,7 +46,7 @@ function BuyPageContent() {
   const [token, setToken] = useState(null);
   const [moonPayLoading, setMoonPayLoading] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
 
   useEffect(() => {
     loadBuyableCurrencies()
@@ -307,18 +308,6 @@ function BuyPageContent() {
   );
 }
 
-function BuyFallback() {
-  return (
-    <div className="page" style={{ padding: '2rem 1.25rem', color: 'var(--text-muted)' }}>
-      Loading…
-    </div>
-  );
-}
-
 export default function BuyPage() {
-  return (
-    <Suspense fallback={<BuyFallback />}>
-      <BuyPageContent />
-    </Suspense>
-  );
+  return <BuyPageContent />;
 }

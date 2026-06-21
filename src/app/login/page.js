@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 
 /** Maps Supabase Auth errors (often HTTP 400 on /token) to actionable copy. */
 function formatLoginError(err) {
@@ -26,14 +26,14 @@ function formatLoginError(err) {
   }
   return raw || 'Login failed. Check your email and password.';
 }
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { clearPinUnlocked } from '@/lib/quick-pin-session';
+import { useQueryParam } from '@/lib/use-query-param';
 
 function LoginPageContent() {
-  const searchParams = useSearchParams();
-  const nextPath = searchParams.get('next');
+  const nextPath = useQueryParam('next');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -114,18 +114,6 @@ function LoginPageContent() {
   );
 }
 
-function LoginFallback() {
-  return (
-    <div className="app-dark" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '1.5rem' }}>
-      <p className="auth-sub">Loading…</p>
-    </div>
-  );
-}
-
 export default function LoginPage() {
-  return (
-    <Suspense fallback={<LoginFallback />}>
-      <LoginPageContent />
-    </Suspense>
-  );
+  return <LoginPageContent />;
 }

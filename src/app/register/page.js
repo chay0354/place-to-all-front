@@ -1,17 +1,17 @@
 'use client';
 
-import { Suspense, useState, useMemo, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { toRelayUrl } from '@/lib/relay-url';
 import { COUNTRY_OPTIONS, DEFAULT_COUNTRY_CODE } from '@/lib/countries';
 import { countryFlagUrl } from '@/lib/phone-country';
+import { useQueryParam } from '@/lib/use-query-param';
 
 function RegisterPageContent() {
-  const searchParams = useSearchParams();
-  const refParam = useMemo(() => searchParams.get('ref') || '', [searchParams]);
-  const nextPath = useMemo(() => searchParams.get('next') || '', [searchParams]);
+  const refParam = useQueryParam('ref') || '';
+  const nextPath = useQueryParam('next') || '';
   const isFromAffiliateLink = Boolean(refParam.trim());
 
   const [email, setEmail] = useState('');
@@ -201,18 +201,6 @@ function RegisterPageContent() {
   );
 }
 
-function RegisterFallback() {
-  return (
-    <div className="app-dark" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '1.5rem' }}>
-      <p className="auth-sub">Loading…</p>
-    </div>
-  );
-}
-
 export default function RegisterPage() {
-  return (
-    <Suspense fallback={<RegisterFallback />}>
-      <RegisterPageContent />
-    </Suspense>
-  );
+  return <RegisterPageContent />;
 }
