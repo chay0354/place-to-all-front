@@ -1,5 +1,5 @@
 import { updateProfile } from '@/lib/api';
-import { isValidSecurityPin } from '@/lib/security-pin';
+import { isValidSecurityPin } from '@/lib/security-pin-shared';
 
 export function hasQuickPin(profile) {
   return Boolean(profile?.security_pin_set_at);

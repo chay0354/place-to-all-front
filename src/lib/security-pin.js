@@ -1,10 +1,7 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
+import { isValidSecurityPin } from './security-pin-shared.js';
 
-const PIN_RE = /^\d{6}$/;
-
-export function isValidSecurityPin(pin) {
-  return typeof pin === 'string' && PIN_RE.test(pin);
-}
+export { isValidSecurityPin };
 
 export function hashSecurityPin(pin, userId) {
   if (!isValidSecurityPin(pin)) {
