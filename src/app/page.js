@@ -1,13 +1,13 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { ClientRedirect } from '@/components/ClientRedirect';
 
 export default async function Home() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) redirect('/dashboard');
+  if (user) return <ClientRedirect path="/dashboard" />;
 
   return (
     <div className="home-root">

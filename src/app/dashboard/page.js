@@ -1,12 +1,12 @@
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { DashboardClient } from './DashboardClient';
+import { ClientRedirect } from '@/components/ClientRedirect';
 import { joinBackendUrl } from '@/lib/api-base';
 
 export default async function DashboardPage({ searchParams }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  if (!user) return <ClientRedirect path="/login" />;
 
   let wallets = [];
   try {
