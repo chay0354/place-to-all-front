@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getTransactions, getWalletsForDashboard } from '@/lib/api';
-
-const FALLBACK_PRICES = { BTC: 50000, ETH: 2000, USDT: 1, USDC: 1, BNB: 650, SOL: 150, XRP: 0.5 };
+import { AccountInviteCard } from '@/components/AccountInviteCard';
+import { computeLiveUsdTotal, walletPricesReady } from '@/lib/coingecko-prices';
+import { getTransactionsForDashboard, getWalletsForDashboard } from '@/lib/api';
 
 /** Normalize currency code (trim, uppercase, map aliases like ETHEREUM -> ETH). */
 function normCurrency(currency) {
@@ -33,74 +33,99 @@ function ledgerRowsToWallets(ledger) {
     .filter(Boolean);
 }
 
-/** USD per 1 unit; stablecoins pegged to 1; then CoinGecko live prices; else static fallbacks. */
-function makeUsdUnitGetter(liveUsd) {
-  return (currency) => {
-    const c = currency || '';
-    if (c === 'USDT' || c === 'USDC') return 1;
-    const live = liveUsd && typeof liveUsd[c] === 'number' && liveUsd[c] > 0 ? liveUsd[c] : null;
-    if (live != null) return live;
-    return FALLBACK_PRICES[c] ?? 0;
-  };
-}
-
-export function DashboardClient({ initialWallets, userId, refreshKey }) {
+export function DashboardClient({
+  initialWallets,
+  initialTransactions,
+  initialCoinGecko = null,
+  userId,
+  refreshKey,
+  canSeeAffiliation = false,
+}) {
   const hasInitialWallets = Array.isArray(initialWallets);
+  const hasInitialTransactions = Array.isArray(initialTransactions);
+  const hasInitialPrices = Boolean(initialCoinGecko?.prices && walletPricesReady(ledgerRowsToWallets(initialWallets), initialCoinGecko.prices));
   const [wallets, setWallets] = useState(() => ledgerRowsToWallets(initialWallets));
   const [walletError, setWalletError] = useState(null);
   const [walletReady, setWalletReady] = useState(hasInitialWallets);
-  const [transactions, setTransactions] = useState([]);
-  const [txReady, setTxReady] = useState(false);
+  const [transactions, setTransactions] = useState(() => (hasInitialTransactions ? initialTransactions : []));
+  const [txReady, setTxReady] = useState(hasInitialTransactions);
   /** CoinGecko markets: USD prices + official image URLs (same request). */
-  const [coinGecko, setCoinGecko] = useState(null);
+  const [coinGecko, setCoinGecko] = useState(() =>
+    hasInitialPrices ? { prices: initialCoinGecko.prices, images: initialCoinGecko.images || {} } : null,
+  );
+  const [pricesFetched, setPricesFetched] = useState(hasInitialPrices);
 
   useEffect(() => {
     const symbols = [...new Set(wallets.map((w) => w.currency).filter(Boolean))];
     if (symbols.length === 0) {
       setCoinGecko({ prices: {}, images: {} });
+      setPricesFetched(true);
       return;
     }
+
+    if (walletPricesReady(wallets, coinGecko?.prices)) {
+      setPricesFetched(true);
+      return;
+    }
+
+    let active = true;
     const ac = new AbortController();
     fetch(`/api/coingecko/prices?symbols=${encodeURIComponent(symbols.join(','))}`, {
       signal: ac.signal,
       cache: 'no-store',
     })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then((d) =>
+      .then((d) => {
+        if (!active) return;
         setCoinGecko({
           prices: d.prices && typeof d.prices === 'object' ? d.prices : {},
           images: d.images && typeof d.images === 'object' ? d.images : {},
-        }),
-      )
-      .catch(() => setCoinGecko({ prices: {}, images: {} }));
-    return () => ac.abort();
-  }, [wallets]);
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setCoinGecko({ prices: {}, images: {} });
+      })
+      .finally(() => {
+        if (active) setPricesFetched(true);
+      });
+
+    return () => {
+      active = false;
+      ac.abort();
+    };
+  }, [wallets, refreshKey]);
 
   useEffect(() => {
     if (!userId) return;
     setWalletError(null);
     let cancelled = false;
-    if (!hasInitialWallets) setWalletReady(false);
-    getWalletsForDashboard()
-      .then((data) => {
-        const raw = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
-        return ledgerRowsToWallets(raw);
-      })
-      .catch((e) => {
-        console.warn('[dashboard] getWalletsForDashboard failed', e?.message || e);
-        return [];
-      })
-      .then((list) => {
-        if (cancelled) return;
-        setWalletReady(true);
-        if (!cancelled) setWallets(list);
-      })
-      .catch((err) => {
-        if (!cancelled) {
+
+    const shouldFetchWallets = !hasInitialWallets || refreshKey;
+    if (shouldFetchWallets) {
+      if (!hasInitialWallets) setWalletReady(false);
+      getWalletsForDashboard()
+        .then((data) => {
+          const raw = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
+          return ledgerRowsToWallets(raw);
+        })
+        .catch((e) => {
+          console.warn('[dashboard] getWalletsForDashboard failed', e?.message || e);
+          return [];
+        })
+        .then((list) => {
+          if (cancelled) return;
           setWalletReady(true);
-          setWalletError(err?.message || 'Could not load balances. Please try again.');
-        }
-      });
+          setWallets(list);
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setWalletReady(true);
+            setWalletError(err?.message || 'Could not load balances. Please try again.');
+          }
+        });
+    }
+
     const onVisible = () => {
       if (typeof document !== 'undefined' && document.visibilityState === 'visible') refresh();
     };
@@ -109,7 +134,7 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
       cancelled = true;
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [userId, refreshKey]);
+  }, [userId, refreshKey, hasInitialWallets]);
 
   async function refresh() {
     if (!userId) return;
@@ -123,33 +148,43 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
   }
 
   useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    setTxReady(false);
-    getTransactions()
+    if (!userId) {
+      setTransactions([]);
+      setTxReady(true);
+      return;
+    }
+    let active = true;
+    if (!hasInitialTransactions) setTxReady(false);
+
+    const load = getTransactionsForDashboard();
+    const timeout = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Transactions request timed out')), 15000);
+    });
+
+    Promise.race([load, timeout])
       .then((data) => {
-        const list = Array.isArray(data) ? data : [];
-        if (!cancelled) {
-          setTransactions(list);
-          setTxReady(true);
-        }
+        if (!active) return;
+        setTransactions(Array.isArray(data) ? data : []);
       })
       .catch((e) => {
-        console.warn('[dashboard] getTransactions failed', e?.message || e);
-        if (!cancelled) {
-          setTransactions([]);
-          setTxReady(true);
-        }
+        console.warn('[dashboard] getTransactionsForDashboard failed', e?.message || e);
+        if (!active) return;
+        setTransactions([]);
+      })
+      .finally(() => {
+        if (active) setTxReady(true);
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [userId, refreshKey]);
 
-  const getUsdUnit = makeUsdUnitGetter(coinGecko?.prices ?? null);
-  const totalUsd = wallets.reduce((sum, w) => sum + toNum(w.balance) * getUsdUnit(w.currency), 0);
+    return () => {
+      active = false;
+    };
+  }, [userId, refreshKey, hasInitialTransactions]);
+
+  const livePrices = coinGecko?.prices ?? null;
+  const totalUsd = computeLiveUsdTotal(wallets, livePrices);
   const balanceStr = totalUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const showPortfolioTotal = walletReady;
+  const pricesReady = pricesFetched && walletPricesReady(wallets, livePrices);
+  const showPortfolioTotal = walletReady && pricesReady;
   const topTransactions = transactions.slice(0, 3);
 
   if (walletError) {
@@ -211,11 +246,11 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
           </span>
           <span>Deposit</span>
         </Link>
-        <Link href="/dashboard/buy" className="dash-home-quick-action">
+        <Link href="/register?type=agent" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
-            <CryptoIcon />
+            <AdminIcon />
           </span>
-          <span>Buy Crypto</span>
+          <span>Be an admin</span>
         </Link>
         <Link href="/dashboard/transfer" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
@@ -231,15 +266,11 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
         </Link>
       </div>
 
-      <section className="dash-home-banner">
-        <div>
-          <p className="dash-home-banner-title">Invite friends</p>
-          <p className="dash-home-banner-text">Earn up to 40% commission!</p>
+      {canSeeAffiliation && (
+        <div className="dash-home-invite">
+          <AccountInviteCard />
         </div>
-        <div className="dash-home-banner-badge" aria-hidden>
-          <GiftIcon />
-        </div>
-      </section>
+      )}
 
       <section className="dash-home-card dash-home-card--transactions">
         <div className="dash-home-card-head">
@@ -356,11 +387,10 @@ function PlusIcon() {
   );
 }
 
-function CryptoIcon() {
+function AdminIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
-      <circle cx="12" cy="12" r="4.5" />
+      <path d="M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7l8-4z" />
     </svg>
   );
 }
@@ -388,15 +418,6 @@ function CardIcon() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <rect x="2" y="5" width="20" height="14" rx="3" />
       <path d="M2 10h20" />
-    </svg>
-  );
-}
-
-function GiftIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <rect x="3" y="8" width="18" height="13" rx="2" />
-      <path d="M12 8v13M3 13h18M7.5 8a2.5 2.5 0 1 1 0-5c2 0 4.5 3 4.5 5M16.5 8a2.5 2.5 0 1 0 0-5c-2 0-4.5 3-4.5 5" />
     </svg>
   );
 }

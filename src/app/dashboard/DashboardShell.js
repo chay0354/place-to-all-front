@@ -19,8 +19,9 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
   const [userEmail, setUserEmail] = useState(initialUser?.email || '');
   const [avatarUrl, setAvatarUrl] = useState(initialProfile?.avatar_url || '');
   const isHome = pathname === '/dashboard' || pathname === '/dashboard/';
-  const isSend = pathname.startsWith('/dashboard/transfer');
   const isCard = pathname.startsWith('/dashboard/card');
+  const isBuy = pathname.startsWith('/dashboard/buy');
+  const isSend = pathname.startsWith('/dashboard/transfer');
   const isAssets = pathname.startsWith('/dashboard/market');
   const isAccount = pathname.startsWith('/dashboard/account');
 
@@ -75,17 +76,6 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
           </Link>
           <div className="dash-header-brand-block">
             <h1 className="dash-brand">place to all</h1>
-            {!isHome && (
-              userEmail ? (
-                <Link href="/dashboard/account" className="dash-header-email" title={userEmail}>
-                  {userEmail}
-                </Link>
-              ) : (
-                <span className="dash-header-email dash-header-email--placeholder" aria-hidden="true">
-                  &nbsp;
-                </span>
-              )
-            )}
           </div>
           <div className="dash-header-actions">
             <button type="button" className="dash-header-icon" aria-label="Scan">
@@ -111,17 +101,21 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
           <HomeIcon />
           Home
         </Link>
-        <Link href="/dashboard/market" className={isAssets ? 'active' : ''}>
-          <AssetsIcon />
-          Assets
+        <Link href="/dashboard/card" className={isCard ? 'active' : ''}>
+          <CardIcon />
+          Card
+        </Link>
+        <Link href="/dashboard/buy" className={isBuy ? 'active' : ''}>
+          <BuyIcon />
+          Buy
         </Link>
         <Link href="/dashboard/transfer" className={isSend ? 'active' : ''}>
           <SendIcon />
           Send
         </Link>
-        <Link href="/dashboard/card" className={isCard ? 'active' : ''}>
-          <MoreIcon />
-          More
+        <Link href="/dashboard/market" className={isAssets ? 'active' : ''}>
+          <AssetsIcon />
+          Assets
         </Link>
       </nav>
       </div>
@@ -174,20 +168,19 @@ function SendIcon() {
 
 function BuyIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v10" />
-      <path d="M8 11h8" />
+      <path d="M8 12h8" />
     </svg>
   );
 }
 
-function MoreIcon() {
+function CardIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <circle cx="5" cy="12" r="1.75" />
-      <circle cx="12" cy="12" r="1.75" />
-      <circle cx="19" cy="12" r="1.75" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <rect x="2" y="5" width="20" height="14" rx="3" />
+      <path d="M2 10h20" />
     </svg>
   );
 }

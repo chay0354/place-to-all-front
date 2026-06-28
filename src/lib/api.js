@@ -55,6 +55,14 @@ export async function getWalletsForDashboard() {
   return data;
 }
 
+/** Transaction history via same-origin /api/transactions (avoids relay quirks on dashboard). */
+export async function getTransactionsForDashboard() {
+  const res = await fetch('/api/transactions', { credentials: 'include', cache: 'no-store' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || res.statusText);
+  return data;
+}
+
 /** Get current user's profile (role, referred_by_id). Uses app /api/profile with credentials. */
 export async function getProfile() {
   if (typeof window !== 'undefined') {

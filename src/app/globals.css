@@ -1665,18 +1665,233 @@ input, button, select, textarea {
 }
 
 .account-invite-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin: 0;
-  padding: 1rem;
+  padding: 0.875rem 1rem;
   border-radius: 16px;
-  border: 1px solid rgba(255, 90, 78, 0.25);
-  background: linear-gradient(135deg, rgba(255, 90, 78, 0.12) 0%, rgba(217, 178, 106, 0.08) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #252529;
+}
+
+.account-invite-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(145deg, #ff5a4e 0%, #e84a3f 100%);
+  box-shadow: 0 4px 12px rgba(255, 90, 78, 0.25);
+}
+
+.account-invite-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-invite-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--dash-text);
+  line-height: 1.25;
+}
+
+.account-invite-sub {
+  margin: 0.2rem 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--dash-muted);
+}
+
+.account-invite-cta {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.5rem 0.875rem;
+  border: none;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.account-invite-cta:hover {
+  background: #111;
+}
+
+.account-invite-cta:active {
+  transform: scale(0.98);
+}
+
+.account-referral {
+  padding-bottom: 1.5rem;
+}
+
+.account-referral-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0.5rem 0.75rem 1.25rem;
+}
+
+.account-referral-hero-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(145deg, #ff5a4e 0%, #e84a3f 100%);
+  box-shadow: 0 4px 14px rgba(255, 90, 78, 0.28);
+  margin-bottom: 0.75rem;
+}
+
+.account-referral-hero-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--dash-text);
+}
+
+.account-referral-hero-sub {
+  margin: 0.45rem 0 0;
+  max-width: 22rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--dash-muted);
+}
+
+.account-referral-section {
+  padding: 1rem 1.05rem;
+}
+
+.account-referral-section-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--dash-text);
+}
+
+.account-referral-steps {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--dash-text);
+}
+
+.account-referral-steps li {
+  padding-left: 0.15rem;
+}
+
+.account-referral-note {
+  margin: 0.85rem 0 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(255, 90, 78, 0.08);
+  border: 1px solid rgba(255, 90, 78, 0.18);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--dash-muted);
+}
+
+.account-referral-link-hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--dash-muted);
+}
+
+.account-referral-link-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.account-referral-url {
+  flex: 1;
+  min-width: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--dash-border);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--dash-text);
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
+}
+
+.account-referral-url:focus {
+  outline: none;
+  border-color: rgba(255, 90, 78, 0.5);
+}
+
+.account-referral-copy-btn {
+  flex-shrink: 0;
+  padding: 0.65rem 1rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--dash-primary, #ff5a4e);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-referral-copy-btn:hover {
+  filter: brightness(1.05);
+}
+
+.account-referral-dashboard-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--dash-border);
+  border-radius: 14px;
+  background: var(--dash-card);
+  color: var(--dash-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.account-referral-dashboard-link:hover {
+  background: var(--dash-card-hover);
+}
+
+.account-referral-dashboard-link svg {
+  flex-shrink: 0;
+  color: var(--dash-muted);
+  opacity: 0.7;
 }
 
 .account-hub-footer {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin: 0.75rem 0 1.25rem;
+  margin: 0 0 1rem;
   padding: 0 0.25rem;
 }
 
@@ -1743,82 +1958,6 @@ input, button, select, textarea {
 .account-buy-crypto-sub {
   font-size: 0.78rem;
   color: var(--dash-muted, #a0a0a0);
-}
-
-.account-invite-head {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.7rem;
-  margin-bottom: 0.85rem;
-}
-
-.account-invite-icon {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #ff8b7b;
-  background: rgba(255, 90, 78, 0.16);
-}
-
-.account-invite-copy {
-  min-width: 0;
-}
-
-.account-invite-title {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--dash-text);
-}
-
-.account-invite-sub {
-  margin: 0.15rem 0 0;
-  font-size: 0.78rem;
-  line-height: 1.45;
-  color: var(--dash-muted);
-}
-
-.account-invite-link-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
-}
-
-.account-invite-url {
-  flex: 1;
-  min-width: 0;
-  padding: 0.6rem 0.75rem;
-  border-radius: 10px;
-  border: 1px solid var(--dash-border);
-  background: rgba(0, 0, 0, 0.25);
-  color: var(--dash-text);
-  font-family: ui-monospace, monospace;
-  font-size: 0.75rem;
-}
-
-.account-invite-url:focus {
-  outline: none;
-  border-color: rgba(255, 90, 78, 0.5);
-}
-
-.account-invite-copy-btn {
-  flex-shrink: 0;
-  padding: 0.6rem 1.1rem;
-  border: 0;
-  border-radius: 10px;
-  background: var(--dash-primary, #ff5a4e);
-  color: #fff;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.account-invite-copy-btn:hover {
-  filter: brightness(1.05);
 }
 
 .account-referral-card {
@@ -4118,6 +4257,13 @@ input, button, select, textarea {
   font-weight: 500;
 }
 
+.dash-home-quick-action > span:not(.dash-home-quick-action-icon) {
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
 .dash-home-quick-action:hover {
   color: var(--dash-text);
   text-decoration: none;
@@ -4147,6 +4293,10 @@ input, button, select, textarea {
   display: block;
   overflow: visible;
   flex-shrink: 0;
+}
+
+.dash-home-invite {
+  margin: 0 1rem 1.25rem;
 }
 
 .dash-home-banner {
@@ -5164,7 +5314,7 @@ input, button, select, textarea {
   width: 100%;
   max-width: 480px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   background: rgba(0, 0, 0, 0.92);
   border-top: 1px solid var(--dash-border);
   z-index: 60;

@@ -9,6 +9,7 @@ import { getTransactions, getProfile, getProfileDownline, createPaymentLink, lis
 import { isAdminOperatorEmail } from '@/lib/admin-config';
 import { siteUrl } from '@/lib/site-url';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
+import { AccountInviteCard } from '@/components/AccountInviteCard';
 import { resolveUserCountryIso } from '@/lib/phone-country';
 import { clearPinUnlocked } from '@/lib/quick-pin-session';
 
@@ -366,10 +367,27 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
             <ChevronRightIcon />
           </button>
 
+          {profileReady && (
+            <div className="account-hub-footer">
+              <Link href="/dashboard/buy" className="account-buy-crypto-card">
+                <span className="account-buy-crypto-icon" aria-hidden>
+                  <BuyCryptoIcon />
+                </span>
+                <span className="account-buy-crypto-copy">
+                  <span className="account-buy-crypto-title">Buy crypto</span>
+                  <span className="account-buy-crypto-sub">BTC, ETH, USDT & more</span>
+                </span>
+                <ChevronRightIcon />
+              </Link>
+
+              {canSeeAffiliation && <AccountInviteCard />}
+            </div>
+          )}
+
           <nav className="account-menu" aria-label="Account menu" aria-busy={!profileReady}>
             {!profileReady ? (
               <>
-                {Array.from({ length: 7 }, (_, i) => (
+                {Array.from({ length: 5 }, (_, i) => (
                   <div key={i} className="account-menu-skeleton" aria-hidden />
                 ))}
               </>
@@ -380,30 +398,11 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
               label="Security"
               onClick={() => setView('security')}
             />
-            <AccountMenuLink icon={<CardIcon />} label="Card center" href="/dashboard/card" />
             {canSeeAffiliation && (
               <AccountMenuRow
                 icon={<UsersIcon />}
                 label="Affiliation dashboard"
                 onClick={() => router.push('/dashboard/affiliation')}
-              />
-            )}
-            <AccountMenuRow
-              icon={<HistoryIcon />}
-              label="Transaction history"
-              onClick={() => setView('transactions')}
-            />
-            {isAgentLike && (
-              <AccountMenuRow
-                icon={<UsersIcon />}
-                label={
-                  profile?.role === 'super_super_agent'
-                    ? 'Your team'
-                    : profile?.role === 'super_agent'
-                      ? 'Your agents'
-                      : 'Users you referred'
-                }
-                onClick={() => setView('downline')}
               />
             )}
             {isAdminOperatorEmail(user?.email) && (
@@ -423,53 +422,6 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
               </>
             )}
           </nav>
-
-          {profileReady && (
-            <div className="account-hub-footer">
-              <Link href="/dashboard/buy" className="account-buy-crypto-card">
-                <span className="account-buy-crypto-icon" aria-hidden>
-                  <BuyCryptoIcon />
-                </span>
-                <span className="account-buy-crypto-copy">
-                  <span className="account-buy-crypto-title">Buy crypto</span>
-                  <span className="account-buy-crypto-sub">BTC, ETH, USDT & more</span>
-                </span>
-                <ChevronRightIcon />
-              </Link>
-
-              {canSeeAffiliation && (
-            <div className="account-invite-card">
-              <div className="account-invite-head">
-                <span className="account-invite-icon" aria-hidden>
-                  <GiftIcon />
-                </span>
-                <div className="account-invite-copy">
-                  <p className="account-invite-title">Invite a friend</p>
-                  <p className="account-invite-sub">
-                    Share your link — you earn rewards when they join and trade.
-                  </p>
-                </div>
-              </div>
-              <div className="account-invite-link-row">
-                <input
-                  readOnly
-                  className="account-invite-url"
-                  value={siteUrl(`/register?ref=${user.id}`)}
-                  aria-label="Your invite link"
-                  onFocus={(e) => e.target.select()}
-                />
-                <button
-                  type="button"
-                  className="account-invite-copy-btn"
-                  onClick={() => copyText('invite', siteUrl(`/register?ref=${user.id}`))}
-                >
-                  {copied === 'invite' ? 'Copied' : 'Copy'}
-                </button>
-              </div>
-            </div>
-              )}
-            </div>
-          )}
         </>
       )}
 
@@ -782,23 +734,12 @@ function VerifiedCheckIcon() {
   );
 }
 
-function GiftIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <rect x="3" y="8" width="18" height="13" rx="2" />
-      <path d="M3 12h18" strokeLinecap="round" />
-      <path d="M12 8v13" strokeLinecap="round" />
-      <path d="M12 8S10.5 3.5 8 4.2 8 8 8 8h4zM12 8s1.5-4.5 4-3.8S16 8 16 8h-4z" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function BuyCryptoIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v10" strokeLinecap="round" />
-      <path d="M8 11h8" strokeLinecap="round" />
+      <path d="M8 12h8" strokeLinecap="round" />
     </svg>
   );
 }
@@ -856,29 +797,11 @@ function LockIcon() {
   );
 }
 
-function CardIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <rect x="2" y="5" width="20" height="14" rx="2" />
-      <path d="M2 10h20" />
-    </svg>
-  );
-}
-
 function PaymentIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
       <circle cx="12" cy="12" r="9" />
       <circle cx="12" cy="12" r="4" />
-    </svg>
-  );
-}
-
-function HistoryIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 3" />
     </svg>
   );
 }

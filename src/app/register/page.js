@@ -12,11 +12,12 @@ import { useQueryParam } from '@/lib/use-query-param';
 function RegisterPageContent() {
   const refParam = useQueryParam('ref') || '';
   const nextPath = useQueryParam('next') || '';
+  const typeParam = useQueryParam('type') || '';
   const isFromAffiliateLink = Boolean(refParam.trim());
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState('regular');
+  const [userType, setUserType] = useState(() => (typeParam === 'agent' ? 'agent' : 'regular'));
   const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_CODE);
   const [recruiterRole, setRecruiterRole] = useState(null);
   const [error, setError] = useState('');
@@ -35,6 +36,11 @@ function RegisterPageContent() {
       .then((d) => setRecruiterRole(d.valid ? d.recruiterRole : null))
       .catch(() => setRecruiterRole(null));
   }, [refParam]);
+
+  useEffect(() => {
+    if (isFromAffiliateLink) return;
+    if (typeParam === 'agent') setUserType('agent');
+  }, [typeParam, isFromAffiliateLink]);
 
   async function handleSubmit(e) {
     e.preventDefault();
