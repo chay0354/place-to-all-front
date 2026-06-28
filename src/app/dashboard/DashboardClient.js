@@ -45,24 +45,21 @@ function makeUsdUnitGetter(liveUsd) {
 }
 
 export function DashboardClient({ initialWallets, userId, refreshKey }) {
+  const hasInitialWallets = Array.isArray(initialWallets);
   const [wallets, setWallets] = useState(() => ledgerRowsToWallets(initialWallets));
   const [walletError, setWalletError] = useState(null);
-  const [walletReady, setWalletReady] = useState(false);
+  const [walletReady, setWalletReady] = useState(hasInitialWallets);
   const [transactions, setTransactions] = useState([]);
   const [txReady, setTxReady] = useState(false);
   /** CoinGecko markets: USD prices + official image URLs (same request). */
   const [coinGecko, setCoinGecko] = useState(null);
-  /** Avoid showing Est. total with static fallback prices, then jumping to live — wait for this fetch. */
-  const [usdPricesReady, setUsdPricesReady] = useState(false);
 
   useEffect(() => {
     const symbols = [...new Set(wallets.map((w) => w.currency).filter(Boolean))];
     if (symbols.length === 0) {
       setCoinGecko({ prices: {}, images: {} });
-      setUsdPricesReady(true);
       return;
     }
-    setUsdPricesReady(false);
     const ac = new AbortController();
     fetch(`/api/coingecko/prices?symbols=${encodeURIComponent(symbols.join(','))}`, {
       signal: ac.signal,
@@ -75,10 +72,7 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
           images: d.images && typeof d.images === 'object' ? d.images : {},
         }),
       )
-      .catch(() => setCoinGecko({ prices: {}, images: {} }))
-      .finally(() => {
-        if (!ac.signal.aborted) setUsdPricesReady(true);
-      });
+      .catch(() => setCoinGecko({ prices: {}, images: {} }));
     return () => ac.abort();
   }, [wallets]);
 
@@ -86,7 +80,7 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
     if (!userId) return;
     setWalletError(null);
     let cancelled = false;
-    setWalletReady(false);
+    if (!hasInitialWallets) setWalletReady(false);
     getWalletsForDashboard()
       .then((data) => {
         const raw = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
@@ -155,7 +149,7 @@ export function DashboardClient({ initialWallets, userId, refreshKey }) {
   const getUsdUnit = makeUsdUnitGetter(coinGecko?.prices ?? null);
   const totalUsd = wallets.reduce((sum, w) => sum + toNum(w.balance) * getUsdUnit(w.currency), 0);
   const balanceStr = totalUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const showPortfolioTotal = walletReady && usdPricesReady;
+  const showPortfolioTotal = walletReady;
   const topTransactions = transactions.slice(0, 3);
 
   if (walletError) {

@@ -14,10 +14,10 @@ function emailInitial(email) {
   return e.charAt(0).toUpperCase();
 }
 
-export function DashboardShell({ children }) {
+export function DashboardShell({ children, initialUser = null, initialProfile = null }) {
   const pathname = usePathname() || '';
-  const [userEmail, setUserEmail] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [userEmail, setUserEmail] = useState(initialUser?.email || '');
+  const [avatarUrl, setAvatarUrl] = useState(initialProfile?.avatar_url || '');
   const isHome = pathname === '/dashboard' || pathname === '/dashboard/';
   const isSend = pathname.startsWith('/dashboard/transfer');
   const isCard = pathname.startsWith('/dashboard/card');
@@ -25,6 +25,7 @@ export function DashboardShell({ children }) {
   const isAccount = pathname.startsWith('/dashboard/account');
 
   useEffect(() => {
+    if (initialUser?.email) return;
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUserEmail(user?.email?.trim() || '');
@@ -35,26 +36,39 @@ export function DashboardShell({ children }) {
       setUserEmail(session?.user?.email?.trim() || '');
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [initialUser?.email]);
 
   useEffect(() => {
+    const onAvatar = (e) => setAvatarUrl(e.detail?.url || '');
+    window.addEventListener(PROFILE_AVATAR_EVENT, onAvatar);
+    if (initialProfile?.avatar_url) {
+      return () => window.removeEventListener(PROFILE_AVATAR_EVENT, onAvatar);
+    }
     getProfile()
       .then((p) => setAvatarUrl(p?.avatar_url || ''))
       .catch(() => setAvatarUrl(''));
-    const onAvatar = (e) => setAvatarUrl(e.detail?.url || '');
-    window.addEventListener(PROFILE_AVATAR_EVENT, onAvatar);
     return () => window.removeEventListener(PROFILE_AVATAR_EVENT, onAvatar);
-  }, []);
+  }, [initialProfile?.avatar_url]);
 
   return (
-    <PinUnlockGate>
+    <PinUnlockGate
+      initialUserId={initialUser?.id || null}
+      initialPinSetAt={initialProfile?.security_pin_set_at || null}
+    >
       <div className="dashboard-wallet-ui">
       {!isAccount && (
       <header className="dash-header">
         <div className="dash-header-row">
           <Link href="/dashboard/account" className="dash-profile dash-profile--avatar" aria-label="Account" aria-hidden={isAccount}>
             {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="dash-profile-img" draggable={false} />
+              <img
+                src={avatarUrl}
+                alt=""
+                className="dash-profile-img"
+                draggable={false}
+                fetchPriority="high"
+                decoding="async"
+              />
             ) : (
               emailInitial(userEmail)
             )}

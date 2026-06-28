@@ -7,12 +7,19 @@ import { getProfile } from '@/lib/api';
 import { hasQuickPin, verifyQuickPin } from '@/lib/quick-pin';
 import { clearPinUnlocked, isPinUnlocked, setPinUnlocked } from '@/lib/quick-pin-session';
 
-export function PinUnlockGate({ children }) {
+export function PinUnlockGate({ children, initialUserId = null, initialPinSetAt = null }) {
   const router = useRouter();
-  const [userId, setUserId] = useState(null);
-  const [pinRequired, setPinRequired] = useState(false);
-  const [unlocked, setUnlocked] = useState(false);
-  const [ready, setReady] = useState(false);
+  const [userId, setUserId] = useState(initialUserId);
+  const [pinRequired, setPinRequired] = useState(() => {
+    if (!initialUserId || !initialPinSetAt) return false;
+    return !isPinUnlocked(initialUserId);
+  });
+  const [unlocked, setUnlocked] = useState(() => {
+    if (!initialUserId) return false;
+    if (isPinUnlocked(initialUserId)) return true;
+    return !initialPinSetAt;
+  });
+  const [ready, setReady] = useState(Boolean(initialUserId));
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -39,6 +46,15 @@ export function PinUnlockGate({ children }) {
         if (!cancelled) {
           setUnlocked(true);
           setPinRequired(false);
+          setReady(true);
+        }
+        return;
+      }
+
+      if (initialPinSetAt && initialUserId === user.id) {
+        if (!cancelled) {
+          setPinRequired(true);
+          setUnlocked(false);
           setReady(true);
         }
         return;
@@ -89,7 +105,7 @@ export function PinUnlockGate({ children }) {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, [router, initialUserId, initialPinSetAt]);
 
   async function handleSubmit(e) {
     e.preventDefault();
