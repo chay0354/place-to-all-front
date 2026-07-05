@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAdminOperatorEmail } from '@/lib/admin-config';
 import { AccountReferralScreen, AccountReferralToolbar } from '@/components/AccountReferralScreen';
+import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
 export function AccountReferralPageClient({ userId, userEmail, profile }) {
   const router = useRouter();
@@ -19,7 +20,7 @@ export function AccountReferralPageClient({ userId, userEmail, profile }) {
   }, [canSeeAffiliation, router]);
 
   if (!canSeeAffiliation) {
-    return null;
+    return <AppLoadingScreen fullScreen={false} className="app-loading-screen--inline" size={56} />;
   }
 
   return (

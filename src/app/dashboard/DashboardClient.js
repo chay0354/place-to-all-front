@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AccountInviteCard } from '@/components/AccountInviteCard';
+import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { computeLiveUsdTotal, walletPricesReady } from '@/lib/coingecko-prices';
 import { getTransactionsForDashboard, getWalletsForDashboard } from '@/lib/api';
 
@@ -208,11 +209,7 @@ export function DashboardClient({
   }
 
   if (!walletReady && !wallets.length) {
-    return (
-      <div style={{ padding: '3rem 1.25rem', textAlign: 'center', color: 'var(--dash-muted)' }}>
-        Loading portfolio…
-      </div>
-    );
+    return <AppLoadingScreen />;
   }
 
   return (
@@ -279,7 +276,7 @@ export function DashboardClient({
             <MoreIcon />
           </button>
         </div>
-        {!txReady && <p className="dash-home-empty">Loading transactions...</p>}
+        {!txReady && <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={56} />}
         {txReady && topTransactions.length === 0 && <p className="dash-home-empty">No transactions yet.</p>}
         {txReady && topTransactions.length > 0 && (
           <div className="dash-home-transactions">

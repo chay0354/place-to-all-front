@@ -10,24 +10,27 @@ import { isAdminOperatorEmail } from '@/lib/admin-config';
 import { siteUrl } from '@/lib/site-url';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { AccountInviteCard } from '@/components/AccountInviteCard';
+import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { resolveUserCountryIso } from '@/lib/phone-country';
 import { clearPinUnlocked } from '@/lib/quick-pin-session';
 
+const accountSectionLoading = () => <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={56} />;
+
 const AccountSecurity = dynamic(
   () => import('@/components/AccountSecurity').then((m) => m.AccountSecurity),
-  { loading: () => <p className="account-empty">Loading…</p> },
+  { loading: accountSectionLoading },
 );
 const AccountCommunity = dynamic(
   () => import('@/components/AccountCommunity').then((m) => m.AccountCommunity),
-  { loading: () => <p className="account-empty">Loading…</p> },
+  { loading: accountSectionLoading },
 );
 const AccountAbout = dynamic(
   () => import('@/components/AccountAbout').then((m) => m.AccountAbout),
-  { loading: () => <p className="account-empty">Loading…</p> },
+  { loading: accountSectionLoading },
 );
 const IdDocumentUpload = dynamic(
   () => import('@/components/IdDocumentUpload').then((m) => m.IdDocumentUpload),
-  { loading: () => <p className="account-empty">Loading…</p> },
+  { loading: accountSectionLoading },
 );
 const IdVerificationModal = dynamic(
   () => import('@/components/IdVerificationModal').then((m) => m.IdVerificationModal),
@@ -228,18 +231,13 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
 
   if (loading || !user) {
     return (
-      <div className="account-hub">
+      <div className="account-hub account-hub--loading">
         <header className="account-hub-toolbar">
           <Link href="/dashboard" className="account-hub-icon-btn" aria-label="Back to home">
             <BackIcon />
           </Link>
         </header>
-        <div className="account-profile-row account-profile-row--skeleton" aria-hidden />
-        <nav className="account-menu" aria-label="Account menu">
-          {Array.from({ length: 5 }, (_, i) => (
-            <div key={i} className="account-menu-skeleton" aria-hidden />
-          ))}
-        </nav>
+        <AppLoadingScreen fullScreen={false} className="app-loading-screen--inline" />
       </div>
     );
   }
@@ -587,7 +585,7 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
         <div className="account-subview">
           <div className="account-panel account-panel--flush">
             {txLoading ? (
-              <p className="account-empty">Loading…</p>
+              <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={56} />
             ) : transactions.length === 0 ? (
               <p className="account-empty">No transactions yet.</p>
             ) : (
@@ -623,7 +621,7 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
           </p>
           <div className="account-panel account-panel--flush">
             {downlineLoading ? (
-              <p className="account-empty">Loading…</p>
+              <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={56} />
             ) : !downline?.members?.length ? (
               <p className="account-empty">No one yet.</p>
             ) : (

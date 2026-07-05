@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { getProfile } from '@/lib/api';
 import { hasQuickPin, verifyQuickPin } from '@/lib/quick-pin';
 import { clearPinUnlocked, isPinUnlocked, setPinUnlocked } from '@/lib/quick-pin-session';
+import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
 export function PinUnlockGate({ children, initialUserId = null, initialPinSetAt = null }) {
   const router = useRouter();
@@ -127,11 +128,7 @@ export function PinUnlockGate({ children, initialUserId = null, initialPinSetAt 
   }
 
   if (!ready) {
-    return (
-      <div className="pin-unlock pin-unlock--loading">
-        <p className="pin-unlock-loading-text">Loading…</p>
-      </div>
-    );
+    return <AppLoadingScreen />;
   }
 
   if (!unlocked && pinRequired) {

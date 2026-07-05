@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useClientSearchParams } from '@/lib/use-query-param';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import {
   buyCrypto,
@@ -241,7 +240,6 @@ function BuyPageContent() {
 
   return (
     <div className="page">
-      <Link href="/dashboard" className="back-link">← Back to portfolio</Link>
         <h1 className="page-title">{isPaymentLinkCheckout ? 'Complete payment' : 'Buy crypto'}</h1>
         {isPaymentLinkCheckout && (
           <div className="alert alert-success" style={{ margin: '0 0 1rem', borderRadius: 12 }}>

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getWallets, transfer } from '@/lib/api';
 
@@ -155,9 +154,6 @@ export default function TransferPage() {
 
   return (
     <div className="page">
-      <Link href="/dashboard" className="back-link">
-        ← Back to portfolio
-      </Link>
       <h1 className="page-title">Transfer crypto</h1>
 
       <div className="card card-lg">

@@ -11,6 +11,7 @@ import {
   adminListRegularUsers,
 } from '@/lib/api';
 import { isAdminOperatorEmail, ADMIN_OPERATOR_EMAIL } from '@/lib/admin-config';
+import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
 const card = {
   border: '1px solid var(--border, #30363d)',
@@ -296,7 +297,7 @@ export default function AdminPage() {
     }
   }
 
-  if (loading) return null;
+  if (loading) return <AppLoadingScreen />;
 
   if (forbidden) {
     return (

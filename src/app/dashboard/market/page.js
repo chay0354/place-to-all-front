@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { getMarketOverview, getWalletsForDashboard } from '@/lib/api';
 import { assetLabel } from '@/lib/asset-names';
 import { CoinIcon } from '@/components/CoinIcon';
+import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
 /** Match dashboard wallet normalization so tickers align with market overview codes. */
 function normCurrency(currency) {
@@ -182,15 +183,7 @@ export default function MarketPage() {
         </div>
         <div className={`market-table-body u-scroll-dark ${loading && assets.length === 0 ? 'market-table-body--empty' : ''}`}>
           {loading && assets.length === 0 ? (
-            <div className="market-skeleton-wrap" aria-busy="true">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="market-skeleton-row">
-                  <div className="market-skeleton market-skeleton--icon" />
-                  <div className="market-skeleton market-skeleton--text" />
-                  <div className="market-skeleton market-skeleton--price" />
-                </div>
-              ))}
-            </div>
+            <AppLoadingScreen fullScreen={false} className="app-loading-screen--inline" size={56} />
           ) : (
             <ul className="market-rows">
               {filtered.map((a) => (

@@ -24,6 +24,7 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
   const isSend = pathname.startsWith('/dashboard/transfer');
   const isAssets = pathname.startsWith('/dashboard/market');
   const isAccount = pathname.startsWith('/dashboard/account');
+  const hideHeader = isAccount || isCard;
 
   useEffect(() => {
     if (initialUser?.email) return;
@@ -57,7 +58,7 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
       initialPinSetAt={initialProfile?.security_pin_set_at || null}
     >
       <div className="dashboard-wallet-ui">
-      {!isAccount && (
+      {!hideHeader && (
       <header className="dash-header">
         <div className="dash-header-row">
           <Link href="/dashboard/account" className="dash-profile dash-profile--avatar" aria-label="Account" aria-hidden={isAccount}>

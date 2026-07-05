@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getIdDocumentPreviewUrl } from '@/lib/id-document';
 import { IdVerificationModal } from '@/components/IdVerificationModal';
+import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
 function formatUploadedAt(iso) {
   if (!iso) return null;
@@ -155,7 +156,9 @@ export function IdDocumentUpload({
               <div className="id-auth-details-preview">
                 <span className="id-auth-details-preview-label">ID front</span>
                 {loadingPreview ? (
-                  <div className="id-auth-details-preview-box">Loading…</div>
+                  <div className="id-auth-details-preview-box id-auth-details-preview-box--loading">
+                    <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={40} />
+                  </div>
                 ) : (
                   <img src={frontPreview} alt="" className="id-auth-details-preview-img" />
                 )}

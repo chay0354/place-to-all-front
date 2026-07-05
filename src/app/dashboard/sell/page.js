@@ -66,7 +66,6 @@ export default function SellPage() {
 
   return (
     <div className="page">
-        <Link href="/dashboard" className="back-link">← Back to portfolio</Link>
         <h1 className="page-title">Sell crypto</h1>
         <p className="page-desc">
           Convert your crypto to fiat. Test environment: balance returns to treasury.

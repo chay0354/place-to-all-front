@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { getPublicPaymentLink, simulatePublicPaymentLink, getCoinbasePrice, getCoinbaseSellQuote, getMoonPayPaymentLinkUrl } from '@/lib/api';
 import { ProviderInertPayButtons } from '@/components/ProviderInertPayButtons';
+import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { useClientSearchParams } from '@/lib/use-query-param';
 
 function PayLinkPageInner() {
@@ -212,7 +213,7 @@ function PayLinkPageInner() {
       <main style={{ maxWidth: 440, margin: '2rem auto' }} className="auth-card">
         <h1 className="auth-title" style={{ fontSize: '1.35rem' }}>Pay with crypto</h1>
         {loadErr && <div className="alert alert-error" style={{ marginTop: '1rem' }}>{loadErr}</div>}
-        {!loadErr && !linkData && <p className="auth-sub">Loading…</p>}
+        {!loadErr && !linkData && <AppLoadingScreen fullScreen={false} className="app-loading-screen--inline" size={64} />}
         {linkData && (
           <>
             <p className="auth-sub" style={{ marginTop: '0.5rem' }}>

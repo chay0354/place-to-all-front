@@ -14,6 +14,7 @@ import {
 } from '@/lib/api';
 import { siteUrl } from '@/lib/site-url';
 import { isAdminOperatorEmail } from '@/lib/admin-config';
+import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
 const AGENT_ROLES = new Set(['agent', 'super_agent', 'super_super_agent', 'admin']);
 const MOVEMENT_TYPES = new Set(['buy', 'sell', 'transfer']);
@@ -257,7 +258,7 @@ export default function AffiliationDashboardPage() {
     [txRows],
   );
 
-  if (loading) return null;
+  if (loading) return <AppLoadingScreen />;
   if (!user) return null;
 
   if (!isAgentLike) {
@@ -561,7 +562,7 @@ export default function AffiliationDashboardPage() {
           <h2 className="aff-section-title">Your commission take</h2>
         </div>
         {feeError && <p className="aff-message aff-error">{feeError}</p>}
-        {feeLoading && <p className="aff-message">Loading fee settings…</p>}
+        {feeLoading && <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={48} />}
 
         {!feeLoading && (
           <div className="aff-fee-stack">
@@ -600,7 +601,7 @@ export default function AffiliationDashboardPage() {
       <section className="aff-tx-section">
         <h2 className="aff-section-title">Recent activity</h2>
         {downlineLoading ? (
-          <p className="aff-message">Loading…</p>
+          <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={56} />
         ) : !tableRows.length ? (
           <div className="aff-empty-card">No transactions yet.</div>
         ) : (
