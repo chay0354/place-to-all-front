@@ -7636,6 +7636,69 @@ input[type='range']:focus-visible::-moz-range-thumb {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  width: 100%;
+}
+
+.card-carousel-wrap {
+  margin-bottom: 0.25rem;
+}
+
+.card-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  gap: 0.75rem;
+  padding: 0 0 0.5rem;
+  margin: 0 -0.25rem;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.card-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.card-carousel-slide {
+  flex: 0 0 88%;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.card-carousel-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+}
+
+.card-carousel-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  cursor: pointer;
+}
+
+.card-carousel-dot--active {
+  width: 1.25rem;
+  background: var(--dash-accent);
+}
+
+.card-visa-mock-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.card-theme-thumb {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
 .card-visa-mock--frozen {
@@ -7662,29 +7725,21 @@ input[type='range']:focus-visible::-moz-range-thumb {
   justify-content: space-between;
 }
 
+.card-visa-mock-top {
+  align-items: flex-start;
+}
+
 .card-visa-mock-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  color: #fff;
 }
 
-.card-visa-mock-brand-mark {
-  width: 1.65rem;
-  height: 1.65rem;
-  border-radius: 999px;
-  border: 1.5px solid rgba(255, 255, 255, 0.92);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.card-visa-mock-brand-name {
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+.card-visa-mock-brand-logo {
+  height: 2.75rem;
+  width: 2.75rem;
+  border-radius: 10px;
+  display: block;
+  object-fit: contain;
 }
 
 .card-visa-mock-pan {

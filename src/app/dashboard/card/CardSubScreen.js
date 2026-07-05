@@ -5,6 +5,24 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
+import { getSelectedCardIndex, parseCardIndexParam } from '@/lib/card-mock-state';
+
+export function useActiveCardIndex(userId) {
+  const [cardIndex, setCardIndex] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get('card');
+    if (fromUrl != null) {
+      setCardIndex(parseCardIndexParam(fromUrl));
+      return;
+    }
+    if (userId) setCardIndex(getSelectedCardIndex(userId));
+  }, [userId]);
+
+  return cardIndex;
+}
 
 export function useCardUser(nextPath) {
   const router = useRouter();

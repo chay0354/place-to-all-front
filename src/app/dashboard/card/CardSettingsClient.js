@@ -1,32 +1,22 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { getMockCard } from '@/lib/mock-card';
+import { CardSubScreenLoader, useActiveCardIndex } from './CardSubScreen';
+import { CardThemeThumb } from './CardCarousel';
 
 export function CardSettingsClient() {
-  const router = useRouter();
-  const [userId, setUserId] = useState(null);
-  const [loading, setLoading] = useState(true);
+  return (
+    <CardSubScreenLoader nextPath="/dashboard/card/settings">
+      {(userId) => <CardSettingsContent userId={userId} />}
+    </CardSubScreenLoader>
+  );
+}
 
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        router.push('/login?next=%2Fdashboard%2Fcard%2Fsettings');
-        return;
-      }
-      setUserId(user.id);
-      setLoading(false);
-    });
-  }, [router]);
-
-  const card = useMemo(() => (userId ? getMockCard(userId) : null), [userId]);
-
-  if (loading || !card) return <AppLoadingScreen />;
+function CardSettingsContent({ userId }) {
+  const cardIndex = useActiveCardIndex(userId);
+  const card = useMemo(() => getMockCard(userId, cardIndex), [userId, cardIndex]);
 
   return (
     <div className="card-settings-screen">
@@ -38,8 +28,10 @@ export function CardSettingsClient() {
       </header>
 
       <Link href="/dashboard/card" className="card-settings-preview-row">
-        <span className="card-settings-preview-thumb" aria-hidden />
-        <span className="card-settings-preview-label">Virtual card {card.card_masked}</span>
+        <CardThemeThumb card={card} />
+        <span className="card-settings-preview-label">
+          {card.label} · {card.card_masked}
+        </span>
         <ChevronIcon />
       </Link>
 
@@ -71,7 +63,7 @@ export function CardSettingsClient() {
           </span>
           <span className="card-settings-row-body">
             <span className="card-settings-row-title">Card label</span>
-            <span className="card-settings-row-sub">Add an optional name for this card</span>
+            <span className="card-settings-row-sub">{card.label}</span>
           </span>
           <ChevronIcon />
         </button>

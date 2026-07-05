@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { getMockCard, getMockCardDetails } from '@/lib/mock-card';
-import { CardSubScreen, CardSubScreenLoader } from './CardSubScreen';
+import { CardSubScreen, CardSubScreenLoader, useActiveCardIndex } from './CardSubScreen';
+import { CardThemeThumb } from './CardCarousel';
 
 export function CardViewClient() {
   return (
@@ -13,8 +14,9 @@ export function CardViewClient() {
 }
 
 function CardViewContent({ userId }) {
-  const card = useMemo(() => getMockCard(userId), [userId]);
-  const details = useMemo(() => getMockCardDetails(userId), [userId]);
+  const cardIndex = useActiveCardIndex(userId);
+  const card = useMemo(() => getMockCard(userId, cardIndex), [userId, cardIndex]);
+  const details = useMemo(() => getMockCardDetails(userId, cardIndex), [userId, cardIndex]);
   const [copied, setCopied] = useState('');
 
   async function copyField(key, value) {
@@ -30,9 +32,9 @@ function CardViewContent({ userId }) {
   return (
     <CardSubScreen title="Card details">
       <div className="card-sub-preview">
-        <span className="card-settings-preview-thumb card-sub-preview-thumb" aria-hidden />
+        <CardThemeThumb card={card} className="card-sub-preview-thumb" />
         <div>
-          <p className="card-sub-preview-title">Virtual Visa</p>
+          <p className="card-sub-preview-title">{card.label} · Virtual Visa</p>
           <p className="card-sub-preview-sub">{card.card_masked}</p>
         </div>
       </div>

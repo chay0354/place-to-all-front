@@ -3,7 +3,8 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { getMockCard, getMockCardLimits } from '@/lib/mock-card';
-import { CardSubScreen, CardSubScreenLoader } from './CardSubScreen';
+import { CardSubScreen, CardSubScreenLoader, useActiveCardIndex } from './CardSubScreen';
+import { CardThemeThumb } from './CardCarousel';
 
 function formatUsd(n) {
   return Number(n).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -18,30 +19,25 @@ export function CardLimitClient() {
 }
 
 function CardLimitContent({ userId }) {
-  const card = useMemo(() => getMockCard(userId), [userId]);
-  const limits = useMemo(() => getMockCardLimits(userId), [userId]);
+  const cardIndex = useActiveCardIndex(userId);
+  const card = useMemo(() => getMockCard(userId, cardIndex), [userId, cardIndex]);
+  const limits = useMemo(() => getMockCardLimits(userId, cardIndex), [userId, cardIndex]);
 
   return (
     <CardSubScreen title="Spending limit">
       <div className="card-sub-preview">
-        <span className="card-settings-preview-thumb card-sub-preview-thumb" aria-hidden />
+        <CardThemeThumb card={card} className="card-sub-preview-thumb" />
         <div>
-          <p className="card-sub-preview-title">Virtual card {card.card_masked}</p>
+          <p className="card-sub-preview-title">
+            {card.label} · {card.card_masked}
+          </p>
           <p className="card-sub-preview-sub">Preview limits — not enforced yet</p>
         </div>
       </div>
 
       <div className="card-limits-list">
-        <LimitMeter
-          label="Daily limit"
-          used={limits.daily_used_usd}
-          total={limits.daily_limit_usd}
-        />
-        <LimitMeter
-          label="Monthly limit"
-          used={limits.monthly_used_usd}
-          total={limits.monthly_limit_usd}
-        />
+        <LimitMeter label="Daily limit" used={limits.daily_used_usd} total={limits.daily_limit_usd} />
+        <LimitMeter label="Monthly limit" used={limits.monthly_used_usd} total={limits.monthly_limit_usd} />
         <div className="card-limit-static">
           <span className="card-limit-static-label">Per transaction</span>
           <span className="card-limit-static-value">{formatUsd(limits.per_tx_limit_usd)}</span>
@@ -57,7 +53,7 @@ function CardLimitContent({ userId }) {
       </button>
 
       <Link href="/dashboard/card" className="btn btn-primary card-sub-primary-btn">
-        Back to card
+        Back to cards
       </Link>
     </CardSubScreen>
   );

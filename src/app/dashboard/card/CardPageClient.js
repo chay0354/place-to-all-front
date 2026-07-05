@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
-import { getMockCard, getMockCardTransactions, groupCardTransactions } from '@/lib/mock-card';
-import { getCardFrozen } from '@/lib/card-mock-state';
+import { getMockCards, getMockCardTransactions, groupCardTransactions } from '@/lib/mock-card';
+import { getSelectedCardIndex, setSelectedCardIndex } from '@/lib/card-mock-state';
+import { CardCarousel } from './CardCarousel';
 
 function formatAmount(amount, currency) {
   const n = Math.abs(Number(amount) || 0);
@@ -16,11 +17,15 @@ function formatAmount(amount, currency) {
 
 const FALLBACK_TX_ICON = 'https://api.iconify.design/lucide/credit-card.svg?color=%23e8e8e8&width=44&height=44';
 
+function cardActionHref(path, cardIndex) {
+  return `${path}?card=${cardIndex}`;
+}
+
 export function CardPageClient() {
   const router = useRouter();
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [frozen, setFrozen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const supabase = createClient();
@@ -30,29 +35,25 @@ export function CardPageClient() {
         return;
       }
       setUserId(user.id);
+      setActiveIndex(getSelectedCardIndex(user.id));
       setLoading(false);
     });
   }, [router]);
 
-  useEffect(() => {
-    if (!userId) return;
-    const syncFrozen = () => setFrozen(getCardFrozen(userId));
-    syncFrozen();
-    window.addEventListener('focus', syncFrozen);
-    window.addEventListener('pageshow', syncFrozen);
-    return () => {
-      window.removeEventListener('focus', syncFrozen);
-      window.removeEventListener('pageshow', syncFrozen);
-    };
-  }, [userId]);
+  const cards = useMemo(() => (userId ? getMockCards(userId) : []), [userId]);
+  const activeCard = cards[activeIndex] || cards[0];
 
-  const card = useMemo(() => (userId ? getMockCard(userId) : null), [userId]);
   const txGroups = useMemo(() => {
     if (!userId) return [];
-    return groupCardTransactions(getMockCardTransactions(userId));
-  }, [userId]);
+    return groupCardTransactions(getMockCardTransactions(userId, activeIndex));
+  }, [userId, activeIndex]);
 
-  if (loading || !card) return <AppLoadingScreen />;
+  function handleActiveIndexChange(index) {
+    setActiveIndex(index);
+    if (userId) setSelectedCardIndex(userId, index);
+  }
+
+  if (loading || !activeCard) return <AppLoadingScreen />;
 
   return (
     <div className="card-screen">
@@ -68,41 +69,33 @@ export function CardPageClient() {
         </div>
       </header>
 
-      <div className={`card-visa-mock${frozen ? ' card-visa-mock--frozen' : ''}`}>
-        <div className="card-visa-mock-mountains" aria-hidden />
-        <div className="card-visa-mock-top">
-          <div className="card-visa-mock-brand">
-            <span className="card-visa-mock-brand-mark" aria-hidden>P</span>
-            <span className="card-visa-mock-brand-name">place to all</span>
-          </div>
-        </div>
-        <div className="card-visa-mock-bottom">
-          <span className="card-visa-mock-pan">{card.card_masked}</span>
-          <span className="card-visa-mock-network">VISA</span>
-        </div>
-        {frozen && <div className="card-visa-mock-frozen-badge">Frozen</div>}
-      </div>
+      <CardCarousel
+        cards={cards}
+        userId={userId}
+        activeIndex={activeIndex}
+        onActiveIndexChange={handleActiveIndexChange}
+      />
 
       <div className="card-quick-actions">
-        <Link href="/dashboard/card/view" className="card-quick-action">
+        <Link href={cardActionHref('/dashboard/card/view', activeIndex)} className="card-quick-action">
           <span className="card-quick-action-icon">
             <EyeIcon />
           </span>
           <span className="card-quick-action-label">View</span>
         </Link>
-        <Link href="/dashboard/card/freeze" className="card-quick-action">
+        <Link href={cardActionHref('/dashboard/card/freeze', activeIndex)} className="card-quick-action">
           <span className="card-quick-action-icon">
             <SnowflakeIcon />
           </span>
           <span className="card-quick-action-label">Freeze</span>
         </Link>
-        <Link href="/dashboard/card/limit" className="card-quick-action">
+        <Link href={cardActionHref('/dashboard/card/limit', activeIndex)} className="card-quick-action">
           <span className="card-quick-action-icon">
             <LimitIcon />
           </span>
           <span className="card-quick-action-label">Limit</span>
         </Link>
-        <Link href="/dashboard/card/settings" className="card-quick-action">
+        <Link href={cardActionHref('/dashboard/card/settings', activeIndex)} className="card-quick-action">
           <span className="card-quick-action-icon">
             <SettingsIcon />
           </span>
@@ -112,7 +105,7 @@ export function CardPageClient() {
 
       <div className="card-apple-wallet-row">
         <ApplePayMark />
-        <span>Added to Apple Wallet</span>
+        <span>{activeCard.apple_pay_provisioned ? 'Added to Apple Wallet' : 'Add to Apple Wallet'}</span>
       </div>
 
       <section className="card-transactions-section">
@@ -129,6 +122,11 @@ export function CardPageClient() {
         </div>
 
         <div className="card-transactions-list">
+          {txGroups.length === 0 && (
+            <p className="card-sub-note" style={{ margin: 0 }}>
+              No transactions for this card yet.
+            </p>
+          )}
           {txGroups.map((group) => (
             <div key={group.date} className="card-transactions-group">
               <p className="card-transactions-date">{group.date}</p>

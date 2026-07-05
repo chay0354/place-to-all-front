@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { getMockCard } from '@/lib/mock-card';
 import { getCardFrozen, setCardFrozen } from '@/lib/card-mock-state';
-import { CardSubScreen, CardSubScreenLoader } from './CardSubScreen';
+import { CardSubScreen, CardSubScreenLoader, useActiveCardIndex } from './CardSubScreen';
 
 export function CardFreezeClient() {
   return (
@@ -15,14 +15,19 @@ export function CardFreezeClient() {
 }
 
 function CardFreezeContent({ userId }) {
-  const card = useMemo(() => getMockCard(userId), [userId]);
-  const [frozen, setFrozen] = useState(() => getCardFrozen(userId));
+  const cardIndex = useActiveCardIndex(userId);
+  const card = useMemo(() => getMockCard(userId, cardIndex), [userId, cardIndex]);
+  const [frozen, setFrozen] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setFrozen(getCardFrozen(userId, cardIndex));
+  }, [userId, cardIndex]);
 
   function handleToggle() {
     const next = !frozen;
     setFrozen(next);
-    setCardFrozen(userId, next);
+    setCardFrozen(userId, cardIndex, next);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -46,7 +51,9 @@ function CardFreezeContent({ userId }) {
       <div className="card-settings-group">
         <div className="card-freeze-row">
           <div className="card-freeze-row-body">
-            <span className="card-settings-row-title">Virtual card {card.card_masked}</span>
+            <span className="card-settings-row-title">
+              {card.label} · {card.card_masked}
+            </span>
             <span className="card-settings-row-sub">
               {frozen ? 'Frozen — payments paused' : 'Active — payments allowed'}
             </span>
@@ -66,7 +73,7 @@ function CardFreezeContent({ userId }) {
       {saved && <p className="card-sub-success">Changes saved (preview)</p>}
 
       <Link href="/dashboard/card" className="btn btn-primary card-sub-primary-btn">
-        Back to card
+        Back to cards
       </Link>
     </CardSubScreen>
   );
