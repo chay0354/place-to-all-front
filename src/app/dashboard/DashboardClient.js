@@ -1,11 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { AccountInviteCard } from '@/components/AccountInviteCard';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { computeLiveUsdTotal, walletPricesReady } from '@/lib/coingecko-prices';
 import { getTransactionsForDashboard, getWalletsForDashboard } from '@/lib/api';
+import {
+  QUICK_DISPLAY_CURRENCIES,
+  formatDisplayBalance,
+  getDisplayCurrency,
+  setDisplayCurrency,
+} from '@/lib/display-currency';
 
 /** Normalize currency code (trim, uppercase, map aliases like ETHEREUM -> ETH). */
 function normCurrency(currency) {
@@ -55,6 +61,32 @@ export function DashboardClient({
     hasInitialPrices ? { prices: initialCoinGecko.prices, images: initialCoinGecko.images || {} } : null,
   );
   const [pricesFetched, setPricesFetched] = useState(hasInitialPrices);
+  const [balanceHidden, setBalanceHidden] = useState(true);
+  const [displayCurrency, setDisplayCurrencyState] = useState('USD');
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const currencyRef = useRef(null);
+
+  useEffect(() => {
+    setDisplayCurrencyState(getDisplayCurrency());
+    const sync = () => setDisplayCurrencyState(getDisplayCurrency());
+    window.addEventListener('focus', sync);
+    window.addEventListener('pageshow', sync);
+    return () => {
+      window.removeEventListener('focus', sync);
+      window.removeEventListener('pageshow', sync);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!currencyOpen) return;
+    function onPointerDown(e) {
+      if (currencyRef.current && !currencyRef.current.contains(e.target)) {
+        setCurrencyOpen(false);
+      }
+    }
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [currencyOpen]);
 
   useEffect(() => {
     const symbols = [...new Set(wallets.map((w) => w.currency).filter(Boolean))];
@@ -183,7 +215,7 @@ export function DashboardClient({
 
   const livePrices = coinGecko?.prices ?? null;
   const totalUsd = computeLiveUsdTotal(wallets, livePrices);
-  const balanceStr = totalUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const balanceStr = formatDisplayBalance(totalUsd, displayCurrency);
   const pricesReady = pricesFetched && walletPricesReady(wallets, livePrices);
   const showPortfolioTotal = walletReady && pricesReady;
   const topTransactions = transactions.slice(0, 3);
@@ -216,23 +248,67 @@ export function DashboardClient({
     <>
       <section className="dash-home-balance">
         <div className="dash-home-estimate-row">
-          <span className="dash-home-estimate-label">Est. total value</span>
-          <button type="button" className="dash-home-eye" aria-label="Toggle balance visibility">
-            <EyeIcon />
+          <span className="dash-home-estimate-label">Available balance</span>
+          <button
+            type="button"
+            className="dash-home-eye"
+            aria-label={balanceHidden ? 'Show balance' : 'Hide balance'}
+            aria-pressed={balanceHidden}
+            onClick={() => setBalanceHidden((v) => !v)}
+          >
+            {balanceHidden ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         </div>
         <div className="dash-home-total" aria-busy={!showPortfolioTotal}>
           {showPortfolioTotal ? (
-            <>
-              <span className="dash-home-total-value">{balanceStr}</span>
-              <span className="dash-home-total-currency">USD</span>
-            </>
+            <span className="dash-home-total-value">
+              {balanceHidden ? '****' : balanceStr}
+            </span>
           ) : (
-            <>
-              <span className="dash-home-total-value dash-home-total-value--pending">—</span>
-              <span className="dash-home-total-currency">USD</span>
-            </>
+            <span className="dash-home-total-value dash-home-total-value--pending">—</span>
           )}
+          <div className="dash-home-currency-picker" ref={currencyRef}>
+            <button
+              type="button"
+              className="dash-home-currency-trigger"
+              aria-haspopup="listbox"
+              aria-expanded={currencyOpen}
+              onClick={() => setCurrencyOpen((v) => !v)}
+            >
+              <span className="dash-home-total-currency">{displayCurrency}</span>
+              <ChevronDownIcon className="dash-home-caret dash-home-caret--currency" />
+            </button>
+            {currencyOpen && (
+              <ul className="dash-home-currency-menu" role="listbox" aria-label="Display currency">
+                {QUICK_DISPLAY_CURRENCIES.map((code) => (
+                  <li key={code}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={displayCurrency === code}
+                      className={`dash-home-currency-option${displayCurrency === code ? ' dash-home-currency-option--active' : ''}`}
+                      onClick={() => {
+                        setDisplayCurrency(code);
+                        setDisplayCurrencyState(code);
+                        setCurrencyOpen(false);
+                      }}
+                    >
+                      {code}
+                    </button>
+                  </li>
+                ))}
+                <li>
+                  <Link
+                    href="/dashboard/currency"
+                    className="dash-home-currency-more"
+                    onClick={() => setCurrencyOpen(false)}
+                  >
+                    More
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </div>
         </div>
       </section>
 
@@ -243,11 +319,11 @@ export function DashboardClient({
           </span>
           <span>Deposit</span>
         </Link>
-        <Link href="/register?type=agent" className="dash-home-quick-action">
+        <Link href="/dashboard/account/referral" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
-            <AdminIcon />
+            <AffiliateIcon />
           </span>
-          <span>Be an admin</span>
+          <span>Affiliate program</span>
         </Link>
         <Link href="/dashboard/transfer" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
@@ -367,11 +443,30 @@ function formatTxDate(value) {
   return `${y}-${m}-${day} ${h}:${min}:${s}`;
 }
 
+function ChevronDownIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 function EyeIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
       <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M9.88 9.88a3 3 0 0 0 4.24 4.24" />
+      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 7 11 7a13.16 13.16 0 0 1-1.67 2.68" />
+      <path d="M6.61 6.61A13.526 13.526 0 0 0 1 12s4 7 11 7a9.74 9.74 0 0 0 5.39-1.61" />
+      <line x1="2" y1="2" x2="22" y2="22" />
     </svg>
   );
 }
@@ -384,10 +479,11 @@ function PlusIcon() {
   );
 }
 
-function AdminIcon() {
+function AffiliateIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7l8-4z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 3v18h18" />
+      <path d="M7 15l4-4 3 3 5-6" />
     </svg>
   );
 }

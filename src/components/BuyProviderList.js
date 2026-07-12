@@ -43,15 +43,17 @@ export function BuyProviderList({
   disabled = false,
   onSelectProvider,
 }) {
-  const hasAmount = Number(cryptoAmount) > 0;
-  const usd = Number(usdAmount) > 0 ? Number(usdAmount) : 100;
+  const hasFiat = Number(usdAmount) > 0;
+  const hasCrypto = Number(cryptoAmount) > 0;
+  const hasAmount = hasFiat || hasCrypto;
+  const usd = hasFiat ? Number(usdAmount) : 100;
 
   return (
     <div className="buy-provider-list" role="list" aria-label="Payment providers">
       {BUY_PROVIDERS.map((provider, index) => {
         const quote = providerQuote(provider, {
           usdAmount: usd,
-          cryptoAmount: hasAmount ? cryptoAmount : null,
+          cryptoAmount: hasCrypto ? cryptoAmount : null,
           currency,
         });
         const isLoading = loadingProviderId === provider.id;

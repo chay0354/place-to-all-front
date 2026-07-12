@@ -49,6 +49,62 @@ export const ASSET_NAMES = {
   CELO: 'Celo',
 };
 
+/** Native / primary network label for buy UI badge. */
+export const ASSET_NETWORKS = {
+  BTC: 'Bitcoin',
+  ETH: 'Ethereum',
+  USDT: 'Ethereum',
+  USDC: 'Ethereum',
+  BNB: 'BNB Chain',
+  SOL: 'Solana',
+  XRP: 'XRP Ledger',
+  ADA: 'Cardano',
+  DOGE: 'Dogecoin',
+  DOT: 'Polkadot',
+  MATIC: 'Polygon',
+  LINK: 'Ethereum',
+  UNI: 'Ethereum',
+  AVAX: 'Avalanche',
+  LTC: 'Litecoin',
+  ATOM: 'Cosmos',
+  XLM: 'Stellar',
+  ALGO: 'Algorand',
+  FIL: 'Filecoin',
+  VET: 'VeChain',
+  TRX: 'Tron',
+  NEAR: 'NEAR',
+  APT: 'Aptos',
+  ARB: 'Arbitrum',
+  OP: 'Optimism',
+  INJ: 'Injective',
+  IMX: 'Immutable',
+  SHIB: 'Ethereum',
+  PEPE: 'Ethereum',
+  FLOKI: 'Ethereum',
+  DAI: 'Ethereum',
+  CRO: 'Cronos',
+  FTM: 'Fantom',
+  AAVE: 'Ethereum',
+  SUSHI: 'Ethereum',
+  COMP: 'Ethereum',
+  MKR: 'Ethereum',
+  GRT: 'Ethereum',
+  SNX: 'Ethereum',
+  CRV: 'Ethereum',
+  BAT: 'Ethereum',
+  ENJ: 'Ethereum',
+  MANA: 'Ethereum',
+  SAND: 'Ethereum',
+  AXS: 'Ethereum',
+  LRC: 'Ethereum',
+  CELO: 'Celo',
+};
+
 export function assetLabel(currency) {
   return ASSET_NAMES[currency] || currency || 'Crypto';
+}
+
+export function assetNetwork(currency) {
+  const c = String(currency || '').toUpperCase();
+  return ASSET_NETWORKS[c] || assetLabel(c);
 }

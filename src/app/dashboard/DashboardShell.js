@@ -20,11 +20,14 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
   const [avatarUrl, setAvatarUrl] = useState(initialProfile?.avatar_url || '');
   const isHome = pathname === '/dashboard' || pathname === '/dashboard/';
   const isCard = pathname.startsWith('/dashboard/card');
+  const isMore = pathname.startsWith('/dashboard/more');
   const isBuy = pathname.startsWith('/dashboard/buy');
   const isSend = pathname.startsWith('/dashboard/transfer');
   const isAssets = pathname.startsWith('/dashboard/market');
   const isAccount = pathname.startsWith('/dashboard/account');
-  const hideHeader = isAccount || isCard;
+  const isCurrency = pathname.startsWith('/dashboard/currency');
+  const hideHeader = isAccount || isCard || isMore || isCurrency;
+  const hideBottomNav = isCurrency;
 
   useEffect(() => {
     if (initialUser?.email) return;
@@ -76,7 +79,7 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
             )}
           </Link>
           <div className="dash-header-brand-block">
-            <h1 className="dash-brand">place to all</h1>
+            <h1 className="dash-brand">{isBuy ? 'BUY' : 'place to all'}</h1>
           </div>
           <div className="dash-header-actions">
             <button type="button" className="dash-header-icon" aria-label="Scan">
@@ -97,14 +100,14 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
 
       <main>{children}</main>
 
-      <nav className="dash-bottom-nav" aria-label="Main">
+      <nav className="dash-bottom-nav" aria-label="Main" hidden={hideBottomNav}>
         <Link href="/dashboard" className={isHome ? 'active' : ''}>
           <HomeIcon />
           Home
         </Link>
-        <Link href="/dashboard/card" className={isCard ? 'active' : ''}>
-          <CardIcon />
-          Card
+        <Link href="/dashboard/market" className={isAssets ? 'active' : ''}>
+          <AssetsIcon />
+          Assets
         </Link>
         <Link href="/dashboard/buy" className={isBuy ? 'active' : ''}>
           <BuyIcon />
@@ -114,9 +117,9 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
           <SendIcon />
           Send
         </Link>
-        <Link href="/dashboard/market" className={isAssets ? 'active' : ''}>
-          <AssetsIcon />
-          Assets
+        <Link href="/dashboard/more" className={isMore || isCard ? 'active' : ''}>
+          <MoreIcon />
+          More
         </Link>
       </nav>
       </div>
@@ -177,11 +180,12 @@ function BuyIcon() {
   );
 }
 
-function CardIcon() {
+function MoreIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <rect x="2" y="5" width="20" height="14" rx="3" />
-      <path d="M2 10h20" />
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <circle cx="5" cy="12" r="1.75" />
+      <circle cx="12" cy="12" r="1.75" />
+      <circle cx="19" cy="12" r="1.75" />
     </svg>
   );
 }
