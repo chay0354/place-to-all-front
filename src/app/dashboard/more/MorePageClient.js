@@ -1,18 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { DashScreenHeader } from '@/components/DashScreenHeader';
 
 export function MorePageClient({ canSeeAffiliation = false, isAdmin = false }) {
   const sections = buildSections({ canSeeAffiliation, isAdmin });
 
   return (
-    <div className="more-screen">
-      <header className="more-screen-header">
-        <Link href="/dashboard" className="more-screen-back" aria-label="Back to home">
-          <BackIcon />
-        </Link>
-        <h1 className="more-screen-title">More</h1>
-      </header>
+    <div className="more-screen dash-screen">
+      <DashScreenHeader title="More" />
 
       {sections.map((section) => (
         <section key={section.title} className="more-section">
@@ -83,14 +79,6 @@ function buildSections({ canSeeAffiliation, isAdmin }) {
   const account = { title: 'Account', items: accountItems };
 
   return [finance, card, rewards, account];
-}
-
-function BackIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
-  );
 }
 
 function BuyIcon() {

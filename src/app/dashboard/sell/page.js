@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getWallets, sellCrypto, getCoinbaseSellQuote } from '@/lib/api';
+import { DashScreenHeader } from '@/components/DashScreenHeader';
 
 export default function SellPage() {
   const [wallets, setWallets] = useState([]);
@@ -65,8 +66,8 @@ export default function SellPage() {
   if (!userId) return null;
 
   return (
-    <div className="page">
-        <h1 className="page-title">Sell crypto</h1>
+    <div className="page dash-screen">
+        <DashScreenHeader title="Sell" backHref="/dashboard/more" />
         <p className="page-desc">
           Convert your crypto to fiat. Test environment: balance returns to treasury.
         </p>

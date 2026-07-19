@@ -1,11 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { getWallets, transfer } from '@/lib/api';
+import { getProfile, getWallets, transfer } from '@/lib/api';
+import { ProfileAvatar } from '@/components/ProfileAvatar';
+import { resolveUserCountryIso } from '@/lib/phone-country';
 
 function maskEmail(email) {
+  const e = String(email || '').trim();
+  const [local] = e.split('@');
+  if (!local) return '****@****';
+  const shown = local.length <= 3 ? local.slice(0, 1) : local.slice(0, 3);
+  return `${shown}***@****`;
+}
+
+function maskEmailHint(email) {
   const e = String(email || '').trim();
   const [local, domain] = e.split('@');
   if (!domain) return e;
@@ -23,6 +34,8 @@ export default function TransferPage() {
   const [userId, setUserId] = useState(null);
   const [token, setToken] = useState(null);
   const [accountEmail, setAccountEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [countryIso, setCountryIso] = useState(null);
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [sendingCode, setSendingCode] = useState(false);
@@ -40,6 +53,16 @@ export default function TransferPage() {
       supabase.auth.getSession().then(({ data: { session } }) => setToken(session?.access_token));
     });
   }, [router]);
+
+  useEffect(() => {
+    if (!userId) return;
+    getProfile()
+      .then((p) => {
+        setAvatarUrl(p?.avatar_url || '');
+        setCountryIso(resolveUserCountryIso(p, null));
+      })
+      .catch(() => {});
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -153,8 +176,23 @@ export default function TransferPage() {
   const selectedWallet = wallets.find((w) => w.id === fromWalletId);
 
   return (
-    <div className="page">
-      <h1 className="page-title">Transfer crypto</h1>
+    <div className="page dash-screen">
+      <div className="assets-page-top">
+        <Link href="/dashboard/account" className="assets-page-profile">
+          {userId && (
+            <ProfileAvatar
+              userId={userId}
+              email={accountEmail}
+              avatarUrl={avatarUrl}
+              size="sm"
+              countryIso={countryIso}
+              className="assets-page-avatar"
+            />
+          )}
+          <span className="assets-page-email">{maskEmail(accountEmail)}</span>
+          <ChevronDownIcon />
+        </Link>
+      </div>
 
       <div className="card card-lg">
         <form onSubmit={otpSent ? verifyAndTransfer : (e) => e.preventDefault()} className="transfer-form">
@@ -219,7 +257,7 @@ export default function TransferPage() {
           {otpSent && (
             <div className="form-group">
               <div className="alert alert-info" style={{ marginBottom: '0.75rem' }} role="status">
-                Enter the code sent to <strong>{maskEmail(accountEmail)}</strong> (check spam). Use the digits from the
+                Enter the code sent to <strong>{maskEmailHint(accountEmail)}</strong> (check spam). Use the digits from the
                 email, not a link.
               </div>
               <label className="form-label" htmlFor="transfer-otp">
@@ -268,5 +306,13 @@ export default function TransferPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="assets-page-caret">
+      <path d="M6 9l6 6 6-6" />
+    </svg>
   );
 }

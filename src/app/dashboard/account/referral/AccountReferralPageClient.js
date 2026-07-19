@@ -24,7 +24,7 @@ export function AccountReferralPageClient({ userId, userEmail, profile }) {
   }
 
   return (
-    <div className="account-hub">
+    <div className="account-hub dash-screen">
       <AccountReferralToolbar />
       <AccountReferralScreen userId={userId} role={role} />
     </div>

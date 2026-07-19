@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { siteUrl } from '@/lib/site-url';
+import { DashScreenHeader } from '@/components/DashScreenHeader';
 
 export function AccountReferralScreen({ userId, role }) {
   const router = useRouter();
@@ -74,13 +75,7 @@ export function AccountReferralScreen({ userId, role }) {
 
 export function AccountReferralToolbar() {
   return (
-    <header className="account-hub-toolbar">
-      <Link href="/dashboard/account" className="account-hub-icon-btn" aria-label="Back to account">
-        <BackIcon />
-      </Link>
-      <span className="account-hub-toolbar-title">Referral</span>
-      <div className="account-hub-toolbar-spacer" aria-hidden />
-    </header>
+    <DashScreenHeader title="Referral" backHref="/dashboard/account" backLabel="Back to account" />
   );
 }
 

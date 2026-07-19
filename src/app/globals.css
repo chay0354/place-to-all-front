@@ -1181,6 +1181,7 @@ input, button, select, textarea {
   justify-content: center;
   gap: 0.2rem;
   text-align: center;
+  transform: translateX(-10px);
 }
 
 .dash-profile {
@@ -1644,9 +1645,9 @@ input, button, select, textarea {
 
 .dash-brand {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--dash-text);
   text-align: center;
   text-transform: lowercase;
@@ -7897,8 +7898,20 @@ input[type='range']:focus-visible::-moz-range-thumb {
 .aff-copy-input {
   flex: 1;
   min-width: 0;
-  font-family: ui-monospace, monospace;
-  font-size: 0.78rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+  color: var(--dash-text);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dashboard-wallet-ui .aff-copy-input {
+  font-size: 0.9375rem;
 }
 
 .aff-copy-btn {
@@ -8156,6 +8169,53 @@ input[type='range']:focus-visible::-moz-range-thumb {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     row-gap: 0.5rem;
   }
+}
+
+/* ── Dashboard sub-screen header (title only) ── */
+.dash-screen {
+  padding: calc(0.75rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 1.5rem max(1rem, env(safe-area-inset-left, 0px));
+}
+
+.dash-screen-header {
+  margin-bottom: 1.25rem;
+}
+
+.dash-screen-header--with-back .dash-screen-back {
+  margin-bottom: 0.75rem;
+}
+
+.dash-screen-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-left: -0.35rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--dash-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dash-screen-back svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.dash-screen-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--dash-text);
+}
+
+.dashboard-wallet-ui .page.dash-screen,
+.dashboard-wallet-ui .dash-screen.page {
+  max-width: none;
+  padding: calc(0.75rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 2rem max(1rem, env(safe-area-inset-left, 0px));
 }
 
 /* ── Currency select screen ── */
@@ -9198,5 +9258,334 @@ input[type='range']:focus-visible::-moz-range-thumb {
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--dash-text);
+}
+
+/* ── Assets page (wallet holdings) ── */
+.assets-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 100%;
+}
+
+.assets-page-top {
+  margin-bottom: 1.5rem;
+}
+
+.assets-page-profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--dash-text);
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.assets-page-profile:hover {
+  color: var(--dash-text);
+  text-decoration: none;
+}
+
+.assets-page-avatar.profile-avatar-wrap--sm,
+.assets-page-profile .profile-avatar-wrap--sm {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+}
+
+.assets-page-profile .profile-avatar-wrap--sm .profile-avatar-initial {
+  font-size: 0.75rem;
+}
+
+.assets-page-email {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--dash-text);
+  letter-spacing: -0.01em;
+}
+
+.assets-page-caret {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--dash-muted);
+  flex-shrink: 0;
+}
+
+.assets-page-balance {
+  margin-bottom: 1.5rem;
+}
+
+.assets-page-balance-label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.assets-page-balance-label {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--dash-muted);
+}
+
+.assets-page-eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--dash-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.assets-page-eye svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.assets-page-balance-main {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.assets-page-balance-amount {
+  font-size: clamp(1.85rem, 7vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--dash-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.assets-page-balance-currency {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--dash-text);
+  letter-spacing: -0.01em;
+}
+
+.assets-page-balance-btc {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--dash-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.assets-page-pnl {
+  margin: 0.65rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--dash-muted);
+}
+
+.assets-page-pnl-value {
+  color: #22c55e;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.assets-page-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1.1rem;
+}
+
+.assets-page-split-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.assets-page-split-label {
+  font-size: 0.75rem;
+  color: var(--dash-muted);
+}
+
+.assets-page-split-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--dash-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.assets-page-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 2rem;
+  margin-bottom: 1.75rem;
+  padding: 0.15rem 0.15rem 0;
+}
+
+.assets-page-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 4.25rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--dash-text);
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.assets-page-action:hover {
+  color: var(--dash-text);
+  text-decoration: none;
+}
+
+.assets-page-action:active .assets-page-action-icon {
+  transform: scale(0.96);
+}
+
+.assets-page-action-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: #2a2a2a;
+  border: none;
+  color: #f5f5f5;
+  transition: transform 0.12s ease;
+}
+
+.assets-page-action-icon svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.assets-page-action-icon--deposit {
+  background: #f97316;
+  color: #fff;
+}
+
+.assets-page-list-section {
+  flex: 1;
+  min-height: 0;
+}
+
+.assets-page-list-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.assets-page-list-tab {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--dash-muted);
+}
+
+.assets-page-list-tab--active {
+  color: var(--dash-text);
+}
+
+.assets-page-alert {
+  margin: 0.75rem 0;
+}
+
+.assets-page-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.assets-page-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.assets-page-row:last-child {
+  border-bottom: none;
+}
+
+.assets-page-row-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.assets-page-row-icon {
+  width: 2.35rem;
+  height: 2.35rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.assets-page-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.assets-page-row-code {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--dash-text);
+}
+
+.assets-page-row-sub {
+  font-size: 0.75rem;
+  color: var(--dash-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.assets-page-row-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.assets-page-row-amount {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--dash-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.assets-page-row-usd {
+  font-size: 0.75rem;
+  color: var(--dash-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.assets-page-empty {
+  margin: 1.75rem 0 0;
+  font-size: 0.875rem;
+  color: var(--dash-muted);
+  text-align: center;
+  line-height: 1.45;
 }
 

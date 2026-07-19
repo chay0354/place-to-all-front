@@ -13,6 +13,7 @@ import {
   listPaymentLinks,
 } from '@/lib/api';
 import { siteUrl } from '@/lib/site-url';
+import { DashScreenHeader } from '@/components/DashScreenHeader';
 import { isAdminOperatorEmail } from '@/lib/admin-config';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
@@ -263,13 +264,8 @@ export default function AffiliationDashboardPage() {
 
   if (!isAgentLike) {
     return (
-      <div className="aff-page aff-page--simple">
-        <Link href="/dashboard/account" className="aff-back-link">
-          ← Account
-        </Link>
-        <h1 className="page-title" style={{ marginTop: '1rem' }}>
-          Affiliation
-        </h1>
+      <div className="aff-page aff-page--simple dash-screen">
+        <DashScreenHeader title="Affiliation" backHref="/dashboard/account" />
         <div className="aff-empty-card">
           <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
             This area is for <strong>agent</strong>, <strong>super agent</strong>, and{' '}
@@ -289,16 +285,8 @@ export default function AffiliationDashboardPage() {
       : 4;
 
   return (
-    <div className="aff-page">
-      <header className="aff-mobile-header">
-        <div>
-          <p className="aff-kicker">Network</p>
-          <h1 className="aff-title">Affiliation</h1>
-        </div>
-        <Link href="/dashboard/account" className="aff-back-link" aria-label="Back to account">
-          Account
-        </Link>
-      </header>
+    <div className="aff-page dash-screen">
+      <DashScreenHeader title="Affiliation" backHref="/dashboard/account" />
 
       <section className="aff-stat-grid" aria-label="Summary">
         <div className="aff-stat-card blue">

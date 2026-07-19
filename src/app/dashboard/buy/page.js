@@ -16,6 +16,7 @@ import {
 } from '@/lib/api';
 import { toRelayUrl } from '@/lib/relay-url';
 import { BuyProviderList } from '@/components/BuyProviderList';
+import { DashScreenHeader } from '@/components/DashScreenHeader';
 import { CoinIcon } from '@/components/CoinIcon';
 import { assetLabel, assetNetwork } from '@/lib/asset-names';
 import { fiatToUsd, getDisplayCurrency, payCurrencyLabel, setCurrencyReturnPath } from '@/lib/display-currency';
@@ -319,7 +320,9 @@ function BuyPageContent() {
   const youGetAmount = formatCryptoReceive(cryptoEstimate, currency);
 
   return (
-    <div className="page buy-page">
+    <div className="page buy-page dash-screen">
+      <DashScreenHeader title={isPaymentLinkCheckout ? 'Complete payment' : 'Buy'} />
+
       {isPaymentLinkCheckout && (
         <div className="alert alert-success buy-page-alert">
           Demo mode: Pay now does not charge a real card — it records a simulated payment and credits the recipient in the app.
@@ -327,8 +330,6 @@ function BuyPageContent() {
       )}
 
       <div className="buy-crypto-card">
-        <h1 className="buy-crypto-title">{isPaymentLinkCheckout ? 'Complete payment' : 'Buy crypto'}</h1>
-
         <form className="buy-crypto-form" onSubmit={handleCheckPrice}>
           <div className="buy-crypto-field">
             <span className="buy-crypto-field-label">You pay</span>

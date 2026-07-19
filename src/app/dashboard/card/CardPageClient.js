@@ -8,6 +8,7 @@ import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { getMockCards, getMockCardTransactions, groupCardTransactions } from '@/lib/mock-card';
 import { getSelectedCardIndex, setSelectedCardIndex } from '@/lib/card-mock-state';
 import { CardCarousel } from './CardCarousel';
+import { DashScreenHeader } from '@/components/DashScreenHeader';
 
 function formatAmount(amount, currency) {
   const n = Math.abs(Number(amount) || 0);
@@ -56,18 +57,8 @@ export function CardPageClient() {
   if (loading || !activeCard) return <AppLoadingScreen />;
 
   return (
-    <div className="card-screen">
-      <header className="card-screen-header">
-        <h1 className="card-screen-title">Cards</h1>
-        <div className="card-screen-header-actions">
-          <button type="button" className="card-screen-icon-btn" aria-label="Card messages">
-            <MailIcon />
-          </button>
-          <button type="button" className="card-screen-icon-btn" aria-label="Add card">
-            <PlusIcon />
-          </button>
-        </div>
-      </header>
+    <div className="card-screen dash-screen">
+      <DashScreenHeader title="Cards" />
 
       <CardCarousel
         cards={cards}
@@ -105,7 +96,7 @@ export function CardPageClient() {
 
       <div className="card-apple-wallet-row">
         <ApplePayMark />
-        <span>{activeCard.apple_pay_provisioned ? 'Added to Apple Wallet' : 'Add to Apple Wallet'}</span>
+        <span>Add to Wallet</span>
       </div>
 
       <section className="card-transactions-section">
@@ -160,23 +151,6 @@ export function CardPageClient() {
         </div>
       </section>
     </div>
-  );
-}
-
-function MailIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <rect x="3" y="5" width="18" height="14" rx="2" />
-      <path d="m3 7 9 6 9-6" />
-    </svg>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M12 5v14M5 12h14" />
-    </svg>
   );
 }
 

@@ -11,6 +11,7 @@ import { siteUrl } from '@/lib/site-url';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { AccountInviteCard } from '@/components/AccountInviteCard';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
+import { DashScreenHeader } from '@/components/DashScreenHeader';
 import { resolveUserCountryIso } from '@/lib/phone-country';
 import { clearPinUnlocked } from '@/lib/quick-pin-session';
 
@@ -231,12 +232,8 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
 
   if (loading || !user) {
     return (
-      <div className="account-hub account-hub--loading">
-        <header className="account-hub-toolbar">
-          <Link href="/dashboard" className="account-hub-icon-btn" aria-label="Back to home">
-            <BackIcon />
-          </Link>
-        </header>
+      <div className="account-hub account-hub--loading dash-screen">
+        <DashScreenHeader title="Account" backHref="/dashboard" />
         <AppLoadingScreen fullScreen={false} className="app-loading-screen--inline" />
       </div>
     );
@@ -266,40 +263,23 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
                   ? ''
                   : 'Profile';
 
+  const screenTitle =
+    view === 'hub'
+      ? 'Account'
+      : view === 'security'
+        ? 'Security'
+        : view === 'identity'
+          ? 'Identity'
+          : hubTitle || 'Account';
+
   return (
-    <div className="account-hub">
-      <header className="account-hub-toolbar">
-        {view === 'hub' ? (
-          <Link href="/dashboard" className="account-hub-icon-btn" aria-label="Back to home">
-            <BackIcon />
-          </Link>
-        ) : (
-          <button type="button" className="account-hub-icon-btn" aria-label="Back" onClick={goBack}>
-            <BackIcon />
-          </button>
-        )}
-        <span className="account-hub-toolbar-title">
-          {view === 'hub' ? '' : hubTitle}
-        </span>
-        {view !== 'community' && view !== 'about' && view !== 'security' && view !== 'identity' && (
-        <div className="account-hub-toolbar-actions">
-          <button type="button" className="account-hub-icon-btn" aria-label="Support" title="Support">
-            <SupportIcon />
-          </button>
-          <button
-            type="button"
-            className="account-hub-icon-btn"
-            aria-label="Account settings"
-            onClick={() => setView('profile')}
-          >
-            <SettingsIcon />
-          </button>
-        </div>
-        )}
-        {(view === 'community' || view === 'about' || view === 'security' || view === 'identity') && (
-          <div className="account-hub-toolbar-spacer" aria-hidden />
-        )}
-      </header>
+    <div className="account-hub dash-screen">
+      <DashScreenHeader
+        title={screenTitle}
+        backHref={view === 'hub' ? '/dashboard' : undefined}
+        onBack={view !== 'hub' ? goBack : undefined}
+        backLabel={view === 'hub' ? 'Back to home' : 'Back'}
+      />
 
       {view === 'hub' && (
         <>

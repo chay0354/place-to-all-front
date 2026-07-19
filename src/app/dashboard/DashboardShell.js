@@ -29,7 +29,7 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
   const isAssets = pathname.startsWith('/dashboard/market');
   const isAccount = pathname.startsWith('/dashboard/account');
   const isCurrency = pathname.startsWith('/dashboard/currency');
-  const hideHeader = isAccount || isCard || isMore || isCurrency;
+  const hideHeader = !isHome;
   const hideBottomNav = isCurrency;
 
   useEffect(() => {
@@ -84,7 +84,7 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
             )}
           </Link>
           <div className="dash-header-brand-block">
-            <h1 className="dash-brand">{isBuy ? 'BUY' : 'place to all'}</h1>
+            <h1 className="dash-brand">place to all</h1>
           </div>
           <div className="dash-header-actions">
             <button type="button" className="dash-header-icon" aria-label="Scan">

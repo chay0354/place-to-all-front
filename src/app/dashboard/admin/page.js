@@ -12,6 +12,7 @@ import {
 } from '@/lib/api';
 import { isAdminOperatorEmail, ADMIN_OPERATOR_EMAIL } from '@/lib/admin-config';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
+import { DashScreenHeader } from '@/components/DashScreenHeader';
 
 const card = {
   border: '1px solid var(--border, #30363d)',
@@ -301,9 +302,8 @@ export default function AdminPage() {
 
   if (forbidden) {
     return (
-      <div className="page">
-        <Link href="/dashboard/account" className="back-link">← Back to account</Link>
-        <h1 className="page-title">Admin</h1>
+      <div className="page dash-screen">
+        <DashScreenHeader title="Admin" backHref="/dashboard/account" />
         <div className="card card-lg">
           <p style={{ color: 'var(--text-muted)' }}>
             Admin tools are only available when signed in as <strong>{ADMIN_OPERATOR_EMAIL}</strong>.
@@ -326,9 +326,8 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="page" style={{ paddingBottom: '2rem' }}>
-      <Link href="/dashboard/account" className="back-link">← Back to account</Link>
-      <h1 className="page-title">Admin</h1>
+    <div className="page dash-screen" style={{ paddingBottom: '2rem' }}>
+      <DashScreenHeader title="Admin" backHref="/dashboard/account" />
 
       <div style={guideBox}>
         <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '0.65rem', fontSize: '0.9375rem' }}>
