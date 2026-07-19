@@ -4717,6 +4717,17 @@ input, button, select, textarea {
   gap: 0.5rem;
   font-size: 0.75rem;
   font-weight: 500;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dash-home-quick-action:hover {
+  color: var(--dash-text);
+  text-decoration: none;
 }
 
 .dash-home-quick-action > span:not(.dash-home-quick-action-icon) {
@@ -4724,11 +4735,6 @@ input, button, select, textarea {
   font-size: 0.6875rem;
   line-height: 1.2;
   text-align: center;
-}
-
-.dash-home-quick-action:hover {
-  color: var(--dash-text);
-  text-decoration: none;
 }
 
 .dash-home-quick-action-icon {
@@ -5789,7 +5795,8 @@ input, button, select, textarea {
 }
 
 .dash-bottom-nav a,
-.dash-bottom-nav .dash-bottom-nav-static {
+.dash-bottom-nav .dash-bottom-nav-static,
+.dash-bottom-nav button {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -5805,7 +5812,22 @@ input, button, select, textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
-.dash-bottom-nav a:active {
+.dash-bottom-nav button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  margin: 0;
+  min-height: 0;
+  appearance: none;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: inherit;
+}
+
+.dash-bottom-nav a:active,
+.dash-bottom-nav button:active {
   background: rgba(255, 255, 255, 0.06);
 }
 
@@ -5819,14 +5841,20 @@ input, button, select, textarea {
   text-decoration: none;
 }
 
-.dash-bottom-nav a.active {
+.dash-bottom-nav button:hover {
+  color: var(--dash-text);
+}
+
+.dash-bottom-nav a.active,
+.dash-bottom-nav button.active {
   color: var(--dash-primary);
   background: transparent;
   box-shadow: none;
 }
 
 .dash-bottom-nav a svg,
-.dash-bottom-nav .dash-bottom-nav-static svg {
+.dash-bottom-nav .dash-bottom-nav-static svg,
+.dash-bottom-nav button svg {
   width: 22px;
   height: 22px;
   padding: 7px;
@@ -5835,13 +5863,187 @@ input, button, select, textarea {
   transition: background 0.2s, color 0.2s;
 }
 
-.dash-bottom-nav a.active svg {
+.dash-bottom-nav a.active svg,
+.dash-bottom-nav button.active svg {
   background: rgba(110, 28, 28, 0.55);
   color: var(--dash-primary);
 }
 
-.dash-bottom-nav a:not(.active) svg {
+.dash-bottom-nav a:not(.active) svg,
+.dash-bottom-nav button:not(.active) svg {
   color: var(--dash-muted);
+}
+
+/* Deposit payment method sheet */
+.deposit-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.deposit-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.deposit-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  padding: 0.35rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  border-radius: 20px 20px 0 0;
+  background: #1a1a1a;
+  border-top: 1px solid var(--dash-border);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.45);
+}
+
+.deposit-sheet-grab {
+  width: 36px;
+  height: 4px;
+  margin: 0.35rem auto 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.deposit-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.deposit-sheet-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--dash-text);
+}
+
+.deposit-sheet-currency {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--dash-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.deposit-sheet-currency-flag {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.deposit-sheet-chevron-down {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--dash-muted);
+}
+
+.deposit-sheet-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.deposit-sheet-option {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.85rem 0.75rem;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--dash-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.deposit-sheet-option:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.deposit-sheet-option-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--dash-text);
+}
+
+.deposit-sheet-option-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.deposit-sheet-option-icon--card {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.deposit-sheet-option-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.deposit-sheet-option-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--dash-text);
+}
+
+.deposit-sheet-option-sub {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--dash-muted);
+}
+
+.deposit-sheet-chevron {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--dash-muted);
+  flex-shrink: 0;
+}
+
+.deposit-sheet-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--dash-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.deposit-sheet-more svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 /* Dark theme for forms, cards, alerts inside dashboard */

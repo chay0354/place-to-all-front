@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { AccountInviteCard } from '@/components/AccountInviteCard';
+import { openDepositPaymentSheet } from '@/components/DepositPaymentSheet';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { computeLiveUsdTotal, walletPricesReady } from '@/lib/coingecko-prices';
 import { getTransactionsForDashboard, getWalletsForDashboard } from '@/lib/api';
@@ -313,12 +314,12 @@ export function DashboardClient({
       </section>
 
       <div className="dash-home-quick-actions">
-        <Link href="/dashboard/buy" className="dash-home-quick-action">
+        <button type="button" className="dash-home-quick-action" onClick={openDepositPaymentSheet}>
           <span className="dash-home-quick-action-icon dash-home-quick-action-icon--light">
             <PlusIcon />
           </span>
           <span>Deposit</span>
-        </Link>
+        </button>
         <Link href="/dashboard/account/referral" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
             <AffiliateIcon />

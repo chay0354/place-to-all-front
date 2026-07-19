@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { getProfile } from '@/lib/api';
 import { PROFILE_AVATAR_EVENT } from '@/lib/profile-avatar';
 import { PinUnlockGate } from '@/components/PinUnlockGate';
+import { DepositPaymentSheet, useDepositPaymentSheetListener } from '@/components/DepositPaymentSheet';
 
 function emailInitial(email) {
   const e = String(email || '').trim();
@@ -22,6 +23,8 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
   const isCard = pathname.startsWith('/dashboard/card');
   const isMore = pathname.startsWith('/dashboard/more');
   const isBuy = pathname.startsWith('/dashboard/buy');
+  const isDepositFlow = isBuy;
+  const [depositSheetOpen, setDepositSheetOpen] = useState(false);
   const isSend = pathname.startsWith('/dashboard/transfer');
   const isAssets = pathname.startsWith('/dashboard/market');
   const isAccount = pathname.startsWith('/dashboard/account');
@@ -54,6 +57,8 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
       .catch(() => setAvatarUrl(''));
     return () => window.removeEventListener(PROFILE_AVATAR_EVENT, onAvatar);
   }, [initialProfile?.avatar_url]);
+
+  useDepositPaymentSheetListener(() => setDepositSheetOpen(true));
 
   return (
     <PinUnlockGate
@@ -109,10 +114,14 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
           <AssetsIcon />
           Assets
         </Link>
-        <Link href="/dashboard/buy" className={isBuy ? 'active' : ''}>
+        <button
+          type="button"
+          className={isDepositFlow ? 'active' : ''}
+          onClick={() => setDepositSheetOpen(true)}
+        >
           <BuyIcon />
-          Buy
-        </Link>
+          Deposit
+        </button>
         <Link href="/dashboard/transfer" className={isSend ? 'active' : ''}>
           <SendIcon />
           Send
@@ -122,6 +131,8 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
           More
         </Link>
       </nav>
+
+      <DepositPaymentSheet open={depositSheetOpen} onClose={() => setDepositSheetOpen(false)} />
       </div>
     </PinUnlockGate>
   );
