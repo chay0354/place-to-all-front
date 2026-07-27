@@ -67,7 +67,7 @@ export default function SellPage() {
 
   return (
     <div className="page dash-screen">
-        <DashScreenHeader title="Sell" backHref="/dashboard/more" />
+        <DashScreenHeader title="Withdrawal" backHref="/dashboard/more" />
         <p className="page-desc">
           Convert your crypto to fiat. Test environment: balance returns to treasury.
         </p>

@@ -34,8 +34,7 @@ function buildSections({ canSeeAffiliation, isAdmin }) {
     title: 'Finance',
     items: [
       { label: 'Buy', href: '/dashboard/buy', icon: <BuyIcon /> },
-      { label: 'Sell', href: '/dashboard/sell', icon: <SellIcon /> },
-      { label: 'Send', href: '/dashboard/transfer', icon: <SendIcon /> },
+      { label: 'Withdrawal', href: '/dashboard/sell', icon: <SellIcon /> },
       { label: 'Assets', href: '/dashboard/market', icon: <AssetsIcon /> },
     ],
   };
@@ -95,14 +94,6 @@ function SellIcon() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <circle cx="12" cy="12" r="9" />
       <path d="M8 12h8" />
-    </svg>
-  );
-}
-
-function SendIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z" />
     </svg>
   );
 }

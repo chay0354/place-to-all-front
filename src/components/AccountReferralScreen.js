@@ -1,16 +1,53 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { getAffiliationFees, patchAffiliationFees } from '@/lib/api';
 import { siteUrl } from '@/lib/site-url';
 import { DashScreenHeader } from '@/components/DashScreenHeader';
+import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
 export function AccountReferralScreen({ userId, role }) {
-  const router = useRouter();
   const [copied, setCopied] = useState(false);
+  const [feeSettings, setFeeSettings] = useState(null);
+  const [feeLoading, setFeeLoading] = useState(true);
+  const [feeError, setFeeError] = useState('');
+  const debounceTimers = useRef({});
   const inviteUrl = siteUrl(`/register?ref=${userId}`);
   const copy = referralProgramCopy(role);
+
+  useEffect(() => {
+    setFeeLoading(true);
+    setFeeError('');
+    getAffiliationFees()
+      .then((data) => setFeeSettings(data))
+      .catch((e) => setFeeError(e?.message || 'Could not load fee settings'))
+      .finally(() => setFeeLoading(false));
+  }, []);
+
+  const schedulePatch = useCallback((key, fn, delay = 420) => {
+    if (debounceTimers.current[key]) clearTimeout(debounceTimers.current[key]);
+    debounceTimers.current[key] = setTimeout(fn, delay);
+  }, []);
+
+  const patchAffiliateTake = useCallback(
+    (percent) => {
+      schedulePatch('take', async () => {
+        try {
+          await patchAffiliationFees({ affiliateTakePercent: percent });
+        } catch (e) {
+          setFeeError(e?.message || 'Save failed');
+        }
+      });
+    },
+    [schedulePatch],
+  );
+
+  const hierarchyNote = feeSettings?.hierarchyNote || '';
+  const maxTake = feeSettings?.maxAffiliateTakePercent ?? 6;
+  const affiliateTakeEffective =
+    feeSettings?.affiliateTakePercent != null && !Number.isNaN(Number(feeSettings.affiliateTakePercent))
+      ? Number(feeSettings.affiliateTakePercent)
+      : 4;
 
   async function onCopy() {
     try {
@@ -65,18 +102,62 @@ export function AccountReferralScreen({ userId, role }) {
         </div>
       </section>
 
-      <button type="button" className="account-referral-dashboard-link" onClick={() => router.push('/dashboard/affiliation')}>
-        Open affiliation dashboard
-        <ChevronRightIcon />
-      </button>
+      <details className="aff-details aff-info-details">
+        <summary>How fees work in your role</summary>
+        <p className="aff-details-body">{hierarchyNote}</p>
+        <ul className="aff-tier-list">
+          <li>
+            <span className="aff-tier-badge">Platform</span> 4% on qualifying buys (fixed).
+          </li>
+          <li>
+            <span className="aff-tier-badge">Your tier</span> One setting (0–{maxTake}%) applies to the affiliate
+            commission your account earns — direct recruiter, super-agent, or super-super tier, depending on role and
+            chain.
+          </li>
+          <li>
+            <span className="aff-tier-badge">Default</span> 4% if you do not change the slider.
+          </li>
+        </ul>
+      </details>
+
+      <section className="aff-fee-panel" aria-busy={feeLoading}>
+        <div className="aff-fee-panel-head">
+          <h2 className="aff-section-title">Your commission take</h2>
+        </div>
+        {feeError && <p className="aff-message aff-error">{feeError}</p>}
+        {feeLoading && <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={48} />}
+
+        {!feeLoading && (
+          <div className="aff-fee-stack">
+            <div className="aff-fee-row aff-fee-row--single">
+              <div className="aff-fee-row-text">
+                <strong>Take from qualifying buys</strong>
+                <span className="aff-fee-pct">{Number(affiliateTakeEffective).toFixed(1)}%</span>
+              </div>
+              <input
+                type="range"
+                className="aff-range"
+                min={0}
+                max={maxTake}
+                step={0.1}
+                value={affiliateTakeEffective}
+                aria-label="Affiliate commission percent"
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  setFeeSettings((prev) => ({ ...prev, affiliateTakePercent: v }));
+                  patchAffiliateTake(v);
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
 
 export function AccountReferralToolbar() {
-  return (
-    <DashScreenHeader title="Referral" backHref="/dashboard/account" backLabel="Back to account" />
-  );
+  return <DashScreenHeader title="Referral" />;
 }
 
 function referralProgramCopy(role) {
@@ -120,22 +201,6 @@ function ReferralIcon() {
       <path d="M2 20v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1" strokeLinecap="round" />
       <path d="M16 3.5a3 3 0 1 1 0 6" strokeLinecap="round" />
       <path d="M22 20v-1a4 4 0 0 0-2.5-3.7" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function BackIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ChevronRightIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

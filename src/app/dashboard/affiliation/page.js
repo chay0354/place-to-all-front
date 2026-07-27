@@ -1,14 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
   getProfile,
   getAffiliationDashboard,
-  getAffiliationFees,
-  patchAffiliationFees,
   createPaymentLink,
   listPaymentLinks,
 } from '@/lib/api';
@@ -85,7 +82,6 @@ export default function AffiliationDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [inviteCopied, setInviteCopied] = useState(false);
   const [usersOpen, setUsersOpen] = useState(false);
   const [latestPaymentUrl, setLatestPaymentUrl] = useState('');
   const [plTitle, setPlTitle] = useState('');
@@ -97,11 +93,6 @@ export default function AffiliationDashboardPage() {
 
   const [downline, setDownline] = useState({ kind: 'none', members: [] });
   const [downlineLoading, setDownlineLoading] = useState(false);
-  const [feeSettings, setFeeSettings] = useState(null);
-  const [feeLoading, setFeeLoading] = useState(false);
-  const [feeError, setFeeError] = useState('');
-  const debounceTimers = useRef({});
-
   useEffect(() => {
     const supabase = createClient();
     (async () => {
@@ -144,16 +135,6 @@ export default function AffiliationDashboardPage() {
       .finally(() => setDownlineLoading(false));
   }, [isAgentLike]);
 
-  useEffect(() => {
-    if (!isAgentLike) return;
-    setFeeLoading(true);
-    setFeeError('');
-    getAffiliationFees()
-      .then((data) => setFeeSettings(data))
-      .catch((e) => setFeeError(e?.message || 'Could not load fee settings'))
-      .finally(() => setFeeLoading(false));
-  }, [isAgentLike]);
-
   const refreshPaymentLinks = useCallback(() => {
     if (!user?.id || !token) return;
     listPaymentLinks(user.id, token)
@@ -165,24 +146,6 @@ export default function AffiliationDashboardPage() {
     if (!isAgentLike || !user?.id || !token) return;
     refreshPaymentLinks();
   }, [isAgentLike, user?.id, token, refreshPaymentLinks]);
-
-  const schedulePatch = useCallback((key, fn, delay = 420) => {
-    if (debounceTimers.current[key]) clearTimeout(debounceTimers.current[key]);
-    debounceTimers.current[key] = setTimeout(fn, delay);
-  }, []);
-
-  const patchAffiliateTake = useCallback(
-    (percent) => {
-      schedulePatch('take', async () => {
-        try {
-          await patchAffiliationFees({ affiliateTakePercent: percent });
-        } catch (e) {
-          setFeeError(e?.message || 'Save failed');
-        }
-      });
-    },
-    [schedulePatch],
-  );
 
   const members = useMemo(
     () => (Array.isArray(downline?.members) ? downline.members : []),
@@ -276,14 +239,6 @@ export default function AffiliationDashboardPage() {
     );
   }
 
-  const inviteUrl = siteUrl(`/register?ref=${user.id}`);
-  const hierarchyNote = feeSettings?.hierarchyNote || '';
-  const maxTake = feeSettings?.maxAffiliateTakePercent ?? 6;
-  const affiliateTakeEffective =
-    feeSettings?.affiliateTakePercent != null && !Number.isNaN(Number(feeSettings.affiliateTakePercent))
-      ? Number(feeSettings.affiliateTakePercent)
-      : 4;
-
   return (
     <div className="aff-page dash-screen">
       <DashScreenHeader title="Affiliation" backHref="/dashboard/account" />
@@ -297,10 +252,6 @@ export default function AffiliationDashboardPage() {
           <p>Fees to you</p>
           <strong>${feesCollectedByYou.toFixed(2)}</strong>
         </div>
-        <div className="aff-stat-card amber">
-          <p>Max your take</p>
-          <strong>{maxTake}%</strong>
-        </div>
         <div className="aff-stat-card red">
           <p>
             People
@@ -309,34 +260,6 @@ export default function AffiliationDashboardPage() {
             ) : null}
           </p>
           <strong>{totalAgents}</strong>
-        </div>
-      </section>
-
-      <section className="aff-inline-panel" aria-label="Invite link">
-        <h2 className="aff-section-title">Invite link</h2>
-        <div className="aff-copy-row">
-          <input
-            type="text"
-            readOnly
-            className="form-input aff-copy-input"
-            value={inviteUrl}
-            aria-label="Invite URL"
-          />
-          <button
-            type="button"
-            className="btn btn-primary aff-copy-btn"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(inviteUrl);
-                setInviteCopied(true);
-                setTimeout(() => setInviteCopied(false), 2000);
-              } catch {
-                /* ignore */
-              }
-            }}
-          >
-            {inviteCopied ? 'Copied' : 'Copy'}
-          </button>
         </div>
       </section>
 
@@ -523,57 +446,6 @@ export default function AffiliationDashboardPage() {
                 </li>
               ))}
             </ul>
-          </div>
-        )}
-      </section>
-
-      <details className="aff-details aff-info-details">
-        <summary>How fees work in your role</summary>
-        <p className="aff-details-body">{hierarchyNote}</p>
-        <ul className="aff-tier-list">
-          <li>
-            <span className="aff-tier-badge">Platform</span> 4% on qualifying buys (fixed).
-          </li>
-          <li>
-            <span className="aff-tier-badge">Your tier</span> One setting (0–{maxTake}%) applies to the affiliate
-            commission your account earns — direct recruiter, super-agent, or super-super tier, depending on role and
-            chain.
-          </li>
-          <li>
-            <span className="aff-tier-badge">Default</span> 4% if you do not change the slider.
-          </li>
-        </ul>
-      </details>
-
-      <section className="aff-fee-panel" aria-busy={feeLoading}>
-        <div className="aff-fee-panel-head">
-          <h2 className="aff-section-title">Your commission take</h2>
-        </div>
-        {feeError && <p className="aff-message aff-error">{feeError}</p>}
-        {feeLoading && <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={48} />}
-
-        {!feeLoading && (
-          <div className="aff-fee-stack">
-            <div className="aff-fee-row aff-fee-row--single">
-              <div className="aff-fee-row-text">
-                <strong>Take from qualifying buys</strong>
-                <span className="aff-fee-pct">{Number(affiliateTakeEffective).toFixed(1)}%</span>
-              </div>
-              <input
-                type="range"
-                className="aff-range"
-                min={0}
-                max={maxTake}
-                step={0.1}
-                value={affiliateTakeEffective}
-                aria-label="Affiliate commission percent"
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setFeeSettings((prev) => ({ ...prev, affiliateTakePercent: v }));
-                  patchAffiliateTake(v);
-                }}
-              />
-            </div>
           </div>
         )}
       </section>
