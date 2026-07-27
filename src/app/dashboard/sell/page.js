@@ -96,7 +96,7 @@ export default function SellPage() {
             </div>
             {!wallets.length && (
               <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9375rem' }}>
-                No wallets with balance. <Link href="/dashboard/buy">Buy</Link> first.
+                No wallets with balance. <Link href="/dashboard/buy">Deposit</Link> first.
               </p>
             )}
             <div className="form-group">

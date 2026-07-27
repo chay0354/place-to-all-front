@@ -332,11 +332,11 @@ export function DashboardClient({
           </span>
           <span>Send</span>
         </Link>
-        <Link href="/dashboard/card" className="dash-home-quick-action">
+        <Link href="/dashboard/more" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
-            <CardIcon />
+            <MoreIcon />
           </span>
-          <span>Card</span>
+          <span>More</span>
         </Link>
       </div>
 
@@ -503,15 +503,6 @@ function MoreIcon() {
       <circle cx="5" cy="12" r="1.75" />
       <circle cx="12" cy="12" r="1.75" />
       <circle cx="19" cy="12" r="1.75" />
-    </svg>
-  );
-}
-
-function CardIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <rect x="2" y="5" width="20" height="14" rx="3" />
-      <path d="M2 10h20" />
     </svg>
   );
 }

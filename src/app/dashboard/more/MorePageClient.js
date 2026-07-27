@@ -33,7 +33,7 @@ function buildSections({ canSeeAffiliation, isAdmin }) {
   const finance = {
     title: 'Finance',
     items: [
-      { label: 'Buy', href: '/dashboard/buy', icon: <BuyIcon /> },
+      { label: 'Deposit', href: '/dashboard/buy', icon: <BuyIcon /> },
       { label: 'Withdrawal', href: '/dashboard/sell', icon: <SellIcon /> },
       { label: 'Assets', href: '/dashboard/market', icon: <AssetsIcon /> },
     ],

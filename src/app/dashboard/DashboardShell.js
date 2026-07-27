@@ -113,7 +113,7 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
         </Link>
         <Link href="/dashboard/buy" className={isBuy ? 'active' : ''}>
           <BuyIcon />
-          Buy
+          Deposit
         </Link>
         <Link href="/dashboard/market" className={isAssets ? 'active' : ''}>
           <AssetsIcon />
