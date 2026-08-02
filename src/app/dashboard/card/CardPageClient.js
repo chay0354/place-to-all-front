@@ -16,7 +16,7 @@ function formatAmount(amount, currency) {
   return `${sign}${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
 }
 
-const FALLBACK_TX_ICON = 'https://api.iconify.design/lucide/credit-card.svg?color=%23e8e8e8&width=44&height=44';
+const FALLBACK_TX_ICON = 'https://api.iconify.design/lucide/credit-card.svg?color=%232563EB&width=44&height=44';
 
 function cardActionHref(path, cardIndex) {
   return `${path}?card=${cardIndex}`;

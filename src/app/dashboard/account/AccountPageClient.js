@@ -352,7 +352,7 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
                   <BuyCryptoIcon />
                 </span>
                 <span className="account-buy-crypto-copy">
-                  <span className="account-buy-crypto-title">Deposit</span>
+                  <span className="account-buy-crypto-title">Buy crypto</span>
                   <span className="account-buy-crypto-sub">BTC, ETH, USDT & more</span>
                 </span>
                 <ChevronRightIcon />

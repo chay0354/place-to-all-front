@@ -38,7 +38,7 @@ export function DepositPaymentSheet({ open, onClose }) {
 
   if (!open) return null;
 
-  const buyLabel = `Deposit with ${payCurrency}`;
+  const buyLabel = `Buy with ${payCurrency}`;
 
   function goBuy() {
     onClose?.();

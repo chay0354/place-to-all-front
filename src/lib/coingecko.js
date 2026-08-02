@@ -20,6 +20,7 @@ export const COINGECKO_SYMBOL_TO_ID = {
   LTC: 'litecoin',
   ATOM: 'cosmos',
   TRX: 'tron',
+  XLM: 'stellar',
   NEAR: 'near',
   APT: 'aptos',
   ARB: 'arbitrum',

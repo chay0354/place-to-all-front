@@ -318,7 +318,7 @@ export function DashboardClient({
           <span className="dash-home-quick-action-icon dash-home-quick-action-icon--light">
             <PlusIcon />
           </span>
-          <span>Deposit</span>
+          <span>Buy</span>
         </button>
         <Link href="/dashboard/account/referral" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
@@ -326,11 +326,11 @@ export function DashboardClient({
           </span>
           <span>Affiliate program</span>
         </Link>
-        <Link href="/dashboard/transfer" className="dash-home-quick-action">
+        <Link href="/dashboard/sell" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
-            <SwapIcon />
+            <WithdrawIcon />
           </span>
-          <span>Send</span>
+          <span>Withdrawal</span>
         </Link>
         <Link href="/dashboard/more" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
@@ -489,10 +489,10 @@ function AffiliateIcon() {
   );
 }
 
-function SwapIcon() {
+function WithdrawIcon() {
   return (
-    <svg viewBox="-2 -2 28 28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M7 8h12M7 8l3-3M7 8l3 3M17 16H5M17 16l-3-3M17 16l-3 3" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 19V5M5 12l7-7 7 7" />
     </svg>
   );
 }

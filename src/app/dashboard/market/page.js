@@ -230,7 +230,7 @@ export default function MarketPage() {
           <span className="assets-page-action-icon assets-page-action-icon--deposit">
             <DepositIcon />
           </span>
-          <span>Deposit</span>
+          <span>Buy</span>
         </button>
         <Link href="/dashboard/sell" className="assets-page-action">
           <span className="assets-page-action-icon">
@@ -278,7 +278,7 @@ export default function MarketPage() {
         )}
 
         {!loading && assets.length === 0 && !error && (
-          <p className="assets-page-empty">No crypto in your wallet yet. Deposit or buy to get started.</p>
+          <p className="assets-page-empty">No crypto in your wallet yet. Buy to get started.</p>
         )}
       </section>
     </div>

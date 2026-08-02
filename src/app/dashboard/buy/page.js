@@ -321,7 +321,7 @@ function BuyPageContent() {
 
   return (
     <div className="page buy-page dash-screen">
-      <DashScreenHeader title={isPaymentLinkCheckout ? 'Complete payment' : 'Deposit'} />
+      <DashScreenHeader title={isPaymentLinkCheckout ? 'Complete payment' : 'Buy'} />
 
       {isPaymentLinkCheckout && (
         <div className="alert alert-success buy-page-alert">

@@ -33,7 +33,8 @@ function buildSections({ canSeeAffiliation, isAdmin }) {
   const finance = {
     title: 'Finance',
     items: [
-      { label: 'Deposit', href: '/dashboard/buy', icon: <BuyIcon /> },
+      { label: 'Buy', href: '/dashboard/buy', icon: <BuyIcon /> },
+      { label: 'Deposit', href: '/dashboard/deposit', icon: <DepositIcon /> },
       { label: 'Withdrawal', href: '/dashboard/sell', icon: <SellIcon /> },
       { label: 'Assets', href: '/dashboard/market', icon: <AssetsIcon /> },
     ],
@@ -85,6 +86,15 @@ function BuyIcon() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v10M8 12h8" />
+    </svg>
+  );
+}
+
+function DepositIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 3v12M7 10l5 5 5-5" />
+      <path d="M5 19h14" />
     </svg>
   );
 }

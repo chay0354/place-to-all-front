@@ -1,4 +1,5 @@
 import './globals.css';
+import { DisableTextCopy } from '@/components/DisableTextCopy';
 
 export const metadata = {
   title: 'Place to All – Crypto',
@@ -15,13 +16,16 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: 'cover',
-  themeColor: '#000000',
+  themeColor: '#F5F8FC',
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="app-shell">{children}</body>
+      <body className="app-shell">
+        <DisableTextCopy />
+        {children}
+      </body>
     </html>
   );
 }
