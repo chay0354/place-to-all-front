@@ -2196,16 +2196,19 @@ input, button, select, textarea {
   min-width: 0;
   padding: 0.65rem 0.75rem;
   border-radius: 10px;
-  border: 1px solid var(--dash-border);
-  background: rgba(0, 0, 0, 0.25);
-  color: var(--dash-text);
-  font-family: ui-monospace, monospace;
-  font-size: 0.72rem;
+  border: 1px solid rgba(11, 31, 58, 0.12);
+  background: #F5F8FC;
+  color: #0B1F3A;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .account-referral-url:focus {
   outline: none;
-  border-color: rgba(37, 99, 235, 0.5);
+  border-color: rgba(37, 99, 235, 0.45);
+  background: #fff;
 }
 
 .account-referral-copy-btn {

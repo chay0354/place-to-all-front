@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { AccountInviteCard } from '@/components/AccountInviteCard';
-import { openDepositPaymentSheet } from '@/components/DepositPaymentSheet';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { computeLiveUsdTotal, walletPricesReady } from '@/lib/coingecko-prices';
 import { getTransactionsForDashboard, getWalletsForDashboard } from '@/lib/api';
@@ -314,23 +313,23 @@ export function DashboardClient({
       </section>
 
       <div className="dash-home-quick-actions">
-        <button type="button" className="dash-home-quick-action" onClick={openDepositPaymentSheet}>
+        <Link href="/dashboard/deposit" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon dash-home-quick-action-icon--light">
-            <PlusIcon />
+            <DepositIcon />
           </span>
-          <span>Buy</span>
-        </button>
-        <Link href="/dashboard/account/referral" className="dash-home-quick-action">
-          <span className="dash-home-quick-action-icon">
-            <AffiliateIcon />
-          </span>
-          <span>Affiliate program</span>
+          <span>Deposit</span>
         </Link>
         <Link href="/dashboard/sell" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
             <WithdrawIcon />
           </span>
           <span>Withdrawal</span>
+        </Link>
+        <Link href="/dashboard/account/referral" className="dash-home-quick-action">
+          <span className="dash-home-quick-action-icon">
+            <AffiliateIcon />
+          </span>
+          <span>Affiliate program</span>
         </Link>
         <Link href="/dashboard/more" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
@@ -472,10 +471,11 @@ function EyeOffIcon() {
   );
 }
 
-function PlusIcon() {
+function DepositIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M12 5v14M5 12h14" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 3v12M7 10l5 5 5-5" />
+      <path d="M5 19h14" />
     </svg>
   );
 }
