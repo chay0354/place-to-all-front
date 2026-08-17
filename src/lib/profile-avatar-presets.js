@@ -87,13 +87,13 @@ export const AVATAR_PRESETS = PRESET_STYLES.map((p) => ({
   },
 }));
 
+/** Stable URL stored on the profile when a preset is chosen (survives reloads). */
 export function presetImageUrl(id) {
   const preset = PRESET_STYLES.find((p) => p.id === id) || PRESET_STYLES[0];
-  // PNG for reliable upload to Supabase storage
   return dicebearAvatarUrl(preset.seed, {
     style: preset.style,
-    size: 512,
-    format: 'png',
+    size: 256,
+    format: 'svg',
     backgroundColor: preset.bg,
   });
 }
@@ -103,14 +103,33 @@ export function presetDataUrl(id) {
   return presetImageUrl(id);
 }
 
-/** Fetch DiceBear PNG and return a File for Supabase upload. */
+/** Detect which preset an avatar URL came from (for selection highlight). */
+export function findPresetIdFromAvatarUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  try {
+    const u = new URL(url);
+    if (!u.hostname.includes('dicebear.com')) return null;
+    const seed = u.searchParams.get('seed');
+    const bySeed = PRESET_STYLES.find((p) => p.seed === seed);
+    return bySeed?.id || null;
+  } catch {
+    return null;
+  }
+}
+
+/** @deprecated prefer savePresetAvatar (URL) over File upload. */
 export async function presetAvatarToFile(presetId) {
-  const url = presetImageUrl(presetId);
+  const preset = PRESET_STYLES.find((p) => p.id === presetId) || PRESET_STYLES[0];
+  const url = dicebearAvatarUrl(preset.seed, {
+    style: preset.style,
+    size: 512,
+    format: 'png',
+    backgroundColor: preset.bg,
+  });
   const res = await fetch(url);
   if (!res.ok) throw new Error('Could not load avatar');
   const blob = await res.blob();
   if (!blob.size) throw new Error('Could not load avatar');
   const type = blob.type && blob.type.startsWith('image/') ? blob.type : 'image/png';
-  const ext = type.includes('webp') ? 'webp' : type.includes('jpeg') || type.includes('jpg') ? 'jpg' : 'png';
-  return new File([blob], `avatar-${presetId}.${ext}`, { type, lastModified: Date.now() });
+  return new File([blob], `avatar-${presetId}.png`, { type, lastModified: Date.now() });
 }

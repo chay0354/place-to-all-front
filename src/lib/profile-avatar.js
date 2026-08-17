@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 import { updateProfile } from '@/lib/api';
 import { getAvatarPublicUrl } from '@/lib/profile-client';
+import { presetImageUrl } from '@/lib/profile-avatar-presets';
 
 const MAX_INPUT_BYTES = 12 * 1024 * 1024;
 const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
@@ -109,6 +110,19 @@ export async function uploadProfileAvatar(userId, file) {
   if (!base) throw new Error('Could not get image URL');
 
   const avatarUrl = `${base}?v=${Date.now()}`;
+  await updateProfile({ avatar_url: avatarUrl });
+  notifyProfileAvatar(avatarUrl);
+  return avatarUrl;
+}
+
+/**
+ * Persist a DiceBear preset by saving its URL on the profile (no storage upload).
+ * This is reliable — CDN fetch + re-upload often failed silently / lost the selection.
+ */
+export async function savePresetAvatar(presetId) {
+  if (!presetId) throw new Error('Pick an avatar style');
+  const base = presetImageUrl(presetId);
+  const avatarUrl = `${base}${base.includes('?') ? '&' : '?'}v=${Date.now()}`;
   await updateProfile({ avatar_url: avatarUrl });
   notifyProfileAvatar(avatarUrl);
   return avatarUrl;

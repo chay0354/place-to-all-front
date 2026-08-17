@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { uploadProfileAvatar } from '@/lib/profile-avatar';
+import { savePresetAvatar, uploadProfileAvatar } from '@/lib/profile-avatar';
 import {
   AVATAR_PRESETS,
   dicebearAvatarUrl,
+  findPresetIdFromAvatarUrl,
   presetImageUrl,
-  presetAvatarToFile,
 } from '@/lib/profile-avatar-presets';
 
 function maskEmail(email) {
@@ -32,12 +32,13 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
 
   useEffect(() => {
     if (!open) return;
-    setSelectedPreset(null);
+    const existing = findPresetIdFromAvatarUrl(avatarUrl);
+    setSelectedPreset(existing);
     setCustomFile(null);
     setCustomPreview(null);
     setSaving(false);
     setError('');
-  }, [open]);
+  }, [open, avatarUrl]);
 
   useEffect(() => {
     if (!open) return;
@@ -72,8 +73,7 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
       if (customFile) {
         url = await uploadProfileAvatar(userId, customFile);
       } else if (selectedPreset) {
-        const file = await presetAvatarToFile(selectedPreset);
-        url = await uploadProfileAvatar(userId, file);
+        url = await savePresetAvatar(selectedPreset);
       }
       onSaved?.(url);
       onClose?.();
@@ -114,11 +114,11 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
 
         <div className="avatar-editor-preview-wrap">
           {previewUrl ? (
-            <img src={previewUrl} alt="" className="avatar-editor-preview" draggable={false} />
+            <img src={previewUrl} alt="" className="avatar-editor-preview" draggable={false} referrerPolicy="no-referrer" />
           ) : avatarUrl ? (
-            <img src={avatarUrl} alt="" className="avatar-editor-preview" draggable={false} />
+            <img src={avatarUrl} alt="" className="avatar-editor-preview" draggable={false} referrerPolicy="no-referrer" />
           ) : (
-            <img src={characterSrc} alt="" className="avatar-editor-preview" draggable={false} />
+            <img src={characterSrc} alt="" className="avatar-editor-preview" draggable={false} referrerPolicy="no-referrer" />
           )}
         </div>
 
@@ -178,7 +178,7 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
                     setError('');
                   }}
                 >
-                  <img src={preset.src} alt="" draggable={false} />
+                  <img src={preset.src} alt="" draggable={false} referrerPolicy="no-referrer" />
                 </button>
               );
             })}

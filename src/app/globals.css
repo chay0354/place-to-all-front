@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg: #F5F8FC;
+  --bg: #E6ECF4;
   --bg-card: #FFFFFF;
-  --bg-muted: #E8EEF7;
+  --bg-muted: #DDE5F0;
   --bg-input: #FFFFFF;
-  --surface-2: #E2EAF5;
+  --surface-2: #D5DEEB;
   --border: #D0DBEC;
   --border-strong: #B4C3DA;
   --border-focus: #2563EB;
@@ -1146,17 +1146,17 @@ input, button, select, textarea {
 
 /* ========== Dashboard wallet UI (reference design) ========== */
 .dashboard-wallet-ui {
-  --dash-bg: #F5F8FC;
+  --dash-bg: #E6ECF4;
   --dash-card: #FFFFFF;
-  --dash-card-hover: #E8EEF7;
-  --dash-border: #D0DBEC;
+  --dash-card-hover: #DDE5F0;
+  --dash-border: #C5D0E0;
   --dash-text: #0B1F3A;
   --dash-muted: #5B6B82;
   --dash-success: #2ECC71;
   --dash-danger: #FF453A;
   --dash-accent: #2563EB;
-  --dash-gradient-start: #E8F0FE;
-  --dash-gradient-end: #FFFFFF;
+  --dash-gradient-start: #DCE6F4;
+  --dash-gradient-end: #E6ECF4;
   --dash-primary: #2563EB;
   width: 100%;
   min-width: 0;
@@ -5862,8 +5862,8 @@ input, button, select, textarea {
   max-width: 480px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  background: #E8EEF7;
-  border-top: 1px solid #D0DBEC;
+  background: #DDE5F0;
+  border-top: 1px solid #C5D0E0;
   z-index: 60;
   padding: 0.3rem 0 0;
   padding-bottom: calc(0.15rem + env(safe-area-inset-bottom, 0px));
@@ -6675,7 +6675,7 @@ input, button, select, textarea {
 
 /* â€”â€” Global: light scrollbars (match blue/white wallet UI) â€”â€” */
 html {
-  scrollbar-color: #C5D0E0 #FFFFFF;
+  scrollbar-color: #B4C3DA #E6ECF4;
   scrollbar-width: thin;
 }
 
@@ -6687,7 +6687,7 @@ body::-webkit-scrollbar {
 
 html::-webkit-scrollbar-track,
 body::-webkit-scrollbar-track {
-  background: #FFFFFF;
+  background: #E6ECF4;
 }
 
 html::-webkit-scrollbar-thumb,
@@ -6708,7 +6708,7 @@ body::-webkit-scrollbar-thumb:hover {
 .avatar-editor-presets,
 .dashboard-wallet-ui,
 .dash-screen {
-  scrollbar-color: #C5D0E0 #FFFFFF;
+  scrollbar-color: #B4C3DA #E6ECF4;
   scrollbar-width: thin;
 }
 
@@ -6726,7 +6726,7 @@ body::-webkit-scrollbar-thumb:hover {
 .avatar-editor-presets::-webkit-scrollbar-track,
 .dashboard-wallet-ui::-webkit-scrollbar-track,
 .dash-screen::-webkit-scrollbar-track {
-  background: #FFFFFF;
+  background: #E6ECF4;
   border-radius: 8px;
 }
 
@@ -10234,3 +10234,316 @@ input[type='range']:focus-visible::-moz-range-thumb {
   background: #1D4ED8;
 }
 
+
+/* —— Sell / Withdrawal —— */
+.sell-page .page-desc {
+  margin: 0 0 1rem;
+  color: var(--dash-muted, #5B6B82);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.sell-card {
+  background: #fff;
+  border: 1px solid rgba(11, 31, 58, 0.08);
+  box-shadow: 0 4px 16px rgba(15, 40, 80, 0.06);
+}
+
+.sell-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sell-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.sell-field-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #5B6B82;
+}
+
+.sell-field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sell-max-btn {
+  border: 0;
+  background: transparent;
+  color: #2563EB;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sell-asset-wrap {
+  position: relative;
+}
+
+.sell-asset-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #D0DBEC;
+  border-radius: 12px;
+  background: #F5F8FC;
+  color: #0B1F3A;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sell-asset-selector:disabled {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.sell-asset-selector:not(:disabled):hover {
+  border-color: rgba(37, 99, 235, 0.45);
+}
+
+.sell-asset-icon {
+  flex-shrink: 0;
+}
+
+.sell-coin-icon.dash-asset-icon--rich,
+.sell-coin-icon.dash-asset-icon--photo {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+}
+
+.sell-coin-icon-sm.dash-asset-icon--rich,
+.sell-coin-icon-sm.dash-asset-icon--photo {
+  width: 32px;
+  height: 32px;
+  font-size: 0.8125rem;
+  flex-shrink: 0;
+}
+
+.sell-asset-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.sell-asset-name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0B1F3A;
+  line-height: 1.2;
+}
+
+.sell-asset-code {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8A97AB;
+}
+
+.sell-asset-balance {
+  font-size: 0.75rem;
+  color: #5B6B82;
+}
+
+.sell-asset-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.sell-asset-network {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: #E8EEF7;
+  color: #2563EB;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sell-chevron {
+  width: 1rem;
+  height: 1rem;
+  color: #8A97AB;
+}
+
+.sell-asset-empty {
+  font-size: 0.875rem;
+  color: #5B6B82;
+}
+
+.sell-asset-menu {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  border-radius: 12px;
+  border: 1px solid #D0DBEC;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(15, 40, 80, 0.12);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.sell-asset-option {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.65rem 0.7rem;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #0B1F3A;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sell-asset-option:hover,
+.sell-asset-option--active {
+  background: #F5F8FC;
+}
+
+.sell-asset-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.sell-asset-option-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.sell-asset-option-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.sell-asset-option-code {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8A97AB;
+}
+
+.sell-asset-option-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.6875rem;
+  color: #5B6B82;
+}
+
+.sell-network-box {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid #D0DBEC;
+  background: #fff;
+}
+
+.sell-network-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  flex-shrink: 0;
+}
+
+.sell-network-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #0B1F3A;
+}
+
+.sell-empty-hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #5B6B82;
+}
+
+.sell-amount-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0.85rem 0.15rem 0.15rem;
+  border: 1px solid #D0DBEC;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.sell-amount-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0.7rem 0.7rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0B1F3A;
+  outline: none;
+}
+
+.sell-amount-suffix {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #5B6B82;
+  flex-shrink: 0;
+}
+
+.sell-fiat-hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #5B6B82;
+}
+
+.sell-submit-btn {
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.95rem 1rem;
+  border: none;
+  border-radius: 12px;
+  background: #2563EB;
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sell-submit-btn:hover:not(:disabled) {
+  background: #2563EB;
+  filter: brightness(1.05);
+}
+
+.sell-submit-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

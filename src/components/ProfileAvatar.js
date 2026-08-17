@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ProfileAvatarEditorModal } from '@/components/ProfileAvatarEditorModal';
 import { countryFlagUrl, countryNameFromIso } from '@/lib/phone-country';
 import { avatarToneFromSeed, dicebearAvatarUrl } from '@/lib/profile-avatar-presets';
@@ -29,6 +29,10 @@ export function ProfileAvatar({
   const [uploading, setUploading] = useState(false);
   const [remoteFailed, setRemoteFailed] = useState(false);
 
+  useEffect(() => {
+    setRemoteFailed(false);
+  }, [avatarUrl]);
+
   function openEditor(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -54,19 +58,30 @@ export function ProfileAvatar({
   const flagUrl = countryIso ? countryFlagUrl(countryIso) : null;
   const flagLabel = countryIso ? countryNameFromIso(countryIso) : null;
 
+  const showPhoto = Boolean(avatarUrl) && !remoteFailed;
+  const showDicebear = !avatarUrl && !remoteFailed;
+
   return (
     <>
       <div
         className={wrapClass}
         style={
-          !avatarUrl && remoteFailed
+          !showPhoto && !showDicebear
             ? { background: `linear-gradient(145deg, ${tone.from} 0%, ${tone.to} 100%)` }
             : undefined
         }
       >
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="" className="profile-avatar-img" draggable={false} />
-        ) : !remoteFailed ? (
+        {showPhoto ? (
+          <img
+            key={avatarUrl}
+            src={avatarUrl}
+            alt=""
+            className="profile-avatar-img"
+            draggable={false}
+            referrerPolicy="no-referrer"
+            onError={() => setRemoteFailed(true)}
+          />
+        ) : showDicebear ? (
           <img
             src={characterSrc}
             alt=""
