@@ -745,7 +745,8 @@ input, button, select, textarea {
 }
 
 .buy-check-btn:hover:not(:disabled) {
-  background: #ea580c;
+  background: #2563EB;
+  filter: brightness(1.05);
 }
 
 .buy-check-btn:disabled {
@@ -1231,12 +1232,17 @@ input, button, select, textarea {
 }
 
 .dash-profile--avatar {
-  background: linear-gradient(135deg, #2563EB 0%, #60A5FA 100%);
-  border: none;
+  background: #E8EEF7;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.22);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+
+.dash-profile--character {
+  background: transparent;
 }
 
 .dash-profile-img {
@@ -1252,11 +1258,21 @@ input, button, select, textarea {
   position: relative;
   flex-shrink: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563EB 0%, #60A5FA 100%);
+  background: linear-gradient(145deg, #1D4ED8 0%, #60A5FA 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: visible;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+.profile-avatar-wrap--initial {
+  border: 2px solid rgba(255, 255, 255, 0.95);
+}
+
+.profile-avatar-wrap--photo {
+  border: 2px solid #fff;
+  background: #E8EEF7;
 }
 
 .profile-avatar-wrap--sm {
@@ -1298,11 +1314,17 @@ input, button, select, textarea {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  color: #000;
+  letter-spacing: -0.03em;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.22);
 }
 
 .profile-avatar-wrap--sm .profile-avatar-initial {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
+}
+
+.profile-avatar-wrap--md .profile-avatar-initial {
+  font-size: 1.35rem;
 }
 
 .profile-avatar-wrap--lg .profile-avatar-initial {
@@ -1324,15 +1346,15 @@ input, button, select, textarea {
   width: 24px;
   height: 24px;
   padding: 0;
-  border: 2px solid var(--dash-bg, #000);
+  border: 2px solid #fff;
   border-radius: 50%;
-  background: #1c1c20;
+  background: #2563EB;
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1358,14 +1380,14 @@ input, button, select, textarea {
   bottom: -2px;
   width: 22px;
   height: 22px;
-  border: 2px solid var(--dash-bg, #000);
+  border: 2px solid #fff;
   border-radius: 50%;
   overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
-  background: #1c1c20;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+  background: #fff;
   pointer-events: none;
 }
 
@@ -1384,7 +1406,7 @@ input, button, select, textarea {
 .profile-avatar-spinner {
   width: 12px;
   height: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.35);
   border-top-color: #fff;
   border-radius: 50%;
   animation: profile-avatar-spin 0.7s linear infinite;
@@ -1430,8 +1452,8 @@ input, button, select, textarea {
   position: absolute;
   inset: 0;
   border: 0;
-  background: rgba(8, 10, 16, 0.72);
-  backdrop-filter: blur(6px);
+  background: rgba(11, 31, 58, 0.45);
+  backdrop-filter: blur(8px);
   cursor: pointer;
 }
 
@@ -1443,9 +1465,9 @@ input, button, select, textarea {
   overflow-y: auto;
   padding: 0.5rem 1.25rem 1.5rem;
   border-radius: 20px 20px 0 0;
-  background: #1c1f28;
-  border: 1px solid var(--dash-border);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+  background: #fff;
+  border: 1px solid rgba(11, 31, 58, 0.08);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
 }
 
 @media (min-width: 520px) {
@@ -1459,7 +1481,7 @@ input, button, select, textarea {
   height: 4px;
   margin: 0.35rem auto 0.75rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(11, 31, 58, 0.14);
 }
 
 .avatar-editor-header {
@@ -1473,8 +1495,8 @@ input, button, select, textarea {
 .avatar-editor-title {
   margin: 0;
   font-size: 1.0625rem;
-  font-weight: 600;
-  color: var(--dash-text);
+  font-weight: 700;
+  color: #0B1F3A;
 }
 
 .avatar-editor-close {
@@ -1486,15 +1508,15 @@ input, button, select, textarea {
   height: 2rem;
   border: 0;
   border-radius: 50%;
-  background: transparent;
-  color: var(--dash-muted);
+  background: #F5F8FC;
+  color: #5B6B82;
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
 }
 
 .avatar-editor-close:hover:not(:disabled) {
-  color: var(--dash-text);
+  color: #0B1F3A;
 }
 
 .avatar-editor-preview-wrap {
@@ -1508,16 +1530,20 @@ input, button, select, textarea {
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.18);
 }
 
 .avatar-editor-preview--initial {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
+  background: linear-gradient(145deg, #1D4ED8 0%, #60A5FA 100%);
   color: #fff;
   font-size: 2.5rem;
   font-weight: 700;
+  letter-spacing: -0.03em;
+  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.22);
 }
 
 .avatar-editor-section {
@@ -1536,8 +1562,8 @@ input, button, select, textarea {
   align-items: center;
   gap: 0.35rem;
   font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--dash-text);
+  font-weight: 700;
+  color: #0B1F3A;
 }
 
 .avatar-editor-info {
@@ -1547,17 +1573,17 @@ input, button, select, textarea {
   width: 1rem;
   height: 1rem;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(11, 31, 58, 0.18);
   font-size: 0.625rem;
   font-weight: 700;
-  color: var(--dash-muted);
+  color: #5B6B82;
 }
 
 .avatar-editor-badge {
   padding: 0.15rem 0.45rem;
   border-radius: 6px;
-  background: #ff4d8d;
-  color: #fff;
+  background: #E8EEF7;
+  color: #2563EB;
   font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -1585,7 +1611,7 @@ input, button, select, textarea {
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: var(--dash-muted);
+  color: #5B6B82;
 }
 
 .avatar-editor-custom-action {
@@ -1593,7 +1619,7 @@ input, button, select, textarea {
   align-items: center;
   gap: 0.35rem;
   flex-shrink: 0;
-  color: var(--dash-muted);
+  color: #5B6B82;
 }
 
 .avatar-editor-plus {
@@ -1613,20 +1639,27 @@ input, button, select, textarea {
   display: flex;
   gap: 0.65rem;
   overflow-x: auto;
-  padding-bottom: 0.25rem;
+  padding: 0.15rem 0.1rem 0.35rem;
   -webkit-overflow-scrolling: touch;
 }
 
 .avatar-editor-preset {
   flex-shrink: 0;
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   padding: 0;
   border: 2px solid transparent;
   border-radius: 50%;
-  background: transparent;
+  background: #F5F8FC;
   cursor: pointer;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.avatar-editor-preset:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.18);
 }
 
 .avatar-editor-preset img {
@@ -1637,7 +1670,8 @@ input, button, select, textarea {
 }
 
 .avatar-editor-preset--on {
-  border-color: #fff;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
 .avatar-editor-preset:disabled {
@@ -1657,11 +1691,16 @@ input, button, select, textarea {
   padding: 0.9rem 1rem;
   border: 0;
   border-radius: 14px;
-  background: #fff;
-  color: #111;
+  background: #2563EB;
+  color: #fff;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+}
+
+.avatar-editor-save:hover:not(:disabled) {
+  filter: brightness(1.04);
 }
 
 .avatar-editor-save:disabled {
@@ -6634,9 +6673,9 @@ input, button, select, textarea {
   }
 }
 
-/* —— Global: dark scrollbars + black range sliders —— */
+/* —— Global: light scrollbars (match blue/white wallet UI) —— */
 html {
-  scrollbar-color: #2D2D33 #000;
+  scrollbar-color: #C5D0E0 #FFFFFF;
   scrollbar-width: thin;
 }
 
@@ -6648,44 +6687,65 @@ body::-webkit-scrollbar {
 
 html::-webkit-scrollbar-track,
 body::-webkit-scrollbar-track {
-  background: #F5F8FC;
+  background: #FFFFFF;
 }
 
 html::-webkit-scrollbar-thumb,
 body::-webkit-scrollbar-thumb {
-  background: #2D2D33;
+  background: #C5D0E0;
   border-radius: 999px;
-  border: 2px solid #000;
+  border: 2px solid #FFFFFF;
 }
 
 html::-webkit-scrollbar-thumb:hover,
 body::-webkit-scrollbar-thumb:hover {
-  background: #3A3A42;
+  background: #A8B6CA;
 }
 
-/* Scrollable regions inside dark UI */
-.u-scroll-dark {
-  scrollbar-color: #2D2D33 #0E0E10;
+/* Scrollable regions — light track */
+.u-scroll-dark,
+.avatar-editor-sheet,
+.avatar-editor-presets,
+.dashboard-wallet-ui,
+.dash-screen {
+  scrollbar-color: #C5D0E0 #FFFFFF;
   scrollbar-width: thin;
 }
 
-.u-scroll-dark::-webkit-scrollbar {
+.u-scroll-dark::-webkit-scrollbar,
+.avatar-editor-sheet::-webkit-scrollbar,
+.avatar-editor-presets::-webkit-scrollbar,
+.dashboard-wallet-ui::-webkit-scrollbar,
+.dash-screen::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-.u-scroll-dark::-webkit-scrollbar-track {
+.u-scroll-dark::-webkit-scrollbar-track,
+.avatar-editor-sheet::-webkit-scrollbar-track,
+.avatar-editor-presets::-webkit-scrollbar-track,
+.dashboard-wallet-ui::-webkit-scrollbar-track,
+.dash-screen::-webkit-scrollbar-track {
   background: #FFFFFF;
   border-radius: 8px;
 }
 
-.u-scroll-dark::-webkit-scrollbar-thumb {
-  background: #2D2D33;
+.u-scroll-dark::-webkit-scrollbar-thumb,
+.avatar-editor-sheet::-webkit-scrollbar-thumb,
+.avatar-editor-presets::-webkit-scrollbar-thumb,
+.dashboard-wallet-ui::-webkit-scrollbar-thumb,
+.dash-screen::-webkit-scrollbar-thumb {
+  background: #C5D0E0;
   border-radius: 999px;
+  border: 2px solid #FFFFFF;
 }
 
-.u-scroll-dark::-webkit-scrollbar-thumb:hover {
-  background: #3A3A42;
+.u-scroll-dark::-webkit-scrollbar-thumb:hover,
+.avatar-editor-sheet::-webkit-scrollbar-thumb:hover,
+.avatar-editor-presets::-webkit-scrollbar-thumb:hover,
+.dashboard-wallet-ui::-webkit-scrollbar-thumb:hover,
+.dash-screen::-webkit-scrollbar-thumb:hover {
+  background: #A8B6CA;
 }
 
 /* Native range sliders: dark track + black thumb (not default white) */
@@ -9367,6 +9427,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
 
 .assets-page-profile .profile-avatar-wrap--sm .profile-avatar-initial {
   font-size: 0.75rem;
+  color: #fff;
 }
 
 /* Compact header avatar: keep flag as a corner pip, not covering the initial */

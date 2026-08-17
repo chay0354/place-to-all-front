@@ -1,8 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { uploadProfileAvatar } from '@/lib/profile-avatar';
-import { AVATAR_PRESETS, presetImageUrl, presetAvatarToFile } from '@/lib/profile-avatar-presets';
+import {
+  AVATAR_PRESETS,
+  dicebearAvatarUrl,
+  presetImageUrl,
+  presetAvatarToFile,
+} from '@/lib/profile-avatar-presets';
 
 function maskEmail(email) {
   const e = String(email || '').trim();
@@ -12,12 +17,6 @@ function maskEmail(email) {
   return `${local.slice(0, 3)}****@${domain}`;
 }
 
-function emailInitial(email) {
-  const e = String(email || '').trim();
-  if (!e) return 'P';
-  return e.charAt(0).toUpperCase();
-}
-
 export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarUrl, onSaved, onSavingChange }) {
   const inputRef = useRef(null);
   const [selectedPreset, setSelectedPreset] = useState(null);
@@ -25,6 +24,11 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
   const [customPreview, setCustomPreview] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const characterSrc = useMemo(
+    () => dicebearAvatarUrl(email || userId || 'user', { size: 180, format: 'svg' }),
+    [email, userId],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -114,25 +118,21 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
           ) : avatarUrl ? (
             <img src={avatarUrl} alt="" className="avatar-editor-preview" draggable={false} />
           ) : (
-            <span className="avatar-editor-preview avatar-editor-preview--initial" aria-hidden>
-              {emailInitial(email)}
-            </span>
+            <img src={characterSrc} alt="" className="avatar-editor-preview" draggable={false} />
           )}
         </div>
 
         <section className="avatar-editor-section">
           <div className="avatar-editor-section-head">
             <span className="avatar-editor-section-title">
-              Customize avatar
+              Upload photo
               <span className="avatar-editor-info" title="Upload your own photo" aria-hidden>
                 ?
               </span>
             </span>
           </div>
           <button type="button" className="avatar-editor-custom-row" onClick={pickCustom} disabled={saving}>
-            <p className="avatar-editor-custom-text">
-              Use your email &apos;{maskEmail(email)}&apos; to sign in and authorize a custom avatar
-            </p>
+            <p className="avatar-editor-custom-text">Choose a photo for {maskEmail(email)}</p>
             <span className="avatar-editor-custom-action" aria-hidden>
               <span className="avatar-editor-plus">+</span>
               <ChevronIcon />
@@ -154,7 +154,7 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
 
         <section className="avatar-editor-section">
           <div className="avatar-editor-section-head">
-            <span className="avatar-editor-section-title">Select an avatar</span>
+            <span className="avatar-editor-section-title">Choose a style</span>
             <span className="avatar-editor-badge">Free</span>
           </div>
           <div className="avatar-editor-presets" role="listbox" aria-label="Preset avatars">
@@ -166,6 +166,8 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
                   type="button"
                   role="option"
                   aria-selected={selected}
+                  aria-label={preset.label}
+                  title={preset.label}
                   className={`avatar-editor-preset ${selected ? 'avatar-editor-preset--on' : ''}`}
                   disabled={saving}
                   onClick={() => {

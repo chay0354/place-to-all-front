@@ -1,24 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { getProfile } from '@/lib/api';
 import { PROFILE_AVATAR_EVENT } from '@/lib/profile-avatar';
+import { dicebearAvatarUrl } from '@/lib/profile-avatar-presets';
 import { PinUnlockGate } from '@/components/PinUnlockGate';
 import { DepositPaymentSheet, useDepositPaymentSheetListener } from '@/components/DepositPaymentSheet';
-
-function emailInitial(email) {
-  const e = String(email || '').trim();
-  if (!e) return 'P';
-  return e.charAt(0).toUpperCase();
-}
 
 export function DashboardShell({ children, initialUser = null, initialProfile = null }) {
   const pathname = usePathname() || '';
   const [userEmail, setUserEmail] = useState(initialUser?.email || '');
   const [avatarUrl, setAvatarUrl] = useState(initialProfile?.avatar_url || '');
+  const characterSrc = useMemo(
+    () => dicebearAvatarUrl(userEmail || initialUser?.id || 'user', { size: 96, format: 'svg' }),
+    [userEmail, initialUser?.id],
+  );
   const isHome = pathname === '/dashboard' || pathname === '/dashboard/';
   const isCard = pathname.startsWith('/dashboard/card');
   const isBuy = pathname.startsWith('/dashboard/buy');
@@ -66,7 +65,12 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
       {!hideHeader && (
       <header className="dash-header">
         <div className="dash-header-row">
-          <Link href="/dashboard/account" className="dash-profile dash-profile--avatar" aria-label="Account" aria-hidden={isAccount}>
+          <Link
+            href="/dashboard/account"
+            className={`dash-profile dash-profile--avatar${avatarUrl ? '' : ' dash-profile--character'}`}
+            aria-label="Account"
+            aria-hidden={isAccount}
+          >
             {avatarUrl ? (
               <img
                 src={avatarUrl}
@@ -77,7 +81,14 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
                 decoding="async"
               />
             ) : (
-              emailInitial(userEmail)
+              <img
+                src={characterSrc}
+                alt=""
+                className="dash-profile-img"
+                draggable={false}
+                decoding="async"
+                referrerPolicy="no-referrer"
+              />
             )}
           </Link>
           <div className="dash-header-brand-block">

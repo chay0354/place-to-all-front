@@ -325,11 +325,11 @@ export function DashboardClient({
           </span>
           <span>Withdrawal</span>
         </Link>
-        <Link href="/dashboard/account/referral" className="dash-home-quick-action">
+        <Link href="/dashboard/affiliation" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">
             <AffiliateIcon />
           </span>
-          <span>Affiliate program</span>
+          <span>Payment links</span>
         </Link>
         <Link href="/dashboard/more" className="dash-home-quick-action">
           <span className="dash-home-quick-action-icon">

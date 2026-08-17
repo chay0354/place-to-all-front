@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ProfileAvatarEditorModal } from '@/components/ProfileAvatarEditorModal';
 import { countryFlagUrl, countryNameFromIso } from '@/lib/phone-country';
+import { avatarToneFromSeed, dicebearAvatarUrl } from '@/lib/profile-avatar-presets';
 
 function emailInitial(email) {
   const e = String(email || '').trim();
@@ -11,7 +12,7 @@ function emailInitial(email) {
 }
 
 /**
- * Circular profile avatar — pencil opens edit sheet (presets + custom upload).
+ * Circular profile avatar — DiceBear character when no photo; pencil opens edit sheet.
  */
 export function ProfileAvatar({
   userId,
@@ -26,6 +27,7 @@ export function ProfileAvatar({
 }) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [remoteFailed, setRemoteFailed] = useState(false);
 
   function openEditor(e) {
     e.preventDefault();
@@ -34,11 +36,16 @@ export function ProfileAvatar({
     if (!uploading) setEditorOpen(true);
   }
 
+  const seed = email || userId || 'user';
+  const characterSrc = useMemo(() => dicebearAvatarUrl(seed, { size: 160, format: 'svg' }), [seed]);
+  const tone = useMemo(() => avatarToneFromSeed(seed), [seed]);
+
   const wrapClass = [
     'profile-avatar-wrap',
     `profile-avatar-wrap--${size}`,
     editable ? 'profile-avatar-wrap--editable' : '',
     uploading ? 'profile-avatar-wrap--loading' : '',
+    avatarUrl || !remoteFailed ? 'profile-avatar-wrap--photo' : 'profile-avatar-wrap--initial',
     className,
   ]
     .filter(Boolean)
@@ -49,9 +56,25 @@ export function ProfileAvatar({
 
   return (
     <>
-      <div className={wrapClass}>
+      <div
+        className={wrapClass}
+        style={
+          !avatarUrl && remoteFailed
+            ? { background: `linear-gradient(145deg, ${tone.from} 0%, ${tone.to} 100%)` }
+            : undefined
+        }
+      >
         {avatarUrl ? (
           <img src={avatarUrl} alt="" className="profile-avatar-img" draggable={false} />
+        ) : !remoteFailed ? (
+          <img
+            src={characterSrc}
+            alt=""
+            className="profile-avatar-img"
+            draggable={false}
+            referrerPolicy="no-referrer"
+            onError={() => setRemoteFailed(true)}
+          />
         ) : (
           <span className="profile-avatar-initial" aria-hidden>
             {emailInitial(email)}
