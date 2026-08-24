@@ -1,53 +1,24 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { getAffiliationFees, patchAffiliationFees } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { getAffiliationFees } from '@/lib/api';
 import { siteUrl } from '@/lib/site-url';
 import { DashScreenHeader } from '@/components/DashScreenHeader';
-import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
 export function AccountReferralScreen({ userId, role }) {
   const [copied, setCopied] = useState(false);
   const [feeSettings, setFeeSettings] = useState(null);
-  const [feeLoading, setFeeLoading] = useState(true);
-  const [feeError, setFeeError] = useState('');
-  const debounceTimers = useRef({});
   const inviteUrl = siteUrl(`/register?ref=${userId}`);
   const copy = referralProgramCopy(role);
 
   useEffect(() => {
-    setFeeLoading(true);
-    setFeeError('');
     getAffiliationFees()
       .then((data) => setFeeSettings(data))
-      .catch((e) => setFeeError(e?.message || 'Could not load fee settings'))
-      .finally(() => setFeeLoading(false));
+      .catch(() => setFeeSettings(null));
   }, []);
-
-  const schedulePatch = useCallback((key, fn, delay = 420) => {
-    if (debounceTimers.current[key]) clearTimeout(debounceTimers.current[key]);
-    debounceTimers.current[key] = setTimeout(fn, delay);
-  }, []);
-
-  const patchAffiliateTake = useCallback(
-    (percent) => {
-      schedulePatch('take', async () => {
-        try {
-          await patchAffiliationFees({ affiliateTakePercent: percent });
-        } catch (e) {
-          setFeeError(e?.message || 'Save failed');
-        }
-      });
-    },
-    [schedulePatch],
-  );
 
   const hierarchyNote = feeSettings?.hierarchyNote || '';
   const maxTake = feeSettings?.maxAffiliateTakePercent ?? 6;
-  const affiliateTakeEffective =
-    feeSettings?.affiliateTakePercent != null && !Number.isNaN(Number(feeSettings.affiliateTakePercent))
-      ? Number(feeSettings.affiliateTakePercent)
-      : 4;
 
   async function onCopy() {
     try {
@@ -110,48 +81,14 @@ export function AccountReferralScreen({ userId, role }) {
             <span className="aff-tier-badge">Platform</span> 4% on qualifying buys (fixed).
           </li>
           <li>
-            <span className="aff-tier-badge">Your tier</span> One setting (0–{maxTake}%) applies to the affiliate
-            commission your account earns — direct recruiter, super-agent, or super-super tier, depending on role and
-            chain.
+            <span className="aff-tier-badge">Your tier</span> Affiliate commission (up to {maxTake}%) applies based on
+            your role — direct recruiter, super-agent, or super-super tier.
           </li>
           <li>
-            <span className="aff-tier-badge">Default</span> 4% if you do not change the slider.
+            <span className="aff-tier-badge">Default</span> 4% affiliate take when no custom rate is set.
           </li>
         </ul>
       </details>
-
-      <section className="aff-fee-panel" aria-busy={feeLoading}>
-        <div className="aff-fee-panel-head">
-          <h2 className="aff-section-title">Your commission take</h2>
-        </div>
-        {feeError && <p className="aff-message aff-error">{feeError}</p>}
-        {feeLoading && <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={48} />}
-
-        {!feeLoading && (
-          <div className="aff-fee-stack">
-            <div className="aff-fee-row aff-fee-row--single">
-              <div className="aff-fee-row-text">
-                <strong>Take from qualifying buys</strong>
-                <span className="aff-fee-pct">{Number(affiliateTakeEffective).toFixed(1)}%</span>
-              </div>
-              <input
-                type="range"
-                className="aff-range"
-                min={0}
-                max={maxTake}
-                step={0.1}
-                value={affiliateTakeEffective}
-                aria-label="Affiliate commission percent"
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setFeeSettings((prev) => ({ ...prev, affiliateTakePercent: v }));
-                  patchAffiliateTake(v);
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </section>
     </div>
   );
 }
