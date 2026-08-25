@@ -153,6 +153,28 @@ export async function patchAffiliationFees(body) {
   return data;
 }
 
+/** GET super-agent team: agents under you with nickname / earn % / masked wallet. */
+export async function getAffiliationTeam() {
+  const res = await fetch('/api/profile/affiliation-team', { credentials: 'include', cache: 'no-store' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || res.statusText);
+  return data;
+}
+
+/** PATCH team member: { nickname?, earnPercent?, notes? } */
+export async function patchAffiliationTeamMember(memberId, body) {
+  const res = await fetch(`/api/profile/affiliation-team/${encodeURIComponent(memberId)}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    cache: 'no-store',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {}),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || res.statusText);
+  return data;
+}
+
 /** Get transaction history for the user. */
 export async function getTransactions(userId, accessToken) {
   return apiRequest('/api/transactions', { userId }, accessToken);

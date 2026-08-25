@@ -233,7 +233,7 @@ input, button, select, textarea {
   opacity: 0.6;
 }
 
-/* MoonPay image button — layout only; no filters/color-scheme so the PNG matches the file */
+/* MoonPay image button â layout only; no filters/color-scheme so the PNG matches the file */
 .btn-moonpay-image-only {
   padding: 0;
   margin: 0;
@@ -304,7 +304,7 @@ input, button, select, textarea {
   opacity: 1;
 }
 
-/* Buy page — provider comparison list */
+/* Buy page â provider comparison list */
 .buy-provider-list {
   display: flex;
   flex-direction: column;
@@ -464,7 +464,7 @@ input, button, select, textarea {
   color: var(--dash-muted);
 }
 
-/* Buy page — Dokwallet-style form */
+/* Buy page â Dokwallet-style form */
 .buy-page {
   padding-top: 0.5rem;
 }
@@ -1794,7 +1794,7 @@ input, button, select, textarea {
   touch-action: manipulation;
 }
 
-/* iOS Safari: inline SVG in flex buttons often gets 0×0 without explicit size */
+/* iOS Safari: inline SVG in flex buttons often gets 0Ã0 without explicit size */
 .dash-header-icon svg {
   width: 22px;
   height: 22px;
@@ -1808,7 +1808,7 @@ input, button, select, textarea {
   color: var(--dash-text);
 }
 
-/* —— Account / profile hub (mobile-style) —— */
+/* ââ Account / profile hub (mobile-style) ââ */
 .account-hub {
   min-height: calc(100dvh - 4.5rem);
   padding: calc(0.5rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) calc(5.5rem + env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
@@ -2172,12 +2172,251 @@ input, button, select, textarea {
   color: var(--dash-text);
 }
 
+.account-referral-hero-accent {
+  color: #2563EB;
+}
+
 .account-referral-hero-sub {
   margin: 0.45rem 0 0;
   max-width: 22rem;
   font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--dash-muted);
+}
+
+/* Invite-count commission tiers (card activation / spend) */
+.ref-tier-block {
+  margin: 0 0 1.15rem;
+}
+
+.ref-tier-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.ref-tier-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.55rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(11, 31, 58, 0.08);
+  text-align: center;
+}
+
+.ref-tier-stat-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #8A97AB;
+}
+
+.ref-tier-stat-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0B1F3A;
+  letter-spacing: -0.02em;
+}
+
+.ref-tier-carousel {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 0.25rem;
+  padding: 0.15rem 0.1rem 0.55rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.ref-tier-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.ref-tier-card {
+  flex: 0 0 min(86%, 320px);
+  scroll-snap-align: center;
+  padding: 1rem 1.05rem 1.05rem;
+  border-radius: 18px;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  background: linear-gradient(160deg, #EFF4FF 0%, #FFFFFF 55%, #F7FAFF 100%);
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.08);
+  color: #0B1F3A;
+}
+
+.ref-tier-card--current {
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 10px 28px rgba(37, 99, 235, 0.16);
+}
+
+.ref-tier-card:not(.ref-tier-card--unlocked) {
+  opacity: 0.82;
+}
+
+.ref-tier-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.ref-tier-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #1D4ED8;
+}
+
+.ref-tier-pill {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563EB;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.ref-tier-pill--locked {
+  background: rgba(11, 31, 58, 0.06);
+  color: #8A97AB;
+}
+
+.ref-tier-progress {
+  margin-bottom: 0.95rem;
+}
+
+.ref-tier-progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  overflow: hidden;
+}
+
+.ref-tier-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #60A5FA 0%, #2563EB 100%);
+  transition: width 0.35s ease;
+}
+
+.ref-tier-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #5B6B82;
+}
+
+.ref-tier-rates {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.ref-tier-rate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.55rem 0.35rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(11, 31, 58, 0.06);
+  text-align: center;
+}
+
+.ref-tier-rate-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #8A97AB;
+}
+
+.ref-tier-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  border: 1px solid rgba(11, 31, 58, 0.2);
+  font-size: 0.55rem;
+  font-weight: 700;
+  font-style: normal;
+  color: #5B6B82;
+}
+
+.ref-tier-rate-value {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0B1F3A;
+}
+
+.ref-tier-blurb {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #5B6B82;
+}
+
+.ref-tier-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
+}
+
+.ref-tier-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.22);
+  cursor: pointer;
+}
+
+.ref-tier-dot--on {
+  width: 18px;
+  background: #2563EB;
+}
+
+.ref-invite-now {
+  width: 100%;
+  margin-top: 0.85rem;
+  padding: 0.9rem 1rem;
+  border: 0;
+  border-radius: 14px;
+  background: #2563EB;
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+}
+
+.ref-invite-now:hover {
+  filter: brightness(1.04);
+}
+
+.ref-invite-now:active {
+  transform: scale(0.99);
 }
 
 .account-referral-section {
@@ -3764,7 +4003,7 @@ input, button, select, textarea {
   color: var(--dash-muted);
 }
 
-/* Account — Community subview */
+/* Account â Community subview */
 .account-community {
   padding-top: 0.25rem;
 }
@@ -3892,7 +4131,7 @@ input, button, select, textarea {
   padding: 1.5rem 0 1.75rem;
 }
 
-/* Account — About us subview */
+/* Account â About us subview */
 .account-about {
   padding-top: 0;
 }
@@ -4150,7 +4389,7 @@ input, button, select, textarea {
   line-height: 1.45;
 }
 
-/* Account — Security subview */
+/* Account â Security subview */
 .account-security {
   padding-top: 0;
 }
@@ -5390,7 +5629,7 @@ input, button, select, textarea {
   font-variant-numeric: tabular-nums;
 }
 
-/* —— Portfolio list (Crypto / Fiat tabs + reference-style rows) —— */
+/* ââ Portfolio list (Crypto / Fiat tabs + reference-style rows) ââ */
 .dash-portfolio-card {
   margin: 0 max(1rem, env(safe-area-inset-left, 0px)) 1rem max(1rem, env(safe-area-inset-right, 0px));
   background: #F5F8FC;
@@ -5537,7 +5776,7 @@ input, button, select, textarea {
   font-variant-numeric: tabular-nums;
 }
 
-/* Portfolio rows — same 40px coin icons as market / Assets page */
+/* Portfolio rows â same 40px coin icons as market / Assets page */
 .dash-asset-row--list .dash-asset-icon.dash-asset-icon--rich {
   width: 40px;
   height: 40px;
@@ -6387,7 +6626,7 @@ input, button, select, textarea {
   border-color: var(--dash-border);
 }
 
-/* —— Homepage: top bar + landing (same palette as dashboard) —— */
+/* ââ Homepage: top bar + landing (same palette as dashboard) ââ */
 .home-root {
   min-height: 100vh;
   display: flex;
@@ -6527,7 +6766,7 @@ input, button, select, textarea {
   }
 }
 
-/* —— Homepage landing (same palette as dashboard wallet UI) —— */
+/* ââ Homepage landing (same palette as dashboard wallet UI) ââ */
 .home-landing {
   position: relative;
   overflow-x: clip;
@@ -6673,7 +6912,7 @@ input, button, select, textarea {
   }
 }
 
-/* —— Global: light scrollbars (match blue/white wallet UI) —— */
+/* ââ Global: light scrollbars (match blue/white wallet UI) ââ */
 html {
   scrollbar-color: #B4C3DA #E6ECF4;
   scrollbar-width: thin;
@@ -6702,7 +6941,7 @@ body::-webkit-scrollbar-thumb:hover {
   background: #A8B6CA;
 }
 
-/* Scrollable regions — light track */
+/* Scrollable regions â light track */
 .u-scroll-dark,
 .avatar-editor-sheet,
 .avatar-editor-presets,
@@ -6807,7 +7046,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   color-scheme: light;
 }
 
-/* —— Homepage: panel + feature grid —— */
+/* ââ Homepage: panel + feature grid ââ */
 .home-landing-inner {
   position: relative;
   z-index: 1;
@@ -6926,10 +7165,10 @@ input[type='range']:focus-visible::-moz-range-thumb {
   color: var(--dash-muted);
 }
 
-/* —— Market page —— */
+/* ââ Market page ââ */
 .market-page {
-  --market-control-height: 4.8125rem; /* ~77px — stat card */
-  --market-toolbar-height: 3rem; /* ~48px — search + refresh (compact) */
+  --market-control-height: 4.8125rem; /* ~77px â stat card */
+  --market-toolbar-height: 3rem; /* ~48px â search + refresh (compact) */
   padding-bottom: 2rem;
 }
 
@@ -7034,7 +7273,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   border: none;
   background: transparent;
   color: var(--dash-text);
-  font-size: 1rem; /* 16px — iOS avoids zoom on focus */
+  font-size: 1rem; /* 16px â iOS avoids zoom on focus */
   line-height: 1.2;
   font-family: inherit;
   outline: none;
@@ -7162,7 +7401,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   flex-shrink: 0;
 }
 
-/* Real CoinGecko icons: circle, 40px (override dashboard 48px “rich” size) */
+/* Real CoinGecko icons: circle, 40px (override dashboard 48px ârichâ size) */
 .market-row .dash-asset-icon.dash-asset-icon--rich {
   width: 40px;
   height: 40px;
@@ -7272,7 +7511,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   border: 0;
 }
 
-/* —— Phone / small screens —— */
+/* ââ Phone / small screens ââ */
 @media (max-width: 480px) {
   .market-stats {
     flex-direction: column;
@@ -7313,7 +7552,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   }
 }
 
-/* —— Affiliation dashboard panel page —— */
+/* ââ Affiliation dashboard panel page ââ */
 .aff-page {
   width: 100%;
   min-height: calc(100vh - 74px);
@@ -7631,7 +7870,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   }
 }
 
-/* —— Affiliation mobile-first redesign —— */
+/* ââ Affiliation mobile-first redesign ââ */
 .aff-page--simple {
   padding-bottom: 4rem;
 }
@@ -8282,6 +8521,121 @@ input[type='range']:focus-visible::-moz-range-thumb {
   background: #2563EB;
 }
 
+.aff-team-section {
+  margin-bottom: 1.25rem;
+}
+
+.aff-team-head {
+  margin-bottom: 0.85rem;
+}
+
+.aff-team-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.82rem;
+  color: #5B6B82;
+  line-height: 1.45;
+}
+
+.aff-team-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.aff-team-card {
+  border: 1px solid #D0DBEC;
+  border-radius: 16px;
+  background: #fff;
+  padding: 0.95rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.aff-team-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.aff-team-card-title {
+  display: block;
+  font-size: 1rem;
+  color: #0B1F3A;
+}
+
+.aff-team-joined {
+  font-size: 0.72rem;
+  color: #8A97AB;
+  white-space: nowrap;
+}
+
+.aff-team-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.aff-team-meta-label {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8A97AB;
+  margin-bottom: 0.15rem;
+}
+
+.aff-team-meta-value {
+  display: block;
+  font-size: 0.8rem;
+  color: #0B1F3A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aff-team-meta-value.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.02em;
+}
+
+.aff-team-fields {
+  display: grid;
+  grid-template-columns: 1.4fr 0.7fr 1.2fr;
+  gap: 0.65rem;
+}
+
+.aff-team-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: #5B6B82;
+}
+
+.aff-team-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.aff-team-default-hint {
+  font-size: 0.75rem;
+  color: #8A97AB;
+}
+
+@media (max-width: 720px) {
+  .aff-team-meta,
+  .aff-team-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 420px) {
   .aff-volume-steps {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -8289,7 +8643,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   }
 }
 
-/* ── Dashboard sub-screen header (title only) ── */
+/* ââ Dashboard sub-screen header (title only) ââ */
 .dash-screen {
   padding: calc(0.75rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 1.5rem max(1rem, env(safe-area-inset-left, 0px));
 }
@@ -8336,7 +8690,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   padding: calc(0.75rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 2rem max(1rem, env(safe-area-inset-left, 0px));
 }
 
-/* ── Currency select screen ── */
+/* ââ Currency select screen ââ */
 .currency-select-screen {
   padding: calc(0.75rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 1.5rem max(1rem, env(safe-area-inset-left, 0px));
   min-height: 100%;
@@ -8523,7 +8877,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   cursor: default;
 }
 
-/* ── More menu screen ── */
+/* ââ More menu screen ââ */
 .more-screen {
   padding: calc(0.75rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 2rem max(1rem, env(safe-area-inset-left, 0px));
 }
@@ -8619,7 +8973,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   line-height: 1.25;
 }
 
-/* ── Card screen mockup ── */
+/* ââ Card screen mockup ââ */
 .card-screen,
 .card-settings-screen {
   padding: calc(0.75rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 1.5rem max(1rem, env(safe-area-inset-left, 0px));
@@ -9387,7 +9741,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   color: var(--dash-text);
 }
 
-/* ── Assets page (wallet holdings) ── */
+/* ââ Assets page (wallet holdings) ââ */
 .assets-page {
   display: flex;
   flex-direction: column;
@@ -9727,7 +10081,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
   line-height: 1.45;
 }
 
-/* ── Deposit mockup flow (coin → network → address) ── */
+/* ââ Deposit mockup flow (coin â network â address) ââ */
 .deposit-flow {
   padding-bottom: 2rem;
 }
@@ -10235,7 +10589,7 @@ input[type='range']:focus-visible::-moz-range-thumb {
 }
 
 
-/* �� Sell / Withdrawal �� */
+/*  Sell / Withdrawal  */
 .sell-page .page-desc {
   margin: 0 0 1rem;
   color: var(--dash-muted, #5B6B82);

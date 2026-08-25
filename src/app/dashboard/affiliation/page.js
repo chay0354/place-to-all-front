@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client';
 import {
   getProfile,
   getAffiliationDashboard,
+  getAffiliationTeam,
+  patchAffiliationTeamMember,
   createPaymentLink,
   listPaymentLinks,
 } from '@/lib/api';
@@ -93,6 +95,15 @@ export default function AffiliationDashboardPage() {
 
   const [downline, setDownline] = useState({ kind: 'none', members: [] });
   const [downlineLoading, setDownlineLoading] = useState(false);
+
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [teamDefaultEarn, setTeamDefaultEarn] = useState(4);
+  const [teamLoading, setTeamLoading] = useState(false);
+  const [teamError, setTeamError] = useState('');
+  const [teamDrafts, setTeamDrafts] = useState({});
+  const [teamSavingId, setTeamSavingId] = useState(null);
+  const [teamMessage, setTeamMessage] = useState('');
+
   useEffect(() => {
     const supabase = createClient();
     (async () => {
@@ -122,6 +133,46 @@ export default function AffiliationDashboardPage() {
     [profile?.role, user?.email],
   );
 
+  const isSuperManager = useMemo(
+    () =>
+      profile?.role === 'super_agent' ||
+      profile?.role === 'super_super_agent' ||
+      isAdminOperatorEmail(user?.email),
+    [profile?.role, user?.email],
+  );
+
+  const refreshTeam = useCallback(() => {
+    if (!isSuperManager) return;
+    setTeamLoading(true);
+    setTeamError('');
+    getAffiliationTeam()
+      .then((data) => {
+        const list = Array.isArray(data?.members) ? data.members : [];
+        setTeamMembers(list);
+        setTeamDefaultEarn(Number(data?.defaultEarnPercent) || 4);
+        setTeamDrafts(
+          Object.fromEntries(
+            list.map((m) => [
+              m.id,
+              {
+                nickname: m.nickname || '',
+                earnPercent:
+                  m.earnPercent != null && m.earnPercent !== ''
+                    ? String(m.earnPercent)
+                    : String(Number(data?.defaultEarnPercent) || 4),
+                notes: m.notes || '',
+              },
+            ]),
+          ),
+        );
+      })
+      .catch((e) => {
+        setTeamError(e?.message || 'Failed to load team');
+        setTeamMembers([]);
+      })
+      .finally(() => setTeamLoading(false));
+  }, [isSuperManager]);
+
   useEffect(() => {
     if (!isAgentLike) return;
     setDownlineLoading(true);
@@ -135,6 +186,10 @@ export default function AffiliationDashboardPage() {
       .finally(() => setDownlineLoading(false));
   }, [isAgentLike]);
 
+  useEffect(() => {
+    refreshTeam();
+  }, [refreshTeam]);
+
   const refreshPaymentLinks = useCallback(() => {
     if (!user?.id || !token) return;
     listPaymentLinks(user.id, token)
@@ -146,6 +201,41 @@ export default function AffiliationDashboardPage() {
     if (!isAgentLike || !user?.id || !token) return;
     refreshPaymentLinks();
   }, [isAgentLike, user?.id, token, refreshPaymentLinks]);
+
+  const updateTeamDraft = useCallback((memberId, field, value) => {
+    setTeamDrafts((prev) => ({
+      ...prev,
+      [memberId]: { ...(prev[memberId] || {}), [field]: value },
+    }));
+    setTeamMessage('');
+  }, []);
+
+  const saveTeamMember = useCallback(
+    async (memberId) => {
+      const draft = teamDrafts[memberId] || {};
+      const earn = Number(draft.earnPercent);
+      if (Number.isNaN(earn) || earn < 0 || earn > 6) {
+        setTeamMessage('Earn % must be between 0 and 6.');
+        return;
+      }
+      setTeamSavingId(memberId);
+      setTeamMessage('');
+      try {
+        await patchAffiliationTeamMember(memberId, {
+          nickname: draft.nickname?.trim() || null,
+          earnPercent: earn,
+          notes: draft.notes?.trim() || null,
+        });
+        setTeamMessage('Saved.');
+        refreshTeam();
+      } catch (e) {
+        setTeamMessage(e?.message || 'Save failed');
+      } finally {
+        setTeamSavingId(null);
+      }
+    },
+    [teamDrafts, refreshTeam],
+  );
 
   const members = useMemo(
     () => (Array.isArray(downline?.members) ? downline.members : []),
@@ -449,6 +539,112 @@ export default function AffiliationDashboardPage() {
           </div>
         )}
       </section>
+
+      {isSuperManager && (
+        <section className="aff-team-section" aria-label="Your agents">
+          <div className="aff-team-head">
+            <h2 className="aff-section-title">Your agents</h2>
+            <p className="aff-team-hint">
+              Set a display name, how much % you earn on each agent, and review basic details.
+            </p>
+          </div>
+
+          {teamLoading ? (
+            <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={56} />
+          ) : teamError ? (
+            <p className="aff-message aff-error">{teamError}</p>
+          ) : !teamMembers.length ? (
+            <div className="aff-empty-card">No agents under you yet.</div>
+          ) : (
+            <ul className="aff-team-list">
+              {teamMembers.map((m) => {
+                const draft = teamDrafts[m.id] || { nickname: '', earnPercent: String(teamDefaultEarn), notes: '' };
+                const accountName = m.display_name || m.username || m.email || 'Agent';
+                return (
+                  <li key={m.id} className="aff-team-card">
+                    <div className="aff-team-card-top">
+                      <div>
+                        <strong className="aff-team-card-title">
+                          {draft.nickname?.trim() || accountName}
+                        </strong>
+                        <span className="aff-user-role">{roleLabel(m.role)}</span>
+                      </div>
+                      <span className="aff-team-joined">Joined {shortDate(m.created_at)}</span>
+                    </div>
+
+                    <div className="aff-team-meta">
+                      <div>
+                        <span className="aff-team-meta-label">Account</span>
+                        <span className="aff-team-meta-value" title={accountName}>
+                          {truncateMiddle(accountName, 18, 10)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="aff-team-meta-label">Wallet</span>
+                        <span className="aff-team-meta-value mono">{m.walletMasked || '—'}</span>
+                      </div>
+                      <div>
+                        <span className="aff-team-meta-label">Email</span>
+                        <span className="aff-team-meta-value" title={m.email || ''}>
+                          {m.email ? truncateMiddle(m.email, 14, 10) : '—'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="aff-team-fields">
+                      <label className="aff-team-field">
+                        <span>Display name</span>
+                        <input
+                          className="form-input"
+                          value={draft.nickname}
+                          placeholder={accountName}
+                          maxLength={64}
+                          onChange={(e) => updateTeamDraft(m.id, 'nickname', e.target.value)}
+                        />
+                      </label>
+                      <label className="aff-team-field aff-team-field--pct">
+                        <span>Your earn % on them</span>
+                        <input
+                          className="form-input"
+                          type="number"
+                          min="0"
+                          max="6"
+                          step="0.1"
+                          value={draft.earnPercent}
+                          onChange={(e) => updateTeamDraft(m.id, 'earnPercent', e.target.value)}
+                        />
+                      </label>
+                      <label className="aff-team-field aff-team-field--notes">
+                        <span>Notes</span>
+                        <input
+                          className="form-input"
+                          value={draft.notes}
+                          placeholder="Optional"
+                          maxLength={280}
+                          onChange={(e) => updateTeamDraft(m.id, 'notes', e.target.value)}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="aff-team-actions">
+                      <span className="aff-team-default-hint">Default {teamDefaultEarn}%</span>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={teamSavingId === m.id}
+                        onClick={() => saveTeamMember(m.id)}
+                      >
+                        {teamSavingId === m.id ? 'Saving…' : 'Save'}
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {teamMessage && <p className="aff-message">{teamMessage}</p>}
+        </section>
+      )}
 
       <section className="aff-tools-row" aria-label="Quick actions">
         <button type="button" className="aff-tool-chip aff-tool-chip--accent" onClick={() => setUsersOpen(true)}>
