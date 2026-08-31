@@ -61,7 +61,7 @@ export function DashboardClient({
     hasInitialPrices ? { prices: initialCoinGecko.prices, images: initialCoinGecko.images || {} } : null,
   );
   const [pricesFetched, setPricesFetched] = useState(hasInitialPrices);
-  const [balanceHidden, setBalanceHidden] = useState(true);
+  const [balanceHidden, setBalanceHidden] = useState(false);
   const [displayCurrency, setDisplayCurrencyState] = useState('USD');
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const currencyRef = useRef(null);

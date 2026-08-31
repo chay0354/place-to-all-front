@@ -1994,9 +1994,9 @@ input, button, select, textarea {
 }
 
 .account-profile-badge--kyc {
-  color: #f5c518;
-  background: rgba(245, 197, 24, 0.1);
-  border-color: rgba(245, 197, 24, 0.28);
+  color: #2563EB;
+  background: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.28);
 }
 
 .account-profile-badge--clickable {
@@ -2548,11 +2548,11 @@ input, button, select, textarea {
   border-radius: 16px;
   text-decoration: none;
   color: inherit;
-  border: 1px solid rgba(11, 31, 58, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.22);
   background:
-    radial-gradient(120% 140% at 100% 0%, rgba(245, 197, 24, 0.22) 0%, transparent 55%),
-    linear-gradient(135deg, rgba(37, 99, 235, 0.18) 0%, rgba(28, 28, 32, 0.95) 48%, rgba(14, 14, 16, 1) 100%);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    radial-gradient(120% 140% at 100% 0%, rgba(147, 197, 253, 0.55) 0%, transparent 55%),
+    linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 48%, #BFDBFE 100%);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.12);
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
@@ -2560,7 +2560,7 @@ input, button, select, textarea {
   text-decoration: none;
   color: inherit;
   transform: translateY(-1px);
-  border-color: rgba(245, 197, 24, 0.35);
+  border-color: rgba(37, 99, 235, 0.4);
 }
 
 .account-buy-crypto-card:active {
@@ -2582,7 +2582,7 @@ input, button, select, textarea {
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: linear-gradient(145deg, #2563EB 0%, #f5c518 100%);
+  background: linear-gradient(145deg, #2563EB 0%, #93C5FD 100%);
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
 }
 
@@ -4950,7 +4950,8 @@ input, button, select, textarea {
 .dash-home-currency-menu {
   position: absolute;
   top: calc(100% + 0.35rem);
-  left: 0;
+  right: 0;
+  left: auto;
   z-index: 20;
   margin: 0;
   padding: 0.35rem 0;
