@@ -14,6 +14,7 @@ import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { DashScreenHeader } from '@/components/DashScreenHeader';
 import { resolveUserCountryIso } from '@/lib/phone-country';
 import { clearPinUnlocked } from '@/lib/quick-pin-session';
+import { writeCachedAvatarUrl } from '@/lib/profile-avatar';
 
 const accountSectionLoading = () => <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={56} />;
 
@@ -217,7 +218,12 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
     goHub();
   }
 
+  useEffect(() => {
+    if (profile?.avatar_url) writeCachedAvatarUrl(profile.avatar_url);
+  }, [profile?.avatar_url]);
+
   function handleAvatarChange(url) {
+    if (url) writeCachedAvatarUrl(url);
     setProfile((p) => ({ ...(p || {}), avatar_url: url }));
   }
 

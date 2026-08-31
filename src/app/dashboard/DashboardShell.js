@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { getProfile } from '@/lib/api';
-import { PROFILE_AVATAR_EVENT } from '@/lib/profile-avatar';
+import { PROFILE_AVATAR_EVENT, readCachedAvatarUrl, writeCachedAvatarUrl } from '@/lib/profile-avatar';
 import { dicebearAvatarUrl } from '@/lib/profile-avatar-presets';
 import { PinUnlockGate } from '@/components/PinUnlockGate';
 import { DepositPaymentSheet, useDepositPaymentSheetListener } from '@/components/DepositPaymentSheet';
@@ -43,14 +43,25 @@ export function DashboardShell({ children, initialUser = null, initialProfile = 
   }, [initialUser?.email]);
 
   useEffect(() => {
+    if (initialProfile?.avatar_url) writeCachedAvatarUrl(initialProfile.avatar_url);
+    else {
+      const cached = readCachedAvatarUrl();
+      if (cached) setAvatarUrl((current) => current || cached);
+    }
     const onAvatar = (e) => setAvatarUrl(e.detail?.url || '');
     window.addEventListener(PROFILE_AVATAR_EVENT, onAvatar);
     if (initialProfile?.avatar_url) {
       return () => window.removeEventListener(PROFILE_AVATAR_EVENT, onAvatar);
     }
     getProfile()
-      .then((p) => setAvatarUrl(p?.avatar_url || ''))
-      .catch(() => setAvatarUrl(''));
+      .then((p) => {
+        const url = p?.avatar_url || '';
+        if (url) {
+          writeCachedAvatarUrl(url);
+          setAvatarUrl(url);
+        }
+      })
+      .catch(() => {});
     return () => window.removeEventListener(PROFILE_AVATAR_EVENT, onAvatar);
   }, [initialProfile?.avatar_url]);
 

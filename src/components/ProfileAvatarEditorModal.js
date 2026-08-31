@@ -19,7 +19,7 @@ function maskEmail(email) {
 
 export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarUrl, onSaved, onSavingChange }) {
   const inputRef = useRef(null);
-  const [selectedPreset, setSelectedPreset] = useState(null);
+  const [pickedPreset, setPickedPreset] = useState(null);
   const [customFile, setCustomFile] = useState(null);
   const [customPreview, setCustomPreview] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -29,11 +29,12 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
     () => dicebearAvatarUrl(email || userId || 'user', { size: 180, format: 'svg' }),
     [email, userId],
   );
+  const existingPreset = useMemo(() => findPresetIdFromAvatarUrl(avatarUrl), [avatarUrl]);
+  const selectedPreset = pickedPreset ?? existingPreset;
 
   useEffect(() => {
     if (!open) return;
-    const existing = findPresetIdFromAvatarUrl(avatarUrl);
-    setSelectedPreset(existing);
+    setPickedPreset(null);
     setCustomFile(null);
     setCustomPreview(null);
     setSaving(false);
@@ -57,8 +58,8 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
 
   if (!open) return null;
 
-  const previewUrl = customPreview || (selectedPreset ? presetImageUrl(selectedPreset) : null);
-  const hasSelection = Boolean(customFile || selectedPreset);
+  const previewUrl = customPreview || (pickedPreset ? presetImageUrl(pickedPreset) : null) || avatarUrl || characterSrc;
+  const hasSelection = Boolean(customFile || pickedPreset);
 
   async function handleSave() {
     if (!userId || !hasSelection) {
@@ -94,7 +95,7 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
     if (customPreview) URL.revokeObjectURL(customPreview);
     setCustomFile(file);
     setCustomPreview(URL.createObjectURL(file));
-    setSelectedPreset(null);
+    setPickedPreset(null);
     setError('');
   }
 
@@ -113,13 +114,14 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
         </header>
 
         <div className="avatar-editor-preview-wrap">
-          {previewUrl ? (
-            <img src={previewUrl} alt="" className="avatar-editor-preview" draggable={false} referrerPolicy="no-referrer" />
-          ) : avatarUrl ? (
-            <img src={avatarUrl} alt="" className="avatar-editor-preview" draggable={false} referrerPolicy="no-referrer" />
-          ) : (
-            <img src={characterSrc} alt="" className="avatar-editor-preview" draggable={false} referrerPolicy="no-referrer" />
-          )}
+          <img
+            key={previewUrl}
+            src={previewUrl}
+            alt=""
+            className="avatar-editor-preview"
+            draggable={false}
+            referrerPolicy="no-referrer"
+          />
         </div>
 
         <section className="avatar-editor-section">
@@ -171,7 +173,7 @@ export function ProfileAvatarEditorModal({ open, onClose, userId, email, avatarU
                   className={`avatar-editor-preset ${selected ? 'avatar-editor-preset--on' : ''}`}
                   disabled={saving}
                   onClick={() => {
-                    setSelectedPreset(preset.id);
+                    setPickedPreset(preset.id);
                     if (customPreview) URL.revokeObjectURL(customPreview);
                     setCustomFile(null);
                     setCustomPreview(null);

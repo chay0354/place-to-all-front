@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ProfileAvatarEditorModal } from '@/components/ProfileAvatarEditorModal';
 import { countryFlagUrl, countryNameFromIso } from '@/lib/phone-country';
+import { readCachedAvatarUrl, writeCachedAvatarUrl } from '@/lib/profile-avatar';
 import { avatarToneFromSeed, dicebearAvatarUrl } from '@/lib/profile-avatar-presets';
 
 function emailInitial(email) {
@@ -28,8 +29,19 @@ export function ProfileAvatar({
   const [editorOpen, setEditorOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [remoteFailed, setRemoteFailed] = useState(false);
+  const [cachedUrl, setCachedUrl] = useState('');
+  const resolvedUrl = avatarUrl || cachedUrl || '';
 
   useEffect(() => {
+    const cached = readCachedAvatarUrl();
+    if (cached) setCachedUrl(cached);
+  }, []);
+
+  useEffect(() => {
+    if (avatarUrl) {
+      writeCachedAvatarUrl(avatarUrl);
+      setCachedUrl(avatarUrl);
+    }
     setRemoteFailed(false);
   }, [avatarUrl]);
 
@@ -49,7 +61,7 @@ export function ProfileAvatar({
     `profile-avatar-wrap--${size}`,
     editable ? 'profile-avatar-wrap--editable' : '',
     uploading ? 'profile-avatar-wrap--loading' : '',
-    avatarUrl || !remoteFailed ? 'profile-avatar-wrap--photo' : 'profile-avatar-wrap--initial',
+    resolvedUrl || !remoteFailed ? 'profile-avatar-wrap--photo' : 'profile-avatar-wrap--initial',
     className,
   ]
     .filter(Boolean)
@@ -58,8 +70,8 @@ export function ProfileAvatar({
   const flagUrl = countryIso ? countryFlagUrl(countryIso) : null;
   const flagLabel = countryIso ? countryNameFromIso(countryIso) : null;
 
-  const showPhoto = Boolean(avatarUrl) && !remoteFailed;
-  const showDicebear = !avatarUrl && !remoteFailed;
+  const showPhoto = Boolean(resolvedUrl) && !remoteFailed;
+  const showDicebear = !resolvedUrl && !remoteFailed;
 
   return (
     <>
@@ -73,8 +85,8 @@ export function ProfileAvatar({
       >
         {showPhoto ? (
           <img
-            key={avatarUrl}
-            src={avatarUrl}
+            key={resolvedUrl}
+            src={resolvedUrl}
             alt=""
             className="profile-avatar-img"
             draggable={false}
@@ -113,13 +125,13 @@ export function ProfileAvatar({
         )}
       </div>
 
-      {editable && (
+      {editable && editorOpen && (
         <ProfileAvatarEditorModal
-          open={editorOpen}
+          open
           onClose={() => setEditorOpen(false)}
           userId={userId}
           email={email}
-          avatarUrl={avatarUrl}
+          avatarUrl={resolvedUrl}
           onSavingChange={setUploading}
           onSaved={(url) => onAvatarChange?.(url)}
         />

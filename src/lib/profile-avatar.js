@@ -9,8 +9,35 @@ const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_DIMENSION = 1024;
 
 export const PROFILE_AVATAR_EVENT = 'pta-profile-avatar';
+const AVATAR_CACHE_KEY = 'pta-avatar-url';
+
+let memoryAvatarUrl = '';
+
+export function readCachedAvatarUrl() {
+  if (memoryAvatarUrl) return memoryAvatarUrl;
+  if (typeof window === 'undefined') return '';
+  try {
+    memoryAvatarUrl = sessionStorage.getItem(AVATAR_CACHE_KEY) || '';
+  } catch {
+    memoryAvatarUrl = '';
+  }
+  return memoryAvatarUrl;
+}
+
+export function writeCachedAvatarUrl(url) {
+  const next = typeof url === 'string' ? url.trim() : '';
+  memoryAvatarUrl = next;
+  if (typeof window === 'undefined') return;
+  try {
+    if (next) sessionStorage.setItem(AVATAR_CACHE_KEY, next);
+    else sessionStorage.removeItem(AVATAR_CACHE_KEY);
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
 
 export function notifyProfileAvatar(url) {
+  writeCachedAvatarUrl(url || '');
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(PROFILE_AVATAR_EVENT, { detail: { url: url || null } }));
   }
