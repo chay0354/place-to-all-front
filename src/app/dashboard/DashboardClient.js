@@ -314,7 +314,7 @@ export function DashboardClient({
 
       <div className="dash-home-quick-actions">
         <Link href="/dashboard/deposit" className="dash-home-quick-action">
-          <span className="dash-home-quick-action-icon dash-home-quick-action-icon--light">
+          <span className="dash-home-quick-action-icon dash-home-quick-action-icon--deposit">
             <DepositIcon />
           </span>
           <span>Deposit</span>

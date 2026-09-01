@@ -17,6 +17,7 @@ import { isAdminOperatorEmail } from '@/lib/admin-config';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
 const AGENT_ROLES = new Set(['agent', 'super_agent', 'super_super_agent', 'admin']);
+const DOWNLINE_AGENT_ROLES = new Set(['agent', 'super_agent']);
 const MOVEMENT_TYPES = new Set(['buy', 'sell', 'transfer']);
 const VOLUME_MILESTONES = [
   { id: 'starter', label: 'Starter', target: 0 },
@@ -74,6 +75,11 @@ function truncateMiddle(s, left = 14, right = 10) {
   const t = String(s || '');
   if (t.length <= left + right + 3) return t;
   return `${t.slice(0, left)}…${t.slice(-right)}`;
+}
+
+function nameInitial(name) {
+  const t = String(name || '').trim();
+  return t ? t.charAt(0).toUpperCase() : 'A';
 }
 
 export default function AffiliationDashboardPage() {
@@ -307,6 +313,57 @@ export default function AffiliationDashboardPage() {
 
   const totalAgents = members.length;
 
+  const agentCommissionRows = useMemo(() => {
+    const nicknameById = Object.fromEntries(
+      (teamMembers || []).map((m) => [m.id, (m.nickname || '').trim()]).filter(([, nick]) => nick),
+    );
+    const parentById = Object.fromEntries(members.map((m) => [m.id, m.referred_by_id || null]));
+
+    function isUnder(memberId, ancestorId) {
+      let cur = parentById[memberId];
+      let depth = 0;
+      while (cur && depth < 25) {
+        if (cur === ancestorId) return true;
+        cur = parentById[cur];
+        depth += 1;
+      }
+      return false;
+    }
+
+    const pool = isSuperManager
+      ? members.filter((m) => DOWNLINE_AGENT_ROLES.has(m.role))
+      : members;
+
+    const rows = pool.map((m) => {
+      const network = members.filter((other) => other.id === m.id || isUnder(other.id, m.id));
+      const toMe = network.reduce((sum, other) => sum + (feesByMember[other.id]?.toMe || 0), 0);
+      const payouts = network.reduce(
+        (sum, other) =>
+          sum +
+          (other.fee_flows || []).filter((f) => f?.receiver?.id === user?.id).length,
+        0,
+      );
+      const label =
+        nicknameById[m.id] || m.display_name || m.username || m.email || (isSuperManager ? 'Agent' : 'Member');
+      return {
+        id: m.id,
+        label,
+        email: m.email || '',
+        role: m.role,
+        created_at: m.created_at,
+        toMe,
+        people: Math.max(0, network.length - 1),
+        payouts,
+      };
+    });
+
+    rows.sort((a, b) => b.toMe - a.toMe || a.label.localeCompare(b.label));
+    const peak = Math.max(...rows.map((r) => r.toMe), 0) || 1;
+    return rows.map((r, i) => ({ ...r, rank: i + 1, share: (r.toMe / peak) * 100 }));
+  }, [members, feesByMember, teamMembers, user?.id, isSuperManager]);
+
+  const agentCommissionTotal = feesCollectedByYou;
+
   const tableRows = useMemo(
     () => [...txRows].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
     [txRows],
@@ -351,6 +408,63 @@ export default function AffiliationDashboardPage() {
           </p>
           <strong>{totalAgents}</strong>
         </div>
+      </section>
+
+      <section className="aff-agent-board" aria-label={isSuperManager ? 'Agents under you' : 'People under you'}>
+        <div className="aff-agent-board-head">
+          <div>
+            <h2 className="aff-section-title">{isSuperManager ? 'Agents under you' : 'Your downline'}</h2>
+            <p className="aff-team-hint">
+              {isSuperManager
+                ? 'Every agent in your tree, and the commission their network paid you.'
+                : 'Everyone under you, and the commission they paid you.'}
+            </p>
+          </div>
+          <div className="aff-agent-board-sum">
+            <span>Commission</span>
+            <strong>{formatUsd(agentCommissionTotal)}</strong>
+          </div>
+        </div>
+
+        {downlineLoading ? (
+          <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={56} />
+        ) : !agentCommissionRows.length ? (
+          <div className="aff-empty-card">
+            {isSuperManager ? 'No agents under you yet.' : 'No one in your downline yet.'}
+          </div>
+        ) : (
+          <ul className="aff-agent-list">
+            {agentCommissionRows.map((row) => (
+              <li key={row.id} className="aff-agent-row">
+                <div className="aff-agent-row-main">
+                  <span className={`aff-agent-rank${row.rank <= 3 ? ` aff-agent-rank--${row.rank}` : ''}`}>
+                    {row.rank}
+                  </span>
+                  <span className="aff-agent-avatar" aria-hidden>
+                    {nameInitial(row.label)}
+                  </span>
+                  <div className="aff-agent-copy">
+                    <strong className="aff-agent-name" title={row.label}>
+                      {truncateMiddle(row.label, 18, 10)}
+                    </strong>
+                    <span className="aff-agent-sub">
+                      {roleLabel(row.role)}
+                      {row.people > 0 ? ` · ${row.people} under them` : ''}
+                      {row.email ? ` · ${truncateMiddle(row.email, 10, 8)}` : ''}
+                    </span>
+                  </div>
+                  <div className="aff-agent-pay">
+                    <strong>{formatUsd(row.toMe)}</strong>
+                    <span>{row.payouts} {row.payouts === 1 ? 'payout' : 'payouts'}</span>
+                  </div>
+                </div>
+                <div className="aff-agent-track" aria-hidden>
+                  <div className="aff-agent-fill" style={{ width: `${Math.max(row.share, row.toMe > 0 ? 6 : 0)}%` }} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="aff-inline-panel" aria-label="Payment links">
@@ -543,7 +657,7 @@ export default function AffiliationDashboardPage() {
       {isSuperManager && (
         <section className="aff-team-section" aria-label="Your agents">
           <div className="aff-team-head">
-            <h2 className="aff-section-title">Your agents</h2>
+            <h2 className="aff-section-title">Manage agents</h2>
             <p className="aff-team-hint">
               Set a display name, how much % you earn on each agent, and review basic details.
             </p>

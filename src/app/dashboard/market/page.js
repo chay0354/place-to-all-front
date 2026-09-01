@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { getMarketOverview, getProfile, getWalletsForDashboard } from '@/lib/api';
 import { CoinIcon } from '@/components/CoinIcon';
-import { openDepositPaymentSheet } from '@/components/DepositPaymentSheet';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { resolveUserCountryIso } from '@/lib/phone-country';
@@ -226,12 +225,12 @@ export default function MarketPage() {
       </section>
 
       <div className="assets-page-actions">
-        <button type="button" className="assets-page-action" onClick={openDepositPaymentSheet}>
+        <Link href="/dashboard/deposit" className="assets-page-action">
           <span className="assets-page-action-icon assets-page-action-icon--deposit">
             <DepositIcon />
           </span>
           <span>Deposit</span>
-        </button>
+        </Link>
         <Link href="/dashboard/sell" className="assets-page-action">
           <span className="assets-page-action-icon">
             <WithdrawIcon />
