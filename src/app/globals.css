@@ -8062,6 +8062,41 @@ input[type='range']:focus-visible::-moz-range-thumb {
   cursor: pointer;
 }
 
+.aff-take-panel {
+  margin: 1.25rem 0 0;
+  padding: 1rem 1.05rem 1.05rem;
+  border: 1px solid #D0DBEC;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #F8FBFF 0%, #FFFFFF 48%);
+}
+
+.aff-take-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.aff-take-slider {
+  display: block;
+}
+
+.aff-take-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #8A97AB;
+}
+
+.aff-take-status {
+  margin: 0.7rem 0 0;
+  font-size: 0.75rem;
+  color: #5B6B82;
+}
+
 .aff-muted-center {
   margin: 0.5rem 0 0;
   text-align: center;

@@ -1,11 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
   getProfile,
   getAffiliationDashboard,
+  getAffiliationFees,
+  patchAffiliationFees,
   getAffiliationTeam,
   patchAffiliationTeamMember,
   createPaymentLink,
@@ -18,6 +20,8 @@ import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
 const AGENT_ROLES = new Set(['agent', 'super_agent', 'super_super_agent', 'admin']);
 const DOWNLINE_AGENT_ROLES = new Set(['agent', 'super_agent']);
+const TAKE_MIN = 3;
+const TAKE_MAX = 6;
 const MOVEMENT_TYPES = new Set(['buy', 'sell', 'transfer']);
 const VOLUME_MILESTONES = [
   { id: 'starter', label: 'Starter', target: 0 },
@@ -110,6 +114,11 @@ export default function AffiliationDashboardPage() {
   const [teamSavingId, setTeamSavingId] = useState(null);
   const [teamMessage, setTeamMessage] = useState('');
 
+  const [takePercent, setTakePercent] = useState(4);
+  const [takeSaving, setTakeSaving] = useState(false);
+  const [takeMessage, setTakeMessage] = useState('');
+  const takeSaveTimer = useRef(null);
+
   useEffect(() => {
     const supabase = createClient();
     (async () => {
@@ -195,6 +204,54 @@ export default function AffiliationDashboardPage() {
   useEffect(() => {
     refreshTeam();
   }, [refreshTeam]);
+
+  useEffect(() => {
+    if (!isAgentLike) return;
+    getAffiliationFees()
+      .then((data) => {
+        const raw = Number(data?.affiliateTakePercent);
+        const pct = Number.isFinite(raw) ? raw : Number(data?.defaultAffiliateTakePercent) || 4;
+        setTakePercent(Math.min(TAKE_MAX, Math.max(TAKE_MIN, pct)));
+        if (Number.isFinite(raw) || Number.isFinite(Number(data?.defaultAffiliateTakePercent))) {
+          setTeamDefaultEarn(Number.isFinite(raw) ? raw : Number(data.defaultAffiliateTakePercent) || 4);
+        }
+      })
+      .catch(() => {});
+  }, [isAgentLike]);
+
+  const saveTakePercent = useCallback(async (pct) => {
+    const n = Math.min(TAKE_MAX, Math.max(TAKE_MIN, Number(pct)));
+    setTakeSaving(true);
+    setTakeMessage('');
+    try {
+      await patchAffiliationFees({ affiliateTakePercent: n });
+      setTeamDefaultEarn(n);
+      setTakeMessage('Saved');
+    } catch (e) {
+      setTakeMessage(e?.message || 'Could not save');
+    } finally {
+      setTakeSaving(false);
+    }
+  }, []);
+
+  const onTakePercentChange = useCallback(
+    (value) => {
+      const n = Math.min(TAKE_MAX, Math.max(TAKE_MIN, Number(value)));
+      setTakePercent(n);
+      setTakeMessage('');
+      if (takeSaveTimer.current) clearTimeout(takeSaveTimer.current);
+      takeSaveTimer.current = setTimeout(() => {
+        saveTakePercent(n);
+      }, 400);
+    },
+    [saveTakePercent],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (takeSaveTimer.current) clearTimeout(takeSaveTimer.current);
+    };
+  }, []);
 
   const refreshPaymentLinks = useCallback(() => {
     if (!user?.id || !token) return;
@@ -808,6 +865,44 @@ export default function AffiliationDashboardPage() {
             })}
           </ul>
         )}
+      </section>
+
+      <section className="aff-take-panel" aria-label="Commission take">
+        <div className="aff-take-head">
+          <div>
+            <h2 className="aff-section-title">Your commission</h2>
+            <p className="aff-team-hint">
+              {isSuperManager
+                ? 'Percent you take on agents under you. Applies as the default for their network.'
+                : 'Percent you take on people under you.'}
+            </p>
+          </div>
+          <strong className="aff-fee-pct">{takePercent.toFixed(1)}%</strong>
+        </div>
+
+        <label className="aff-take-slider">
+          <span className="sr-only">Commission percent</span>
+          <input
+            className="aff-range"
+            type="range"
+            min={TAKE_MIN}
+            max={TAKE_MAX}
+            step="0.1"
+            value={takePercent}
+            onChange={(e) => onTakePercentChange(e.target.value)}
+          />
+        </label>
+
+        <div className="aff-take-ticks" aria-hidden>
+          <span>3%</span>
+          <span>4%</span>
+          <span>5%</span>
+          <span>6%</span>
+        </div>
+
+        <p className="aff-take-status">
+          {takeSaving ? 'Saving…' : takeMessage || 'Drag to set 3%–6%'}
+        </p>
       </section>
 
       {usersOpen && (
