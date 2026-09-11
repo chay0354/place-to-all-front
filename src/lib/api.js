@@ -288,6 +288,11 @@ export async function adminListRegularUsers(userId, accessToken) {
   return apiRequest('/api/admin/regular-users', { userId, cache: 'no-store' }, accessToken);
 }
 
+/** Admin: every user (all roles) with parent + wallets + invite counts. */
+export async function adminListUsers(userId, accessToken) {
+  return apiRequest('/api/admin/users', { userId, cache: 'no-store' }, accessToken);
+}
+
 /** Get signed MoonPay widget URL. Pass quoteCurrencyAmount (crypto) and baseCurrencyAmount (USD); amounts are locked in MoonPay by default. */
 export async function getMoonPayUrl(
   userId,

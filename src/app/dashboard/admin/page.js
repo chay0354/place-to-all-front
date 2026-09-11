@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
   adminListAgents,
+  adminListUsers,
   adminPromoteToSuperAgent,
   adminPromoteToSuperSuperAgent,
   adminListRegularUsers,
@@ -14,23 +14,6 @@ import { isAdminOperatorEmail, ADMIN_OPERATOR_EMAIL } from '@/lib/admin-config';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { DashScreenHeader } from '@/components/DashScreenHeader';
 
-const card = {
-  border: '1px solid var(--border, #30363d)',
-  borderRadius: 12,
-  padding: '1rem',
-  marginBottom: '0.75rem',
-  background: 'var(--bg-muted, rgba(255,255,255,0.03))',
-};
-
-const nested = {
-  marginTop: '0.75rem',
-  paddingLeft: '0.5rem',
-  borderLeft: '3px solid var(--border, #30363d)',
-};
-
-const labelMuted = { fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '0.25rem' };
-const strong = { fontWeight: 600, fontSize: '0.9375rem', wordBreak: 'break-word' };
-
 function formatLedgerAmount(n) {
   const x = Number(n) || 0;
   if (x === 0) return '0';
@@ -38,134 +21,102 @@ function formatLedgerAmount(n) {
   return String(x);
 }
 
-/** App ledger wallets from admin API: [{ currency, balance }] */
-function LedgerBalances({ wallets }) {
+function roleLabel(role) {
+  if (role === 'super_super_agent') return 'Super super';
+  if (role === 'super_agent') return 'Super agent';
+  if (role === 'agent') return 'Agent';
+  if (role === 'regular') return 'Regular';
+  if (role === 'admin') return 'Admin';
+  return role || '—';
+}
+
+function displayName(u) {
+  return u?.email || u?.display_name || u?.username || 'No email';
+}
+
+function parentLabel(u) {
+  if (!u?.referred_by_id) return '—';
+  const name = u.parent_email || u.parent_display_name;
+  if (name) return `${name} (${roleLabel(u.parent_role)})`;
+  return u.referred_by_id;
+}
+
+function matchesQuery(u, q) {
+  if (!q) return true;
+  const hay = [u.email, u.display_name, u.username, u.id, u.role, u.parent_email, u.referred_by_id]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return hay.includes(q);
+}
+
+function LedgerLine({ wallets }) {
   const list = Array.isArray(wallets) ? wallets : [];
-  if (list.length === 0) {
-    return (
-      <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
-        <span style={{ fontWeight: 600, color: 'var(--text)' }}>Ledger: </span>
-        no currency wallets yet
-      </div>
-    );
-  }
+  if (!list.length) return <span className="admin-muted">No wallets</span>;
   return (
-    <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
-      <span style={{ fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 4 }}>In-app ledger</span>
-      <ul style={{ margin: 0, paddingLeft: '1.1rem' }}>
-        {list.map((w) => (
-          <li key={w.currency} style={{ fontVariantNumeric: 'tabular-nums' }}>
-            {w.currency}: {formatLedgerAmount(w.balance)}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function CopyIdButton({ id }) {
-  if (!id) return null;
-  return (
-    <button
-      type="button"
-      className="btn btn-ghost"
-      style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem', marginTop: '0.35rem' }}
-      onClick={() => navigator.clipboard.writeText(id).catch(() => {})}
-    >
-      Copy user ID
-    </button>
-  );
-}
-
-/**
- * People listed under a super super or super agent card.
- * recruitContext: who is the parent in the hierarchy (for clear copy).
- */
-function AgentsRecruitedList({ agents, emptyLabel, recruitContext }) {
-  if (!agents.length) {
-    return <p style={{ ...labelMuted, margin: 0 }}>{emptyLabel}</p>;
-  }
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-      {agents.map((ag) => {
-        const n = Number(ag.invitedCount) || 0;
-        let subtitle;
-        if (recruitContext === 'under_super_super') {
-          subtitle =
-            ag.role === 'super_agent'
-              ? 'Super agent — sits directly under this super super agent'
-              : 'Agent — sits directly under this super super agent';
-        } else {
-          subtitle = 'Agent — sits directly under this super agent';
-        }
-        return (
-          <div key={ag.id} style={{ ...card, marginBottom: 0, padding: '0.85rem' }}>
-            <div style={labelMuted}>{subtitle}</div>
-            <div style={strong}>{ag.email || 'No email'}</div>
-            {(ag.display_name || ag.username) && (
-              <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                {ag.display_name || ag.username}
-              </div>
-            )}
-            <LedgerBalances wallets={ag.wallets} />
-            <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
-              Regular customers they invited: <strong style={{ color: 'var(--text, inherit)' }}>{n}</strong>
-            </div>
-            <CopyIdButton id={ag.id} />
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/** Regular end-users under an agent. */
-function RegularCustomersList({ users, emptyLabel }) {
-  if (!users.length) {
-    return <p style={{ ...labelMuted, margin: 0 }}>{emptyLabel}</p>;
-  }
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-      {users.map((u) => (
-        <div key={u.id} style={{ ...card, marginBottom: 0, padding: '0.85rem' }}>
-          <div style={labelMuted}>Regular customer</div>
-          <div style={strong}>{u.email || 'No email'}</div>
-          {(u.display_name || u.username) && (
-            <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
-              {u.display_name || u.username}
-            </div>
-          )}
-          <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
-            Joined: {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
-          </div>
-          <LedgerBalances wallets={u.wallets} />
-          <CopyIdButton id={u.id} />
-        </div>
+    <span className="admin-wallets">
+      {list.map((w) => (
+        <span key={w.currency}>
+          {w.currency} {formatLedgerAmount(w.balance)}
+        </span>
       ))}
-    </div>
-  );
-}
-
-function RoleBadge({ children, variant }) {
-  const color = variant === 'ss' ? '#a371f7' : 'var(--success, #3fb950)';
-  return (
-    <span
-      style={{
-        display: 'inline-block',
-        fontSize: '0.6875rem',
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        letterSpacing: '0.04em',
-        padding: '0.2rem 0.5rem',
-        borderRadius: 6,
-        background: `${color}22`,
-        color,
-        marginBottom: '0.5rem',
-      }}
-    >
-      {children}
     </span>
   );
+}
+
+function RoleBadge({ role }) {
+  return <span className={`admin-badge admin-badge--${role || 'regular'}`}>{roleLabel(role)}</span>;
+}
+
+function TreeNode({ node, childrenByParent, query, depth = 0 }) {
+  const kids = childrenByParent[node.id] || [];
+  const q = query.trim().toLowerCase();
+  const selfMatch = matchesQuery(node, q);
+  const childHit = q
+    ? kids.some((k) => matchesQuery(k, q) || hasDescendantMatch(k.id, childrenByParent, q))
+    : false;
+  const [open, setOpen] = useState(depth < 1 || Boolean(q && (selfMatch || childHit)));
+
+  useEffect(() => {
+    if (q && (selfMatch || childHit)) setOpen(true);
+  }, [q, selfMatch, childHit]);
+
+  if (q && !selfMatch && !childHit) return null;
+
+  return (
+    <li className="admin-tree-node">
+      <div className="admin-tree-row">
+        {kids.length ? (
+          <button type="button" className="admin-tree-toggle" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+            {open ? '▾' : '▸'}
+          </button>
+        ) : (
+          <span className="admin-tree-toggle admin-tree-toggle--empty" />
+        )}
+        <RoleBadge role={node.role} />
+        <div className="admin-tree-copy">
+          <strong>{displayName(node)}</strong>
+          <span>
+            {node.invitedCount || 0} under them
+            {node.created_at ? ` · joined ${new Date(node.created_at).toLocaleDateString()}` : ''}
+          </span>
+        </div>
+        <LedgerLine wallets={node.wallets} />
+      </div>
+      {open && kids.length > 0 && (
+        <ul className="admin-tree-children">
+          {kids.map((child) => (
+            <TreeNode key={child.id} node={child} childrenByParent={childrenByParent} query={query} depth={depth + 1} />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+function hasDescendantMatch(id, childrenByParent, q) {
+  const kids = childrenByParent[id] || [];
+  return kids.some((k) => matchesQuery(k, q) || hasDescendantMatch(k.id, childrenByParent, q));
 }
 
 export default function AdminPage() {
@@ -174,12 +125,12 @@ export default function AdminPage() {
   const [forbidden, setForbidden] = useState(false);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [rows, setRows] = useState([]);
-  const [regularUsers, setRegularUsers] = useState([]);
+  const [users, setUsers] = useState([]);
   const [listError, setListError] = useState('');
-  const [regularError, setRegularError] = useState('');
   const [actionId, setActionId] = useState(null);
   const [actionMessage, setActionMessage] = useState('');
+  const [query, setQuery] = useState('');
+  const [tab, setTab] = useState('tree');
 
   useEffect(() => {
     const supabase = createClient();
@@ -208,22 +159,35 @@ export default function AdminPage() {
     (async () => {
       try {
         setForbidden(false);
-        setRegularError('');
-        const [agentList, regList] = await Promise.all([
-          adminListAgents(user.id, token),
-          adminListRegularUsers(user.id, token).catch((e) => {
-            if (!cancelled) setRegularError(e?.message || 'Failed to load regular users');
-            return [];
-          }),
-        ]);
-        if (!cancelled) {
-          setRows(Array.isArray(agentList) ? agentList : []);
-          setRegularUsers(Array.isArray(regList) ? regList : []);
+        try {
+          const data = await adminListUsers(user.id, token);
+          const list = Array.isArray(data?.users) ? data.users : Array.isArray(data) ? data : [];
+          if (!cancelled) setUsers(list);
+        } catch {
+          const [agentList, regList] = await Promise.all([
+            adminListAgents(user.id, token),
+            adminListRegularUsers(user.id, token).catch(() => []),
+          ]);
+          const merged = [...(Array.isArray(agentList) ? agentList : []), ...(Array.isArray(regList) ? regList : [])];
+          const byId = Object.fromEntries(merged.map((r) => [r.id, r]));
+          if (!cancelled) {
+            setUsers(
+              merged.map((row) => {
+                const parent = row.referred_by_id ? byId[row.referred_by_id] : null;
+                return {
+                  ...row,
+                  parent_email: parent?.email || null,
+                  parent_role: parent?.role || null,
+                  parent_display_name: parent?.display_name || parent?.username || null,
+                };
+              }),
+            );
+          }
         }
       } catch (e) {
         if (!cancelled) {
-          setListError(e?.message || 'Failed to load list');
-          setRows([]);
+          setListError(e?.message || 'Failed to load users');
+          setUsers([]);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -234,33 +198,46 @@ export default function AdminPage() {
     };
   }, [user?.id, user?.email, token]);
 
-  const agentsBySuperId = useMemo(() => {
-    const m = {};
-    for (const r of rows) {
-      if (!r.referred_by_id || (r.role !== 'agent' && r.role !== 'super_agent')) continue;
-      const k = r.referred_by_id;
-      if (!m[k]) m[k] = [];
-      m[k].push(r);
-    }
-    for (const k of Object.keys(m)) {
-      m[k].sort((a, b) => String(a.email || '').localeCompare(String(b.email || '')));
-    }
-    return m;
-  }, [rows]);
+  const byId = useMemo(() => Object.fromEntries(users.map((u) => [u.id, u])), [users]);
 
-  const regularUsersByAgentId = useMemo(() => {
+  const childrenByParent = useMemo(() => {
     const m = {};
-    for (const u of regularUsers) {
+    for (const u of users) {
       if (!u.referred_by_id) continue;
-      const k = u.referred_by_id;
-      if (!m[k]) m[k] = [];
-      m[k].push(u);
+      if (!m[u.referred_by_id]) m[u.referred_by_id] = [];
+      m[u.referred_by_id].push(u);
     }
     for (const k of Object.keys(m)) {
       m[k].sort((a, b) => String(a.email || '').localeCompare(String(b.email || '')));
     }
     return m;
-  }, [regularUsers]);
+  }, [users]);
+
+  const roots = useMemo(() => {
+    return users
+      .filter((u) => !u.referred_by_id || !byId[u.referred_by_id])
+      .sort((a, b) => {
+        const rank = { super_super_agent: 0, super_agent: 1, agent: 2, admin: 3, regular: 4 };
+        return (rank[a.role] ?? 9) - (rank[b.role] ?? 9) || String(a.email || '').localeCompare(String(b.email || ''));
+      });
+  }, [users, byId]);
+
+  const counts = useMemo(() => {
+    const c = { total: users.length, regular: 0, agent: 0, super_agent: 0, super_super_agent: 0, admin: 0, unattached: 0 };
+    for (const u of users) {
+      if (c[u.role] != null) c[u.role] += 1;
+      if (!u.referred_by_id) c.unattached += 1;
+    }
+    return c;
+  }, [users]);
+
+  const filteredUsers = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return users.filter((u) => matchesQuery(u, q));
+  }, [users, query]);
+
+  const agents = users.filter((r) => r.role === 'agent');
+  const superAgents = users.filter((r) => r.role === 'super_agent');
 
   async function promote(targetUserId) {
     if (!user?.id || !token) return;
@@ -270,9 +247,7 @@ export default function AdminPage() {
     try {
       await adminPromoteToSuperAgent(user.id, targetUserId, token);
       setActionMessage('Promoted to super agent.');
-      setRows((prev) =>
-        prev.map((r) => (r.id === targetUserId ? { ...r, role: 'super_agent' } : r))
-      );
+      setUsers((prev) => prev.map((r) => (r.id === targetUserId ? { ...r, role: 'super_agent' } : r)));
     } catch (e) {
       setActionMessage(e?.message || 'Failed');
     } finally {
@@ -288,9 +263,7 @@ export default function AdminPage() {
     try {
       await adminPromoteToSuperSuperAgent(user.id, targetUserId, token);
       setActionMessage('Promoted to super super agent.');
-      setRows((prev) =>
-        prev.map((r) => (r.id === targetUserId ? { ...r, role: 'super_super_agent' } : r))
-      );
+      setUsers((prev) => prev.map((r) => (r.id === targetUserId ? { ...r, role: 'super_super_agent' } : r)));
     } catch (e) {
       setActionMessage(e?.message || 'Failed');
     } finally {
@@ -313,250 +286,190 @@ export default function AdminPage() {
     );
   }
 
-  const agents = rows.filter((r) => r.role === 'agent');
-  const superAgents = rows.filter((r) => r.role === 'super_agent');
-  const superSuperAgents = rows.filter((r) => r.role === 'super_super_agent');
-
-  const guideBox = {
-    ...card,
-    background: 'var(--bg-muted)',
-    lineHeight: 1.55,
-    fontSize: '0.875rem',
-    color: 'var(--text-muted)',
-  };
-
   return (
-    <div className="page dash-screen" style={{ paddingBottom: '2rem' }}>
+    <div className="page dash-screen admin-page">
       <DashScreenHeader title="Admin" backHref="/dashboard/account" />
 
-      <div style={guideBox}>
-        <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '0.65rem', fontSize: '0.9375rem' }}>
-          How to read this screen
+      <p className="admin-signed">Signed in as {user?.email}</p>
+
+      <section className="admin-stats" aria-label="User counts">
+        <div className="admin-stat">
+          <span>All users</span>
+          <strong>{counts.total}</strong>
         </div>
-        <ol style={{ margin: 0, paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <li>
-            <strong style={{ color: 'var(--text)' }}>Super super agents</strong> recruit <strong style={{ color: 'var(--text)' }}>super agents</strong> via invite link. <strong style={{ color: 'var(--text)' }}>Super agents</strong> recruit plain <strong style={{ color: 'var(--text)' }}>agents</strong>. Under each card you’ll see who used their link.
-          </li>
-          <li>
-            <strong style={{ color: 'var(--text)' }}>Agents</strong> recruit <strong style={{ color: 'var(--text)' }}>regular customers</strong>. Open an agent card to see their customers.
-          </li>
-          <li>
-            <strong style={{ color: 'var(--text)' }}>“Invite link count”</strong> = how many accounts signed up with that person’s link. <strong style={{ color: 'var(--text)' }}>Agent → super agent</strong> is allowed only when that count is <strong style={{ color: 'var(--text)' }}>0</strong>. <strong style={{ color: 'var(--text)' }}>Super agent → super super agent</strong> can be done anytime (supers usually already have agents on their link).
-          </li>
-        </ol>
-        <p style={{ margin: '0.75rem 0 0', fontSize: '0.8125rem' }}>
-          Signed in as <strong style={{ color: 'var(--text)' }}>{user?.email}</strong>
-        </p>
+        <div className="admin-stat">
+          <span>Super super</span>
+          <strong>{counts.super_super_agent}</strong>
+        </div>
+        <div className="admin-stat">
+          <span>Super agents</span>
+          <strong>{counts.super_agent}</strong>
+        </div>
+        <div className="admin-stat">
+          <span>Agents</span>
+          <strong>{counts.agent}</strong>
+        </div>
+        <div className="admin-stat">
+          <span>Regular</span>
+          <strong>{counts.regular}</strong>
+        </div>
+        <div className="admin-stat">
+          <span>No parent</span>
+          <strong>{counts.unattached}</strong>
+        </div>
+      </section>
+
+      <label className="admin-search">
+        <span className="sr-only">Search users</span>
+        <input
+          className="form-input"
+          type="search"
+          placeholder="Search email, name, role, parent…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </label>
+
+      {listError && <div className="alert alert-error">{listError}</div>}
+      {actionMessage && <p className="admin-action-msg">{actionMessage}</p>}
+
+      <div className="admin-tabs" role="tablist">
+        <button type="button" className={tab === 'tree' ? 'active' : ''} onClick={() => setTab('tree')}>
+          Network tree
+        </button>
+        <button type="button" className={tab === 'all' ? 'active' : ''} onClick={() => setTab('all')}>
+          All users
+        </button>
+        <button type="button" className={tab === 'promote' ? 'active' : ''} onClick={() => setTab('promote')}>
+          Promote
+        </button>
       </div>
 
-      {listError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{listError}</div>}
-      {actionMessage && <p style={{ marginBottom: '1rem', fontSize: '0.875rem' }}>{actionMessage}</p>}
+      {tab === 'tree' && (
+        <section className="admin-panel">
+          <h2 className="admin-h2">Who sits under whom</h2>
+          <p className="admin-hint">Roots first (no parent, or parent missing). Expand a row to see everyone they invited.</p>
+          {!roots.length ? (
+            <p className="admin-muted">No users yet.</p>
+          ) : (
+            <ul className="admin-tree">
+              {roots.map((node) => (
+                <TreeNode key={node.id} node={node} childrenByParent={childrenByParent} query={query} />
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
-      <h2 className="page-title" style={{ marginTop: '1.25rem', fontSize: '1.05rem' }}>
-        Super super agents ({superSuperAgents.length})
-      </h2>
-      <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
-        Top tier. Each card shows ledger balances and who sits below them — usually <strong style={{ color: 'var(--text)' }}>super agents</strong> (and any legacy agents) recruited via their link.
-      </p>
-      <div className="card card-lg" style={{ marginBottom: '1.25rem' }}>
-        {superSuperAgents.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)', margin: 0 }}>None yet — promote a super agent using the button in the Super agents section.</p>
-        ) : (
-          superSuperAgents.map((a) => {
-            const invited = Number(a.invitedCount) || 0;
-            const under = agentsBySuperId[a.id] ?? [];
-            return (
-              <div key={a.id} style={{ ...card, marginBottom: '1rem' }}>
-                <RoleBadge variant="ss">Super super agent</RoleBadge>
-                <div style={strong}>{a.email || 'No email'}</div>
-                {(a.display_name || a.username) && (
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                    {a.display_name || a.username}
-                  </div>
-                )}
-                <div style={{ fontSize: '0.875rem', marginTop: '0.65rem', color: 'var(--text-muted)' }}>
-                  Invite link count:{' '}
-                  <strong style={{ color: 'var(--text)' }}>{invited}</strong>
-                  <span style={{ display: 'block', marginTop: 4, fontSize: '0.8125rem' }}>
-                    (everyone who used this person’s invite link)
-                  </span>
-                </div>
-                <LedgerBalances wallets={a.wallets} />
-                <CopyIdButton id={a.id} />
-                <div style={nested}>
-                  <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                    People below this super super ({under.length}) — super agents are labeled explicitly
-                  </div>
-                  <AgentsRecruitedList
-                    agents={under}
-                    emptyLabel="No one on their invite link yet."
-                    recruitContext="under_super_super"
-                  />
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      <h2 className="page-title" style={{ fontSize: '1.05rem' }}>
-        Super agents ({superAgents.length})
-      </h2>
-      <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
-        Each card shows ledger balances and <strong style={{ color: 'var(--text)' }}>agents</strong> they recruited. Use the button to promote to super super agent.
-      </p>
-      <div className="card card-lg" style={{ marginBottom: '1.25rem' }}>
-        {superAgents.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)', margin: 0 }}>None yet — promote a plain agent when their invite count is 0.</p>
-        ) : (
-          superAgents.map((a) => {
-            const invited = Number(a.invitedCount) || 0;
-            const under = agentsBySuperId[a.id] ?? [];
-            return (
-              <div key={a.id} style={{ ...card, marginBottom: '1rem' }}>
-                <RoleBadge>Super agent</RoleBadge>
-                <div style={strong}>{a.email || 'No email'}</div>
-                {(a.display_name || a.username) && (
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                    {a.display_name || a.username}
-                  </div>
-                )}
-                <div style={{ fontSize: '0.875rem', marginTop: '0.65rem', color: 'var(--text-muted)' }}>
-                  Invite link count: <strong style={{ color: 'var(--text)' }}>{invited}</strong>
-                </div>
-                <LedgerBalances wallets={a.wallets} />
-                <CopyIdButton id={a.id} />
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  style={{
-                    width: '100%',
-                    maxWidth: 320,
-                    marginTop: '0.75rem',
-                    padding: '0.55rem 1rem',
-                    fontSize: '0.875rem',
-                  }}
-                  disabled={actionId === a.id}
-                  onClick={() => promoteToSuperSuper(a.id)}
-                >
-                  {actionId === a.id ? 'Working…' : 'Promote to super super agent'}
-                </button>
-                <div style={nested}>
-                  <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                    Agents under this super agent ({under.length})
-                  </div>
-                  <AgentsRecruitedList
-                    agents={under}
-                    emptyLabel="No agents on their invite link yet."
-                    recruitContext="under_super"
-                  />
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      <h2 className="page-title" style={{ fontSize: '1.05rem' }}>
-        Agents ({agents.length})
-      </h2>
-      <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
-        People who can invite regular customers. Promote to super agent only if their invite link count is 0.
-      </p>
-      <div className="card card-lg" style={{ marginBottom: '1.25rem' }}>
-        {agents.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)', margin: 0 }}>No agent accounts.</p>
-        ) : (
-          agents.map((a) => {
-            const invited = Number(a.invitedCount) || 0;
-            const canPromote = invited === 0;
-            const usersUnder = regularUsersByAgentId[a.id] ?? [];
-            return (
-              <div key={a.id} style={{ ...card, marginBottom: '1rem' }}>
-                <RoleBadge>Agent</RoleBadge>
-                <div style={strong}>{a.email || 'No email'}</div>
-                {(a.display_name || a.username) && (
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                    {a.display_name || a.username}
-                  </div>
-                )}
-                <div style={{ fontSize: '0.875rem', marginTop: '0.65rem', color: 'var(--text-muted)' }}>
-                  Invite link count: <strong style={{ color: 'var(--text)' }}>{invited}</strong>
-                </div>
-                <div style={{ fontSize: '0.8125rem', marginTop: 4, color: canPromote ? 'var(--success, #3fb950)' : 'var(--text-muted)' }}>
-                  {canPromote ? '✓ Can promote to super agent' : '✗ Cannot promote yet — they still have people on their link'}
-                </div>
-                <LedgerBalances wallets={a.wallets} />
-                <CopyIdButton id={a.id} />
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  style={{
-                    width: '100%',
-                    maxWidth: 320,
-                    marginTop: '0.75rem',
-                    padding: '0.55rem 1rem',
-                    fontSize: '0.875rem',
-                  }}
-                  disabled={actionId === a.id || !canPromote}
-                  title={!canPromote ? 'Invite link count must be 0' : undefined}
-                  onClick={() => promote(a.id)}
-                >
-                  {actionId === a.id ? 'Working…' : 'Promote to super agent'}
-                </button>
-                <div style={nested}>
-                  <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                    Their regular customers ({usersUnder.length})
-                  </div>
-                  <RegularCustomersList
-                    users={usersUnder}
-                    emptyLabel="No regular customers on their invite link yet."
-                  />
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      <h2 className="page-title" style={{ fontSize: '1.05rem' }}>
-        All regular users ({regularUsers.length})
-      </h2>
-      <p style={{ ...labelMuted, marginTop: '-0.25rem', marginBottom: '0.75rem' }}>
-        Everyone with a normal account. Ledger balances are per currency. “Referred by” is the user ID of whoever invited them.
-      </p>
-      <div className="card card-lg">
-        {regularError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{regularError}</div>}
-        {regularUsers.length === 0 && !regularError ? (
-          <p style={{ color: 'var(--text-muted)', margin: 0 }}>No regular user accounts.</p>
-        ) : regularUsers.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-            {regularUsers.map((u) => (
-              <div key={u.id} style={{ ...card, marginBottom: 0, padding: '0.85rem' }}>
-                <div style={labelMuted}>Regular user</div>
-                <div style={strong}>{u.email || 'No email'}</div>
-                {(u.display_name || u.username) && (
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                    {u.display_name || u.username}
-                  </div>
-                )}
-                <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
-                  Joined: {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
-                </div>
-                {u.referred_by_id ? (
-                  <div style={{ fontSize: '0.8125rem', marginTop: '0.35rem', color: 'var(--text-muted)', wordBreak: 'break-all' }}>
-                    Referred by (user ID): <span style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>{u.referred_by_id}</span>
-                  </div>
-                ) : (
-                  <div style={{ fontSize: '0.8125rem', marginTop: '0.35rem', color: 'var(--text-muted)' }}>Not referred by anyone</div>
-                )}
-                <LedgerBalances wallets={u.wallets} />
-                <CopyIdButton id={u.id} />
-              </div>
-            ))}
+      {tab === 'all' && (
+        <section className="admin-panel">
+          <h2 className="admin-h2">All users ({filteredUsers.length})</h2>
+          <p className="admin-hint">Parent is the person whose invite link they used — shown as email, not a raw ID.</p>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Role</th>
+                  <th>Under</th>
+                  <th>Invited</th>
+                  <th>Joined</th>
+                  <th>Ledger</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((u) => (
+                  <tr key={u.id}>
+                    <td>
+                      <strong>{displayName(u)}</strong>
+                      {(u.display_name || u.username) && u.email ? (
+                        <div className="admin-muted">{u.display_name || u.username}</div>
+                      ) : null}
+                    </td>
+                    <td>
+                      <RoleBadge role={u.role} />
+                    </td>
+                    <td className="admin-parent-cell">{parentLabel(u)}</td>
+                    <td>{u.invitedCount || 0}</td>
+                    <td>{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                    <td>
+                      <LedgerLine wallets={u.wallets} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ) : null}
-      </div>
+        </section>
+      )}
+
+      {tab === 'promote' && (
+        <section className="admin-panel">
+          <h2 className="admin-h2">Promote roles</h2>
+          <p className="admin-hint">
+            Agent → super agent only if they have 0 invites. Super agent → super super can be done anytime.
+          </p>
+
+          <h3 className="admin-h3">Super agents ({superAgents.length})</h3>
+          {!superAgents.length ? (
+            <p className="admin-muted">None yet.</p>
+          ) : (
+            <ul className="admin-promote-list">
+              {superAgents.map((a) => (
+                <li key={a.id} className="admin-promote-card">
+                  <div>
+                    <RoleBadge role={a.role} />
+                    <strong>{displayName(a)}</strong>
+                    <span className="admin-muted">
+                      Under {parentLabel(a)} · {a.invitedCount || 0} invited
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={actionId === a.id}
+                    onClick={() => promoteToSuperSuper(a.id)}
+                  >
+                    {actionId === a.id ? 'Working…' : 'Promote to super super'}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <h3 className="admin-h3">Agents ({agents.length})</h3>
+          {!agents.length ? (
+            <p className="admin-muted">No agent accounts.</p>
+          ) : (
+            <ul className="admin-promote-list">
+              {agents.map((a) => {
+                const invited = Number(a.invitedCount) || 0;
+                const canPromote = invited === 0;
+                return (
+                  <li key={a.id} className="admin-promote-card">
+                    <div>
+                      <RoleBadge role={a.role} />
+                      <strong>{displayName(a)}</strong>
+                      <span className="admin-muted">
+                        Under {parentLabel(a)} · {invited} invited
+                        {canPromote ? ' · can promote' : ' · cannot promote yet'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      disabled={actionId === a.id || !canPromote}
+                      onClick={() => promote(a.id)}
+                    >
+                      {actionId === a.id ? 'Working…' : 'Promote to super agent'}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
     </div>
   );
 }
