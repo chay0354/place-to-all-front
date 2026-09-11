@@ -325,7 +325,10 @@ export function DashboardClient({
           </span>
           <span>Withdrawal</span>
         </Link>
-        <Link href="/dashboard/affiliation" className="dash-home-quick-action">
+        <Link
+          href={canSeeAffiliation ? '/dashboard/affiliation' : '/dashboard/account?view=payment-links'}
+          className="dash-home-quick-action"
+        >
           <span className="dash-home-quick-action-icon">
             <AffiliateIcon />
           </span>

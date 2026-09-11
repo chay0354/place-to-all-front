@@ -48,6 +48,7 @@ export function ProviderInertPayButtons({ variant = 'default' }) {
           <img src="/trans.png" alt="" width={320} height={72} draggable={false} />
         </button>
       </div>
+      <p className="provider-pay-coming-soon">Paybis and Trans are coming soon.</p>
     </>
   );
 }

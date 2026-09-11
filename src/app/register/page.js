@@ -13,13 +13,14 @@ function RegisterPageContent() {
   const refParam = useQueryParam('ref') || '';
   const nextPath = useQueryParam('next') || '';
   const typeParam = useQueryParam('type') || '';
-  const isFromAffiliateLink = Boolean(refParam.trim());
+  const hasRefParam = Boolean(refParam.trim());
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userType, setUserType] = useState(() => (typeParam === 'agent' ? 'agent' : 'regular'));
   const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_CODE);
   const [recruiterRole, setRecruiterRole] = useState(null);
+  const [refStatus, setRefStatus] = useState('idle');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -29,13 +30,24 @@ function RegisterPageContent() {
     const ref = refParam.trim();
     if (!ref) {
       setRecruiterRole(null);
+      setRefStatus('idle');
       return;
     }
+    setRefStatus('checking');
     fetch(toRelayUrl(`/api/auth/referral-preview?ref=${encodeURIComponent(ref)}`), { credentials: 'include' })
       .then((r) => r.json())
-      .then((d) => setRecruiterRole(d.valid ? d.recruiterRole : null))
-      .catch(() => setRecruiterRole(null));
+      .then((d) => {
+        setRecruiterRole(d.valid ? d.recruiterRole : null);
+        setRefStatus(d.valid ? 'valid' : 'invalid');
+      })
+      .catch(() => {
+        setRecruiterRole(null);
+        setRefStatus('invalid');
+      });
   }, [refParam]);
+
+  const isFromAffiliateLink = hasRefParam && refStatus === 'valid';
+  const inviteBroken = hasRefParam && refStatus === 'invalid';
 
   useEffect(() => {
     if (isFromAffiliateLink) return;
@@ -53,6 +65,10 @@ function RegisterPageContent() {
     }
     if (pwd.length < 6) {
       setError('Password must be at least 6 characters.');
+      return;
+    }
+    if (hasRefParam && refStatus === 'checking') {
+      setError('Still checking your invite link — try again in a second.');
       return;
     }
     setLoading(true);
@@ -98,18 +114,24 @@ function RegisterPageContent() {
     <div className="app-dark" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '1.5rem' }}>
       <main className="auth-card" style={{ width: '100%', maxWidth: 400 }}>
       <h1 className="auth-title">Create account</h1>
+      {inviteBroken && (
+        <div className="alert alert-error" style={{ marginTop: '0.75rem' }}>
+          This invite link is invalid or expired, so no one will be credited for your signup. You can still create a
+          regular account below.
+        </div>
+      )}
       <p className="auth-sub">
-        {isFromAffiliateLink
+        {hasRefParam && refStatus === 'checking'
+          ? 'Checking invite link…'
+          : isFromAffiliateLink
           ? recruiterRole === 'super_super_agent'
             ? 'You were invited by a super super agent. You will join as a super agent under them (account type is set by this link — you cannot choose). They earn network fees including an extra tier when the commission rules apply (fees are paid by the buyer).'
             : recruiterRole === 'super_agent'
             ? 'You were invited by a super agent. You will join as an agent under them (account type is set by this link — you cannot choose). They earn an extra 4% on qualifying buys you and your referrals make (fees are paid by the buyer).'
-            : recruiterRole === 'agent'
-              ? 'You were referred by an agent. You will join as a regular user (account type is set by this link — you cannot choose). They earn 4% on your crypto buys (along with other tiers and admin; fees come from your purchase).'
-              : 'Checking invite link…'
+            : 'You were referred by an agent. You will join as a regular user (account type is set by this link — you cannot choose). They earn 4% on your crypto buys (along with other tiers and admin; fees come from your purchase).'
           : 'Get started with your crypto wallet'}
       </p>
-      {!isFromAffiliateLink && (
+      {!isFromAffiliateLink && !(hasRefParam && refStatus === 'checking') && (
         <div className="form-group">
           <label className="form-label">Account type</label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.35rem' }}>

@@ -14,6 +14,7 @@ export function AccountReferralScreen({ userId, role }) {
   const [copied, setCopied] = useState(false);
   const [feeSettings, setFeeSettings] = useState(null);
   const [invitedCount, setInvitedCount] = useState(0);
+  const [invitedKind, setInvitedKind] = useState('regulars');
   const [inviteLoading, setInviteLoading] = useState(true);
   const [activeTierIndex, setActiveTierIndex] = useState(0);
   const carouselRef = useRef(null);
@@ -32,6 +33,7 @@ export function AccountReferralScreen({ userId, role }) {
       .then((data) => {
         const members = Array.isArray(data?.members) ? data.members : [];
         setInvitedCount(members.length);
+        setInvitedKind(data?.kind || 'regulars');
       })
       .catch(() => setInvitedCount(0))
       .finally(() => setInviteLoading(false));
@@ -105,7 +107,9 @@ export function AccountReferralScreen({ userId, role }) {
       <section className="ref-tier-block" aria-label="Invite reward levels">
         <div className="ref-tier-stats">
           <div className="ref-tier-stat">
-            <span className="ref-tier-stat-label">Invited friends</span>
+            <span className="ref-tier-stat-label">
+              {invitedKind === 'network' ? 'People in your network' : 'Invited friends'}
+            </span>
             <strong className="ref-tier-stat-value">
               {inviteLoading ? '…' : invitedCount}
             </strong>
@@ -222,6 +226,10 @@ export function AccountReferralScreen({ userId, role }) {
           <li>Invite more friends to climb LV1 → LV4 and unlock up to 40% on card activation.</li>
         </ol>
         <p className="account-referral-note">{copy.signupNote}</p>
+        <p className="account-referral-note">
+          Card activation and card-spend rewards launch with the card program; invites you collect now already count
+          toward your level. Crypto-buy commissions are live today on the Affiliation screen.
+        </p>
       </section>
 
       <section className="account-panel account-referral-section" aria-labelledby="referral-link-title">

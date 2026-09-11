@@ -15,6 +15,7 @@ import { DashScreenHeader } from '@/components/DashScreenHeader';
 import { resolveUserCountryIso } from '@/lib/phone-country';
 import { clearPinUnlocked } from '@/lib/quick-pin-session';
 import { writeCachedAvatarUrl } from '@/lib/profile-avatar';
+import { useQueryParam } from '@/lib/use-query-param';
 
 const accountSectionLoading = () => <AppLoadingScreen fullScreen={false} className="app-loading-screen--section" size={56} />;
 
@@ -90,6 +91,11 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
   const [idModalOpen, setIdModalOpen] = useState(false);
   const [copied, setCopied] = useState('');
   const router = useRouter();
+  const viewParam = useQueryParam('view');
+
+  useEffect(() => {
+    if (viewParam === 'payment-links') setView('payment-links');
+  }, [viewParam]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -177,9 +183,9 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
   }
 
   useEffect(() => {
-    if (view !== 'payment-links' || !canManagePaymentLinks || isAgentLike || !user?.id || !token) return;
+    if (view !== 'payment-links' || !canManagePaymentLinks || !user?.id || !token) return;
     refreshPaymentLinks();
-  }, [view, canManagePaymentLinks, isAgentLike, user?.id, token]);
+  }, [view, canManagePaymentLinks, user?.id, token]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -382,6 +388,13 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
               label="Security"
               onClick={() => setView('security')}
             />
+            {canManagePaymentLinks && (
+              <AccountMenuRow
+                icon={<LinkIcon />}
+                label="Payment links"
+                onClick={() => setView('payment-links')}
+              />
+            )}
             {canSeeAffiliation && (
               <AccountMenuRow
                 icon={<UsersIcon />}
@@ -474,7 +487,7 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
         </div>
       )}
 
-      {view === 'payment-links' && canManagePaymentLinks && !isAgentLike && (
+      {view === 'payment-links' && canManagePaymentLinks && (
         <div className="account-subview">
           <p className="account-subview-lead">
             Create a fixed-amount link: anyone can open it and pay in one tap (no sign-in). Funds credit your in-app wallet.
@@ -546,7 +559,7 @@ export function AccountPageClient({ initialUser = null, initialProfile = null })
                       <strong>{pl.title || 'Payment request'}</strong>
                       <span>
                         {pl.currency}
-                        {pl.amount != null && Number(pl.amount) > 0 ? ` · ${pl.amount}` : ' · any amount'}
+                        {pl.amount != null && Number(pl.amount) > 0 ? ` · ${pl.amount}` : ''}
                       </span>
                     </div>
                     <div className="account-link-copy-row">
@@ -786,6 +799,15 @@ function PaymentIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
       <circle cx="12" cy="12" r="9" />
       <circle cx="12" cy="12" r="4" />
+    </svg>
+  );
+}
+
+function LinkIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
     </svg>
   );
 }

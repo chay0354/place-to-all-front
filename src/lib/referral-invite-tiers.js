@@ -95,5 +95,5 @@ export function formatPct(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return '—';
   if (Number.isInteger(n)) return `${n}%`;
-  return `${n}%`;
+  return `${Number(n.toFixed(2))}%`;
 }

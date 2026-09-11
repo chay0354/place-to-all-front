@@ -50,16 +50,20 @@ function buildSections({ canSeeAffiliation, isAdmin }) {
     ],
   };
 
-  const rewardsItems = [
-    { label: 'Referral', href: '/dashboard/account/referral', icon: <ReferralIcon /> },
-  ];
+  const rewardsItems = [];
   if (canSeeAffiliation) {
+    rewardsItems.push({ label: 'Referral', href: '/dashboard/account/referral', icon: <ReferralIcon /> });
     rewardsItems.push({
       label: 'Affiliate',
       href: '/dashboard/affiliation',
       icon: <AffiliateIcon />,
     });
   } else {
+    rewardsItems.push({
+      label: 'Payment links',
+      href: '/dashboard/account?view=payment-links',
+      icon: <ReferralIcon />,
+    });
     rewardsItems.push({
       label: 'Be an admin',
       href: '/register?type=agent',
