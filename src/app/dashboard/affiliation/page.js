@@ -20,8 +20,9 @@ import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
 const AGENT_ROLES = new Set(['agent', 'super_agent', 'super_super_agent', 'admin']);
 const DOWNLINE_AGENT_ROLES = new Set(['agent', 'super_agent']);
-const TAKE_MIN = 3;
-const TAKE_MAX = 6;
+const TAKE_MIN = 0.5;
+const TAKE_MAX = 4;
+const TAKE_TICKS = [0.5, 1, 2, 3, 4];
 const MOVEMENT_TYPES = new Set(['buy', 'sell', 'transfer']);
 const VOLUME_MILESTONES = [
   { id: 'starter', label: 'Starter', target: 0 },
@@ -210,10 +211,13 @@ export default function AffiliationDashboardPage() {
     getAffiliationFees()
       .then((data) => {
         const raw = Number(data?.affiliateTakePercent);
-        const pct = Number.isFinite(raw) ? raw : Number(data?.defaultAffiliateTakePercent) || 4;
-        setTakePercent(Math.min(TAKE_MAX, Math.max(TAKE_MIN, pct)));
-        if (Number.isFinite(raw) || Number.isFinite(Number(data?.defaultAffiliateTakePercent))) {
-          setTeamDefaultEarn(Number.isFinite(raw) ? raw : Number(data.defaultAffiliateTakePercent) || 4);
+        const pct = Number.isFinite(raw) ? raw : Number(data?.defaultAffiliateTakePercent) || TAKE_MAX;
+        const clamped = Math.min(TAKE_MAX, Math.max(TAKE_MIN, pct));
+        setTakePercent(clamped);
+        setTeamDefaultEarn(clamped);
+        // A rate saved before the 0.5–4% range existed would show clamped but bill at the old value.
+        if (Number.isFinite(raw) && raw !== clamped) {
+          patchAffiliationFees({ affiliateTakePercent: clamped }).catch(() => {});
         }
       })
       .catch(() => {});
@@ -265,6 +269,13 @@ export default function AffiliationDashboardPage() {
     refreshPaymentLinks();
   }, [isAgentLike, user?.id, token, refreshPaymentLinks]);
 
+  const focusTeamMember = useCallback((memberId) => {
+    const card = document.getElementById(`aff-team-${memberId}`);
+    if (!card) return;
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.querySelector('input[type="number"]')?.focus();
+  }, []);
+
   const updateTeamDraft = useCallback((memberId, field, value) => {
     setTeamDrafts((prev) => ({
       ...prev,
@@ -277,8 +288,8 @@ export default function AffiliationDashboardPage() {
     async (memberId) => {
       const draft = teamDrafts[memberId] || {};
       const earn = Number(draft.earnPercent);
-      if (Number.isNaN(earn) || earn < 0 || earn > 6) {
-        setTeamMessage('Earn % must be between 0 and 6.');
+      if (Number.isNaN(earn) || earn < TAKE_MIN || earn > TAKE_MAX) {
+        setTeamMessage(`Earn % must be between ${TAKE_MIN} and ${TAKE_MAX}.`);
         return;
       }
       setTeamSavingId(memberId);
@@ -374,6 +385,11 @@ export default function AffiliationDashboardPage() {
     const nicknameById = Object.fromEntries(
       (teamMembers || []).map((m) => [m.id, (m.nickname || '').trim()]).filter(([, nick]) => nick),
     );
+    const earnById = Object.fromEntries(
+      (teamMembers || [])
+        .filter((m) => m.earnPercent != null && m.earnPercent !== '')
+        .map((m) => [m.id, Number(m.earnPercent)]),
+    );
     const parentById = Object.fromEntries(members.map((m) => [m.id, m.referred_by_id || null]));
 
     function isUnder(memberId, ancestorId) {
@@ -402,6 +418,7 @@ export default function AffiliationDashboardPage() {
       );
       const label =
         nicknameById[m.id] || m.display_name || m.username || m.email || (isSuperManager ? 'Agent' : 'Member');
+      const earnPercent = earnById[m.id] != null ? earnById[m.id] : takePercent;
       return {
         id: m.id,
         label,
@@ -411,13 +428,15 @@ export default function AffiliationDashboardPage() {
         toMe,
         people: Math.max(0, network.length - 1),
         payouts,
+        earnPercent,
+        earnIsCustom: earnById[m.id] != null,
       };
     });
 
     rows.sort((a, b) => b.toMe - a.toMe || a.label.localeCompare(b.label));
     const peak = Math.max(...rows.map((r) => r.toMe), 0) || 1;
     return rows.map((r, i) => ({ ...r, rank: i + 1, share: (r.toMe / peak) * 100 }));
-  }, [members, feesByMember, teamMembers, user?.id, isSuperManager]);
+  }, [members, feesByMember, teamMembers, user?.id, isSuperManager, takePercent]);
 
   const agentCommissionTotal = feesCollectedByYou;
 
@@ -456,7 +475,7 @@ export default function AffiliationDashboardPage() {
           <p>Fees to you</p>
           <strong>${feesCollectedByYou.toFixed(2)}</strong>
         </div>
-        <div className="aff-stat-card red">
+        <div className="aff-stat-card violet">
           <p>
             People
             {profile?.role === 'super_agent' || profile?.role === 'super_super_agent' ? (
@@ -515,6 +534,21 @@ export default function AffiliationDashboardPage() {
                     <span>{row.payouts} {row.payouts === 1 ? 'payout' : 'payouts'}</span>
                   </div>
                 </div>
+                <div className="aff-agent-rate-row">
+                  <span className={`aff-agent-rate${row.earnIsCustom ? ' aff-agent-rate--custom' : ''}`}>
+                    You take {Number(row.earnPercent).toFixed(1)}%
+                    {row.earnIsCustom ? '' : ' (default)'}
+                  </span>
+                  {isSuperManager && (
+                    <button
+                      type="button"
+                      className="aff-agent-rate-edit"
+                      onClick={() => focusTeamMember(row.id)}
+                    >
+                      Change
+                    </button>
+                  )}
+                </div>
                 <div className="aff-agent-track" aria-hidden>
                   <div className="aff-agent-fill" style={{ width: `${Math.max(row.share, row.toMe > 0 ? 6 : 0)}%` }} />
                 </div>
@@ -524,8 +558,8 @@ export default function AffiliationDashboardPage() {
         )}
       </section>
 
-      <section className="aff-inline-panel" aria-label="Payment links">
-        <h2 className="aff-section-title">Payment links</h2>
+      <section className="aff-inline-panel" aria-label="Commission and payment links">
+        <h2 className="aff-section-title">Commission &amp; payment links</h2>
 
         <div className="aff-volume-progress" aria-label="Downline volume progress">
           <div className="aff-volume-progress-head">
@@ -602,6 +636,44 @@ export default function AffiliationDashboardPage() {
           )}
         </div>
 
+        <div className="aff-take-panel" aria-label="Commission take">
+          <div className="aff-take-head">
+            <div>
+              <h3 className="aff-subtitle">Your commission</h3>
+              <p className="aff-team-hint">
+                {isSuperManager
+                  ? 'Percent you take on agents under you. Applies as the default for their network.'
+                  : 'Percent you take on people under you.'}
+              </p>
+            </div>
+            <strong className="aff-fee-pct">{takePercent.toFixed(1)}%</strong>
+          </div>
+
+          <label className="aff-take-slider">
+            <span className="sr-only">Commission percent</span>
+            <input
+              className="aff-range"
+              type="range"
+              min={TAKE_MIN}
+              max={TAKE_MAX}
+              step="0.1"
+              value={takePercent}
+              onChange={(e) => onTakePercentChange(e.target.value)}
+            />
+          </label>
+
+          <div className="aff-take-ticks" aria-hidden>
+            {TAKE_TICKS.map((tick) => (
+              <span key={tick}>{tick}%</span>
+            ))}
+          </div>
+
+          <p className="aff-take-status">
+            {takeSaving ? 'Saving…' : takeMessage || `Drag to set ${TAKE_MIN}%–${TAKE_MAX}%`}
+          </p>
+        </div>
+
+        <h3 className="aff-subtitle aff-subtitle--spaced">Create a payment link</h3>
         <form
           className="aff-payment-form"
           onSubmit={async (e) => {
@@ -667,9 +739,16 @@ export default function AffiliationDashboardPage() {
           </div>
           {plMessage && <p className="aff-message">{plMessage}</p>}
           {latestPaymentUrl && (
-            <p className="aff-message aff-break-all" style={{ padding: '0 0 0.75rem' }}>
-              Latest: {latestPaymentUrl}
-            </p>
+            <div className="aff-copy-row aff-copy-row--tight" style={{ paddingBottom: '0.75rem' }}>
+              <input readOnly className="form-input aff-copy-input" value={latestPaymentUrl} aria-label="Latest payment URL" />
+              <button
+                type="button"
+                className="btn btn-ghost aff-copy-btn"
+                onClick={() => navigator.clipboard.writeText(latestPaymentUrl)}
+              >
+                Copy
+              </button>
+            </div>
           )}
           <button type="submit" className="btn btn-primary" disabled={plLoading}>
             {plLoading ? 'Creating…' : 'Create payment link'}
@@ -687,7 +766,7 @@ export default function AffiliationDashboardPage() {
                   <div className="aff-payment-link-title">{pl.title || 'Payment request'}</div>
                   <div className="aff-payment-link-meta">
                     {pl.currency}
-                    {pl.amount != null && Number(pl.amount) > 0 ? ` · ${pl.amount}` : ' · any amount'}
+                    {pl.amount != null && Number(pl.amount) > 0 ? ` · ${pl.amount}` : ''}
                   </div>
                   <div className="aff-copy-row aff-copy-row--tight">
                     <input
@@ -732,7 +811,7 @@ export default function AffiliationDashboardPage() {
                 const draft = teamDrafts[m.id] || { nickname: '', earnPercent: String(teamDefaultEarn), notes: '' };
                 const accountName = m.display_name || m.username || m.email || 'Agent';
                 return (
-                  <li key={m.id} className="aff-team-card">
+                  <li key={m.id} id={`aff-team-${m.id}`} className="aff-team-card">
                     <div className="aff-team-card-top">
                       <div>
                         <strong className="aff-team-card-title">
@@ -774,12 +853,12 @@ export default function AffiliationDashboardPage() {
                         />
                       </label>
                       <label className="aff-team-field aff-team-field--pct">
-                        <span>Your earn % on them</span>
+                        <span>Your earn % on them ({TAKE_MIN}–{TAKE_MAX})</span>
                         <input
                           className="form-input"
                           type="number"
-                          min="0"
-                          max="6"
+                          min={TAKE_MIN}
+                          max={TAKE_MAX}
                           step="0.1"
                           value={draft.earnPercent}
                           onChange={(e) => updateTeamDraft(m.id, 'earnPercent', e.target.value)}
@@ -865,44 +944,6 @@ export default function AffiliationDashboardPage() {
             })}
           </ul>
         )}
-      </section>
-
-      <section className="aff-take-panel" aria-label="Commission take">
-        <div className="aff-take-head">
-          <div>
-            <h2 className="aff-section-title">Your commission</h2>
-            <p className="aff-team-hint">
-              {isSuperManager
-                ? 'Percent you take on agents under you. Applies as the default for their network.'
-                : 'Percent you take on people under you.'}
-            </p>
-          </div>
-          <strong className="aff-fee-pct">{takePercent.toFixed(1)}%</strong>
-        </div>
-
-        <label className="aff-take-slider">
-          <span className="sr-only">Commission percent</span>
-          <input
-            className="aff-range"
-            type="range"
-            min={TAKE_MIN}
-            max={TAKE_MAX}
-            step="0.1"
-            value={takePercent}
-            onChange={(e) => onTakePercentChange(e.target.value)}
-          />
-        </label>
-
-        <div className="aff-take-ticks" aria-hidden>
-          <span>3%</span>
-          <span>4%</span>
-          <span>5%</span>
-          <span>6%</span>
-        </div>
-
-        <p className="aff-take-status">
-          {takeSaving ? 'Saving…' : takeMessage || 'Drag to set 3%–6%'}
-        </p>
       </section>
 
       {usersOpen && (
