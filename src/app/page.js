@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { ClientRedirect } from '@/components/ClientRedirect';
+import appIcon from './icon.png';
 
 export default async function Home() {
   const supabase = await createClient();
@@ -14,7 +15,7 @@ export default async function Home() {
       <header className="home-topbar">
         <div className="home-topbar-inner">
           <Link href="/" className="home-topbar-logo" aria-label="Place to All home">
-            <span className="home-topbar-mark">PtA</span>
+            <img src={appIcon.src} alt="" className="home-topbar-mark" width={36} height={36} draggable={false} />
             <span className="home-topbar-wordmark">
               Place to <span className="home-topbar-accent">All</span>
             </span>
@@ -89,7 +90,7 @@ export default async function Home() {
                   </svg>
                 </div>
                 <h3 className="home-feature-title">Portfolio view</h3>
-                <p className="home-feature-desc">Dark, focused dashboard: balances and activity in one screen.</p>
+                <p className="home-feature-desc">Balances and activity together on one clear screen.</p>
               </article>
             </div>
           </div>

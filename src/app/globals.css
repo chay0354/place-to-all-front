@@ -4019,8 +4019,8 @@ input, button, select, textarea {
   padding: 1.25rem 1rem 1.5rem;
   margin-bottom: 1.25rem;
   border-radius: 18px;
-  background: #2a2a2c;
-  border: 1px solid rgba(11, 31, 58, 0.08);
+  background: #ffffff;
+  border: 1px solid var(--dash-border);
   text-align: center;
 }
 
@@ -4053,9 +4053,9 @@ input, button, select, textarea {
   width: 100%;
   min-height: 56px;
   padding: 0.65rem 0.85rem;
-  border: none;
+  border: 1px solid var(--dash-border);
   border-radius: 999px;
-  background: #2a2a2c;
+  background: #ffffff;
   color: var(--dash-text);
   text-align: left;
   cursor: default;
@@ -4091,8 +4091,7 @@ input, button, select, textarea {
 }
 
 .account-community-icon--twitter {
-  background: #F5F8FC;
-  border: 1px solid rgba(11, 31, 58, 0.1);
+  background: #0B1F3A;
 }
 
 .account-community-icon--facebook {
@@ -5070,14 +5069,14 @@ input, button, select, textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--dash-card-hover);
-  color: #000;
+  background: #ffffff;
+  color: #2563EB;
   border: 1px solid var(--dash-border);
 }
 
 .dash-home-quick-action-icon--light {
   background: #ffffff;
-  color: #000;
+  color: #2563EB;
   border-color: var(--dash-border);
 }
 
@@ -5133,7 +5132,7 @@ input, button, select, textarea {
   height: 44px;
   border-radius: 50%;
   background: var(--dash-primary);
-  color: #000;
+  color: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5229,7 +5228,7 @@ input, button, select, textarea {
   margin-top: 0.75rem;
   border-radius: 12px;
   border: 1px solid var(--dash-border);
-  background: linear-gradient(180deg, rgba(11, 36, 64, 0.95), rgba(8, 24, 45, 0.95));
+  background: #F5F8FC;
   padding: 0.75rem;
 }
 
@@ -5294,8 +5293,8 @@ input, button, select, textarea {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(11, 31, 58, 0.08);
-  color: #000;
+  background: #DBEAFE;
+  color: #2563EB;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6609,7 +6608,7 @@ input, button, select, textarea {
 
 .app-dark .btn-primary {
   background: var(--dash-accent);
-  color: #000;
+  color: #fff;
 }
 
 .app-dark .btn-ghost {
@@ -6632,7 +6631,7 @@ input, button, select, textarea {
 
 .app-dark .hero-actions .btn-primary {
   background: var(--dash-accent);
-  color: #000;
+  color: #fff;
 }
 
 .app-dark .hero-actions .btn-ghost {
@@ -6696,17 +6695,13 @@ input, button, select, textarea {
 }
 
 .home-topbar-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 10px;
-  font-size: 0.5625rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  color: #000;
-  background: linear-gradient(135deg, #2563EB 0%, #60A5FA 100%);
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--dash-border);
 }
 
 .home-topbar-wordmark {
@@ -6760,7 +6755,7 @@ input, button, select, textarea {
   justify-content: center;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #000;
+  color: #fff;
   background: var(--dash-accent);
   border-radius: 10px;
   text-decoration: none;
@@ -6771,7 +6766,7 @@ input, button, select, textarea {
 .home-topbar-cta:hover {
   filter: brightness(1.08);
   text-decoration: none;
-  color: #000;
+  color: #fff;
 }
 
 @media (max-width: 480px) {
@@ -6863,12 +6858,11 @@ input, button, select, textarea {
 .home-landing .hero-highlights li {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--dash-muted);
+  color: var(--dash-text);
   padding: 0.4rem 0.85rem;
   border-radius: 999px;
   border: 1px solid var(--dash-border);
-  background: rgba(22, 27, 34, 0.72);
-  backdrop-filter: blur(8px);
+  background: #F5F8FC;
 }
 
 .home-landing .hero-actions {
@@ -7078,11 +7072,8 @@ input[type='range']:focus-visible::-moz-range-thumb {
   padding: clamp(1.75rem, 4vw, 2.5rem);
   border-radius: 20px;
   border: 1px solid var(--dash-border);
-  background: linear-gradient(165deg, rgba(14, 14, 16, 0.96) 0%, rgba(0, 0, 0, 0.9) 100%);
-  box-shadow:
-    0 1px 0 rgba(11, 31, 58, 0.05) inset,
-    0 20px 56px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(11, 31, 58, 0.08);
 }
 
 .home-features-band {
@@ -7090,15 +7081,15 @@ input[type='range']:focus-visible::-moz-range-thumb {
   z-index: 1;
   width: 100%;
   margin-top: clamp(2rem, 6vw, 3.5rem);
-  padding: clamp(2rem, 5vw, 3rem) max(1rem, env(safe-area-inset-left, 0px)) max(2.5rem, calc(1.5rem + env(safe-area-inset-bottom, 0px))) max(1rem, env(safe-area-inset-right, 0px));
+  padding: clamp(2rem, 5vw, 3rem) 0 max(2.5rem, calc(1.5rem + env(safe-area-inset-bottom, 0px)));
   border-top: 1px solid var(--dash-border);
-  background: linear-gradient(180deg, #0E0E10 0%, #000 100%);
-  box-shadow: 0 -1px 0 rgba(37, 99, 235, 0.08);
+  background: #E6ECF4;
 }
 
 .home-features-band-inner {
-  max-width: 72rem;
+  max-width: 40rem;
   margin: 0 auto;
+  padding: 0 max(1rem, env(safe-area-inset-left, 0px)) 0 max(1rem, env(safe-area-inset-right, 0px));
 }
 
 .home-features-heading {
@@ -7116,12 +7107,13 @@ input[type='range']:focus-visible::-moz-range-thumb {
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   width: 100%;
+  margin-inline: auto;
+  align-items: stretch;
 }
 
 @media (max-width: 720px) {
   .home-features {
     grid-template-columns: 1fr;
-    max-width: 22rem;
   }
 }
 
@@ -7129,14 +7121,14 @@ input[type='range']:focus-visible::-moz-range-thumb {
   padding: 1.25rem 1.35rem;
   border-radius: 16px;
   border: 1px solid var(--dash-border);
-  background: rgba(22, 27, 34, 0.65);
+  background: #ffffff;
   text-align: left;
   transition: border-color 0.2s, background 0.2s;
 }
 
 .home-feature-tile:hover {
-  border-color: #484f58;
-  background: rgba(33, 38, 45, 0.85);
+  border-color: #2563EB;
+  background: #ffffff;
 }
 
 .home-feature-icon {
@@ -8364,6 +8356,29 @@ input[type='range']:focus-visible::-moz-range-thumb {
   background: #F5F8FC;
   border: 1px solid #D0DBEC;
   font-size: 0.82rem;
+}
+
+.aff-pay-providers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.aff-pay-providers-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5B6B82;
+}
+
+.aff-pay-providers img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
 }
 
 .aff-payment-link-title {

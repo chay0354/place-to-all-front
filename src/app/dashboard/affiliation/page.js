@@ -96,7 +96,6 @@ export default function AffiliationDashboardPage() {
   const [error, setError] = useState('');
 
   const [usersOpen, setUsersOpen] = useState(false);
-  const [latestPaymentUrl, setLatestPaymentUrl] = useState('');
   const [plTitle, setPlTitle] = useState('');
   const [plCurrency, setPlCurrency] = useState('USDT');
   const [plAmount, setPlAmount] = useState('');
@@ -687,16 +686,13 @@ export default function AffiliationDashboardPage() {
             setPlLoading(true);
             setPlMessage('');
             try {
-              const created = await createPaymentLink(
+              await createPaymentLink(
                 user.id,
                 { title: plTitle.trim() || undefined, currency: plCurrency, amount: n },
                 token,
               );
               setPlTitle('');
               setPlAmount('');
-              if (created?.token) {
-                setLatestPaymentUrl(siteUrl(`/pay/${created.token}`));
-              }
               setPlMessage('Link created.');
               refreshPaymentLinks();
             } catch (err) {
@@ -738,54 +734,41 @@ export default function AffiliationDashboardPage() {
             />
           </div>
           {plMessage && <p className="aff-message">{plMessage}</p>}
-          {latestPaymentUrl && (
-            <div className="aff-copy-row aff-copy-row--tight" style={{ paddingBottom: '0.75rem' }}>
-              <input readOnly className="form-input aff-copy-input" value={latestPaymentUrl} aria-label="Latest payment URL" />
-              <button
-                type="button"
-                className="btn btn-ghost aff-copy-btn"
-                onClick={() => navigator.clipboard.writeText(latestPaymentUrl)}
-              >
-                Copy
-              </button>
-            </div>
-          )}
           <button type="submit" className="btn btn-primary" disabled={plLoading}>
             {plLoading ? 'Creating…' : 'Create payment link'}
           </button>
         </form>
 
-        {paymentLinks.length > 0 && (
+        {paymentLinks[0] && (
           <div className="aff-payment-list-wrap">
             <h3 className="aff-subtitle" style={{ marginTop: '1.25rem' }}>
-              Your links
+              Your link
             </h3>
-            <ul className="aff-payment-link-list">
-              {paymentLinks.map((pl) => (
-                <li key={pl.id} className="aff-payment-link-item">
-                  <div className="aff-payment-link-title">{pl.title || 'Payment request'}</div>
-                  <div className="aff-payment-link-meta">
-                    {pl.currency}
-                    {pl.amount != null && Number(pl.amount) > 0 ? ` · ${pl.amount}` : ''}
-                  </div>
-                  <div className="aff-copy-row aff-copy-row--tight">
-                    <input
-                      readOnly
-                      className="form-input aff-copy-input"
-                      value={siteUrl(`/pay/${pl.token}`)}
-                      aria-label="Payment URL"
-                    />
-                    <button
-                      type="button"
-                      className="btn btn-ghost aff-copy-btn"
-                      onClick={() => navigator.clipboard.writeText(siteUrl(`/pay/${pl.token}`))}
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="aff-payment-link-item">
+              <div className="aff-payment-link-title">{paymentLinks[0].title || 'Payment request'}</div>
+              <div className="aff-payment-link-meta">
+                {paymentLinks[0].currency}
+                {paymentLinks[0].amount != null && Number(paymentLinks[0].amount) > 0
+                  ? ` · ${paymentLinks[0].amount}`
+                  : ''}
+              </div>
+              <div className="aff-copy-row aff-copy-row--tight">
+                <input
+                  readOnly
+                  className="form-input aff-copy-input"
+                  value={siteUrl(`/pay/${paymentLinks[0].token}`)}
+                  aria-label="Payment URL"
+                />
+                <button
+                  type="button"
+                  className="btn btn-ghost aff-copy-btn"
+                  onClick={() => navigator.clipboard.writeText(siteUrl(`/pay/${paymentLinks[0].token}`))}
+                >
+                  Copy
+                </button>
+              </div>
+              <PaymentProviderChoices />
+            </div>
           </div>
         )}
       </section>
@@ -973,6 +956,17 @@ export default function AffiliationDashboardPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function PaymentProviderChoices() {
+  return (
+    <div className="aff-pay-providers" aria-label="Payment options">
+      <p className="aff-pay-providers-label">Payer chooses</p>
+      <img src="/moonpay-continue-button.png" alt="MoonPay" />
+      <img src="/paybis.png" alt="Paybis" />
+      <img src="/trans.png" alt="Trans" />
     </div>
   );
 }
