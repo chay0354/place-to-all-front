@@ -4,9 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { getPublicPaymentLink, simulatePublicPaymentLink, getCoinbasePrice, getCoinbaseSellQuote, getMoonPayPaymentLinkUrl } from '@/lib/api';
-import { ProviderInertPayButtons } from '@/components/ProviderInertPayButtons';
+import { BuyProviderList } from '@/components/BuyProviderList';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { useClientSearchParams } from '@/lib/use-query-param';
+
+function formatFeePct(value) {
+  const n = Math.round(Number(value) * 10) / 10;
+  if (!Number.isFinite(n)) return '0';
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+}
 
 function PayLinkPageInner() {
   const params = useParams();
@@ -127,6 +133,14 @@ function PayLinkPageInner() {
   }, [token, effectiveCrypto, fixedAmount, usdHint, linkData?.currency]);
 
   const moonPayForLink = !!linkData && !!linkData.currency;
+  const feeBase =
+    linkData?.feeBasePercent != null && Number.isFinite(Number(linkData.feeBasePercent))
+      ? Number(linkData.feeBasePercent)
+      : 4;
+  const feeEarn =
+    linkData?.earnPercent != null && Number.isFinite(Number(linkData.earnPercent))
+      ? Number(linkData.earnPercent)
+      : 0;
 
   if (moonpayReturn) {
     return (
@@ -272,28 +286,21 @@ function PayLinkPageInner() {
                 {paying ? 'Processing…' : 'Pay (simulated)'}
               </button>
               {moonPayForLink && (
-                <>
-                  <div className="provider-pay-button-wrap provider-pay-button-wrap--paylink">
-                    <button
-                      type="button"
-                      className="btn-moonpay-image-only"
-                      style={{ width: '100%', display: 'block' }}
-                      disabled={paying || moonPayLoading || !(effectiveCrypto > 0)}
-                      onClick={handleMoonPay}
-                      aria-label={moonPayLoading ? 'Opening MoonPay…' : 'Continue with MoonPay'}
-                      aria-busy={moonPayLoading}
-                    >
-                      <img
-                        src="/moonpay-continue-button.png"
-                        alt=""
-                        width={320}
-                        height={72}
-                        draggable={false}
-                      />
-                    </button>
-                  </div>
-                  <ProviderInertPayButtons variant="paylink" />
-                </>
+                <BuyProviderList
+                  currency={currency}
+                  usdAmount={
+                    (currency === 'USDT' || currency === 'USDC') && effectiveCrypto > 0
+                      ? effectiveCrypto
+                      : undefined
+                  }
+                  feePercent={feeBase + feeEarn}
+                  feeSummary={`${formatFeePct(feeBase)}% set + ${formatFeePct(feeEarn)}% earn`}
+                  loadingProviderId={moonPayLoading ? 'moonpay' : null}
+                  disabled={paying || moonPayLoading || !(effectiveCrypto > 0)}
+                  onSelectProvider={(id) => {
+                    if (id === 'moonpay') handleMoonPay();
+                  }}
+                />
               )}
             </div>
           </>
