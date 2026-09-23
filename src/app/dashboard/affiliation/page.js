@@ -15,6 +15,7 @@ import {
 } from '@/lib/api';
 import { siteUrl } from '@/lib/site-url';
 import { DashScreenHeader } from '@/components/DashScreenHeader';
+import { BuyProviderList } from '@/components/BuyProviderList';
 import { isAdminOperatorEmail } from '@/lib/admin-config';
 import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 
@@ -767,7 +768,10 @@ export default function AffiliationDashboardPage() {
                   Copy
                 </button>
               </div>
-              <PaymentProviderChoices />
+              <PaymentProviderChoices
+                amount={paymentLinks[0].amount}
+                currency={paymentLinks[0].currency}
+              />
             </div>
           </div>
         )}
@@ -960,13 +964,16 @@ export default function AffiliationDashboardPage() {
   );
 }
 
-function PaymentProviderChoices() {
+function PaymentProviderChoices({ amount, currency }) {
+  const code = String(currency || 'USDT').toUpperCase();
+  const n = Number(amount);
+  const stable = code === 'USDT' || code === 'USDC';
+  const usdAmount = stable && n > 0 ? n : undefined;
+
   return (
     <div className="aff-pay-providers" aria-label="Payment options">
       <p className="aff-pay-providers-label">Payer chooses</p>
-      <img src="/moonpay-continue-button.png" alt="MoonPay" />
-      <img src="/paybis.png" alt="Paybis" />
-      <img src="/trans.png" alt="Trans" />
+      <BuyProviderList currency={code} usdAmount={usdAmount} disabled />
     </div>
   );
 }

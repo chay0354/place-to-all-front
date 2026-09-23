@@ -6533,6 +6533,7 @@ input, button, select, textarea {
 .app-dark {
   --dash-bg: #F5F8FC;
   --dash-card: #FFFFFF;
+  --dash-card-hover: #F5F8FC;
   --dash-border: #D0DBEC;
   --dash-text: #0B1F3A;
   --dash-muted: #5B6B82;
@@ -6600,10 +6601,37 @@ input, button, select, textarea {
   border-color: var(--dash-accent);
 }
 
+.app-dark .alert-success {
+  background: #E7F8EE;
+  color: #0E7A45;
+  border-color: #B7E4C9;
+}
+
 .app-dark .alert-error {
-  background: rgba(248, 81, 73, 0.15);
-  color: #f85149;
-  border-color: rgba(248, 81, 73, 0.3);
+  background: #FDECEC;
+  color: #B42318;
+  border-color: #F5C2C0;
+}
+
+.pay-request-card {
+  margin-top: 1.25rem;
+  padding: 1rem 1.05rem;
+  background: #F5F8FC;
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  color: var(--dash-text);
+  line-height: 1.45;
+}
+
+.pay-request-line {
+  margin-top: 0.35rem;
+}
+
+.pay-request-estimate {
+  margin-top: 0.5rem;
+  color: var(--dash-muted);
+  font-size: 0.8125rem;
 }
 
 .app-dark .btn-primary {
@@ -8374,11 +8402,8 @@ input[type='range']:focus-visible::-moz-range-thumb {
   color: #5B6B82;
 }
 
-.aff-pay-providers img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 12px;
+.aff-pay-providers .buy-provider-list {
+  margin-top: 0;
 }
 
 .aff-payment-link-title {

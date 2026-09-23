@@ -219,10 +219,10 @@ function PayLinkPageInner() {
             <p className="auth-sub" style={{ marginTop: '0.5rem' }}>
               {linkData.title || 'Someone requested a payment'}
             </p>
-            <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'var(--dash-card-hover, #21262d)', borderRadius: 12, fontSize: '0.9375rem' }}>
+            <div className="pay-request-card">
               <div><strong>Asset:</strong> {linkData.currency}</div>
               {fixedAmount != null && (
-                <div style={{ marginTop: '0.35rem' }}><strong>Amount:</strong> {String(fixedAmount)} {linkData.currency}</div>
+                <div className="pay-request-line"><strong>Amount:</strong> {String(fixedAmount)} {linkData.currency}</div>
               )}
               {fixedAmount == null && (
                 <div className="form-group" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
@@ -240,7 +240,7 @@ function PayLinkPageInner() {
                 </div>
               )}
               {effectiveCrypto > 0 && usdHint != null && (
-                <div style={{ marginTop: '0.5rem', color: 'var(--dash-muted)', fontSize: '0.8125rem' }}>
+                <div className="pay-request-estimate">
                   ≈{' '}
                   {usdHint.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} USD (estimate)
                 </div>
