@@ -30,10 +30,15 @@ export const BUY_PROVIDERS = [
 ].sort((a, b) => b.netUsdtPer100Usd - a.netUsdtPer100Usd);
 
 /** Quote line: $ USD in → crypto out after provider fees. */
-export function providerQuote(provider, { usdAmount = 100, cryptoAmount, currency = 'USDT' } = {}) {
+export function providerQuote(provider, { usdAmount = 100, cryptoAmount, currency = 'USDT', feePercent } = {}) {
   const usd = Number(usdAmount) > 0 ? Number(usdAmount) : 100;
+  const override = Number(feePercent);
+  const useOverride = Number.isFinite(override);
   let out;
-  if (Number(cryptoAmount) > 0) {
+  if (useOverride) {
+    const gross = Number(cryptoAmount) > 0 ? Number(cryptoAmount) : usd;
+    out = gross * (1 - override / 100);
+  } else if (Number(cryptoAmount) > 0) {
     out = Number(cryptoAmount) * (1 - provider.effectiveFeePercent / 100);
   } else {
     out = (usd / 100) * provider.netUsdtPer100Usd;

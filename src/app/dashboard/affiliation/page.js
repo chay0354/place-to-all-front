@@ -116,6 +116,7 @@ export default function AffiliationDashboardPage() {
   const [teamMessage, setTeamMessage] = useState('');
 
   const [takePercent, setTakePercent] = useState(4);
+  const [linkFeeBase, setLinkFeeBase] = useState(4);
   const [takeSaving, setTakeSaving] = useState(false);
   const [takeMessage, setTakeMessage] = useState('');
   const takeSaveTimer = useRef(null);
@@ -215,6 +216,15 @@ export default function AffiliationDashboardPage() {
         const clamped = Math.min(TAKE_MAX, Math.max(TAKE_MIN, pct));
         setTakePercent(clamped);
         setTeamDefaultEarn(clamped);
+        const upline = data?.uplineEarnPercent;
+        const platform = Number(data?.defaults?.platformPercent);
+        const base =
+          upline != null && Number.isFinite(Number(upline))
+            ? Number(upline)
+            : Number.isFinite(platform)
+              ? platform
+              : 4;
+        setLinkFeeBase(base);
         // A rate saved before the 0.5–4% range existed would show clamped but bill at the old value.
         if (Number.isFinite(raw) && raw !== clamped) {
           patchAffiliationFees({ affiliateTakePercent: clamped }).catch(() => {});
@@ -771,6 +781,8 @@ export default function AffiliationDashboardPage() {
               <PaymentProviderChoices
                 amount={paymentLinks[0].amount}
                 currency={paymentLinks[0].currency}
+                feeBasePercent={linkFeeBase}
+                earnPercent={takePercent}
               />
             </div>
           </div>
@@ -964,16 +976,32 @@ export default function AffiliationDashboardPage() {
   );
 }
 
-function PaymentProviderChoices({ amount, currency }) {
+function formatFeePct(value) {
+  const n = Math.round(Number(value) * 10) / 10;
+  if (!Number.isFinite(n)) return '0';
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+}
+
+function PaymentProviderChoices({ amount, currency, feeBasePercent = 4, earnPercent = 0 }) {
   const code = String(currency || 'USDT').toUpperCase();
   const n = Number(amount);
   const stable = code === 'USDT' || code === 'USDC';
   const usdAmount = stable && n > 0 ? n : undefined;
+  const base = Number(feeBasePercent);
+  const earn = Number(earnPercent);
+  const total = (Number.isFinite(base) ? base : 0) + (Number.isFinite(earn) ? earn : 0);
+  const feeSummary = `${formatFeePct(base)}% set + ${formatFeePct(earn)}% earn`;
 
   return (
     <div className="aff-pay-providers" aria-label="Payment options">
       <p className="aff-pay-providers-label">Payer chooses</p>
-      <BuyProviderList currency={code} usdAmount={usdAmount} disabled />
+      <BuyProviderList
+        currency={code}
+        usdAmount={usdAmount}
+        disabled
+        feePercent={total}
+        feeSummary={feeSummary}
+      />
     </div>
   );
 }

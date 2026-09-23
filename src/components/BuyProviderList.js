@@ -42,11 +42,14 @@ export function BuyProviderList({
   loadingProviderId = null,
   disabled = false,
   onSelectProvider,
+  feePercent,
+  feeSummary = null,
 }) {
   const hasFiat = Number(usdAmount) > 0;
   const hasCrypto = Number(cryptoAmount) > 0;
   const hasAmount = hasFiat || hasCrypto;
   const usd = hasFiat ? Number(usdAmount) : 100;
+  const useFeeOverride = feePercent != null && Number.isFinite(Number(feePercent));
 
   return (
     <div className="buy-provider-list" role="list" aria-label="Payment providers">
@@ -55,10 +58,12 @@ export function BuyProviderList({
           usdAmount: usd,
           cryptoAmount: hasCrypto ? cryptoAmount : null,
           currency,
+          feePercent: useFeeOverride ? Number(feePercent) : undefined,
         });
         const isLoading = loadingProviderId === provider.id;
         const isInteractive = provider.active && !disabled && hasAmount;
-        const isBest = index === 0;
+        const isBest = !useFeeOverride && index === 0;
+        const feeLine = useFeeOverride && feeSummary ? feeSummary : provider.feeSummary;
 
         return (
           <div key={provider.id} className="buy-provider-item-wrap" role="listitem">
@@ -73,7 +78,7 @@ export function BuyProviderList({
                 .join(' ')}
               disabled={!isInteractive || isLoading}
               aria-busy={isLoading}
-              aria-label={`${provider.name}, ${quote.label}, fees ${provider.feeSummary}`}
+              aria-label={`${provider.name}, ${quote.label}, fees ${feeLine}`}
               onClick={() => {
                 if (provider.active && isInteractive) onSelectProvider?.(provider.id);
               }}
@@ -87,7 +92,7 @@ export function BuyProviderList({
                   {isBest && <span className="buy-provider-badge">Best rate</span>}
                 </span>
                 <span className="buy-provider-quote">{quote.label}</span>
-                <span className="buy-provider-fee">{provider.feeSummary}</span>
+                <span className="buy-provider-fee">{feeLine}</span>
               </span>
               {isLoading && <Spinner />}
             </button>
