@@ -115,17 +115,21 @@ function PayLinkPageInner() {
     }
 
     setMoonPayLoading(true);
+    const popup = typeof window !== 'undefined' ? window.open('', '_blank') : null;
     try {
       const { url } = await getMoonPayPaymentLinkUrl(token, {
         baseCurrencyAmount: usd,
         quoteCurrencyAmount: effectiveCrypto,
       });
       if (!url) {
+        popup?.close();
         setMoonPayErr('MoonPay did not return a checkout URL.');
         return;
       }
-      window.open(url, '_blank', 'noopener,noreferrer');
+      if (popup) popup.location.href = url;
+      else window.location.assign(url);
     } catch (err) {
+      popup?.close();
       setMoonPayErr(err?.message || 'Could not start MoonPay');
     } finally {
       setMoonPayLoading(false);
