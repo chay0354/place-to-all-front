@@ -320,7 +320,7 @@ export function DashboardClient({
           <span>Deposit</span>
         </Link>
         <Link href="/dashboard/sell" className="dash-home-quick-action">
-          <span className="dash-home-quick-action-icon">
+          <span className="dash-home-quick-action-icon dash-home-quick-action-icon--withdraw">
             <WithdrawIcon />
           </span>
           <span>Withdrawal</span>
@@ -494,7 +494,7 @@ function AffiliateIcon() {
 
 function WithdrawIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M12 19V5M5 12l7-7 7 7" />
     </svg>
   );

@@ -102,6 +102,8 @@ export default function AffiliationDashboardPage() {
   const [plLoading, setPlLoading] = useState(false);
   const [plMessage, setPlMessage] = useState('');
   const [paymentLinks, setPaymentLinks] = useState([]);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const copyTimer = useRef(null);
 
   const [downline, setDownline] = useState({ kind: 'none', members: [] });
   const [downlineLoading, setDownlineLoading] = useState(false);
@@ -761,10 +763,18 @@ export default function AffiliationDashboardPage() {
                 />
                 <button
                   type="button"
-                  className="btn btn-ghost aff-copy-btn"
-                  onClick={() => navigator.clipboard.writeText(siteUrl(`/pay/${paymentLinks[0].token}`))}
+                  className={`btn btn-ghost aff-copy-btn${linkCopied ? ' aff-copy-btn--done' : ''}`}
+                  aria-live="polite"
+                  onClick={() => {
+                    const url = siteUrl(`/pay/${paymentLinks[0].token}`);
+                    navigator.clipboard.writeText(url).then(() => {
+                      setLinkCopied(true);
+                      if (copyTimer.current) clearTimeout(copyTimer.current);
+                      copyTimer.current = setTimeout(() => setLinkCopied(false), 2000);
+                    });
+                  }}
                 >
-                  Copy
+                  {linkCopied ? 'Copied' : 'Copy'}
                 </button>
               </div>
             </div>
