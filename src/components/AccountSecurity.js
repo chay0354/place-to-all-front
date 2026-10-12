@@ -472,8 +472,6 @@ export function AccountSecurity({ email, phone, profile, onOpenIdentity, onQuick
 
   return (
     <div className="account-subview account-security">
-      <h1 className="account-security-title">Security</h1>
-
       <div className={`account-security-status account-security-status--${status.levelClass}`}>
         <div className="account-security-status-copy">
           <p className="account-security-status-level">

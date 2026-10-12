@@ -232,7 +232,7 @@ export default function MarketPage() {
           <span>Deposit</span>
         </Link>
         <Link href="/dashboard/sell" className="assets-page-action">
-          <span className="assets-page-action-icon">
+          <span className="assets-page-action-icon assets-page-action-icon--withdraw">
             <WithdrawIcon />
           </span>
           <span>Withdraw</span>

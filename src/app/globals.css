@@ -4400,14 +4400,6 @@ input, button, select, textarea {
   padding-top: 0;
 }
 
-.account-security-title {
-  margin: 0 0 1.25rem;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--dash-text);
-  letter-spacing: -0.02em;
-}
-
 .account-security-status {
   display: flex;
   align-items: center;
@@ -4417,7 +4409,7 @@ input, button, select, textarea {
   margin-bottom: 1.75rem;
   border-radius: 18px;
   background: #222224;
-  border: 1px solid rgba(11, 31, 58, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .account-security-status-copy {
@@ -4428,7 +4420,7 @@ input, button, select, textarea {
 .account-security-status-level {
   margin: 0 0 0.45rem;
   font-size: 0.9375rem;
-  color: var(--dash-text);
+  color: #F4F7FB;
 }
 
 .account-security-status-level strong {
@@ -4451,7 +4443,7 @@ input, button, select, textarea {
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: var(--dash-muted);
+  color: #C5D0E0;
 }
 
 .account-security-shield-art {
@@ -5084,12 +5076,6 @@ input, button, select, textarea {
   background: #2563EB;
   color: #fff;
   border-color: #2563EB;
-}
-
-.dash-home-quick-action-icon--withdraw {
-  background: #DBEAFE;
-  color: #1D4ED8;
-  border-color: #60A5FA;
 }
 
 .dash-home-quick-action-icon svg {
@@ -10291,6 +10277,10 @@ input[type='range']:focus-visible::-moz-range-thumb {
 .assets-page-action-icon--deposit {
   background: #2563EB;
   color: #fff;
+}
+
+.assets-page-action-icon--withdraw {
+  background: #D6DBE2;
 }
 
 .assets-page-list-section {
