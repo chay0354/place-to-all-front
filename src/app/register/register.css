@@ -184,6 +184,15 @@
   margin-bottom: 0;
 }
 
+.auth-section {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #5b6b82;
+}
+
 .auth-panel .form-label {
   color: #0b1f3a;
   font-weight: 600;

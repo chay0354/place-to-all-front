@@ -11,11 +11,11 @@ import { useQueryParam } from '@/lib/use-query-param';
 import { AuthScreen } from '@/components/AuthScreen';
 import './register.css';
 
-function CountryField({ id, countryCode, onChange }) {
+function CountryField({ id, label = 'Country', countryCode, onChange }) {
   return (
     <div className="form-group">
       <label className="form-label" htmlFor={id}>
-        Country
+        {label}
       </label>
       <div className="auth-country-row">
         {countryFlagUrl(countryCode, 40) && (
@@ -53,13 +53,22 @@ function RegisterPageContent() {
   const [phone, setPhone] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [idNumber, setIdNumber] = useState('');
+  const [idType, setIdType] = useState('national_id');
+  const [idExpiry, setIdExpiry] = useState('');
+  const [nationality, setNationality] = useState(DEFAULT_COUNTRY_CODE);
+  const [postalCode, setPostalCode] = useState('');
+  const [occupation, setOccupation] = useState('');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [companyNumber, setCompanyNumber] = useState('');
+  const [incorporatedOn, setIncorporatedOn] = useState('');
+  const [taxId, setTaxId] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
   const [companyCity, setCompanyCity] = useState('');
+  const [companyPostal, setCompanyPostal] = useState('');
   const [contactName, setContactName] = useState('');
+  const [contactTitle, setContactTitle] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [agreed, setAgreed] = useState(false);
@@ -129,7 +138,11 @@ function RegisterPageContent() {
             countryCode,
             address: companyAddress,
             city: companyCity,
+            postalCode: companyPostal,
+            incorporatedOn,
+            taxId,
             contactName,
+            contactTitle,
             phone: contactPhone,
             email: contactEmail,
             agreed: true,
@@ -179,12 +192,35 @@ function RegisterPageContent() {
       setError('You must be at least 18.');
       return;
     }
+    if (idType !== 'national_id' && idType !== 'passport') {
+      setError('Choose an ID or a passport.');
+      return;
+    }
     if (idNumber.trim().length < 5) {
       setError('Enter your ID or passport number.');
       return;
     }
+    if (!idExpiry) {
+      setError('Enter the expiry date on your ID or passport.');
+      return;
+    }
+    const expires = new Date(`${idExpiry}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (Number.isNaN(expires.getTime()) || expires <= today) {
+      setError('The ID or passport must still be valid.');
+      return;
+    }
+    if (postalCode.trim().length < 3) {
+      setError('Enter your postal code.');
+      return;
+    }
     if (city.trim().length < 2 || address.trim().length < 4) {
       setError('Enter your city and street address.');
+      return;
+    }
+    if (occupation.trim().length < 2) {
+      setError('Enter your occupation.');
       return;
     }
     setLoading(true);
@@ -204,6 +240,11 @@ function RegisterPageContent() {
             phone: phone.trim(),
             dateOfBirth,
             idNumber: idNumber.trim(),
+            idType,
+            idExpiry,
+            nationality,
+            postalCode: postalCode.trim(),
+            occupation: occupation.trim(),
             city: city.trim(),
             address: address.trim(),
           },
@@ -343,6 +384,20 @@ function RegisterPageContent() {
                   <input id="reg-company-no" className="form-input" value={companyNumber} onChange={(e) => setCompanyNumber(e.target.value)} required placeholder="Registration number" />
                 </div>
               </div>
+              <div className="auth-grid-2">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="reg-incorporated">
+                    Incorporation date
+                  </label>
+                  <input id="reg-incorporated" type="date" className="form-input" value={incorporatedOn} onChange={(e) => setIncorporatedOn(e.target.value)} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="reg-tax">
+                    Tax or VAT number
+                  </label>
+                  <input id="reg-tax" className="form-input" value={taxId} onChange={(e) => setTaxId(e.target.value)} required autoComplete="off" />
+                </div>
+              </div>
               <CountryField id="reg-country" countryCode={countryCode} onChange={setCountryCode} />
               <div className="form-group">
                 <label className="form-label" htmlFor="reg-co-address">
@@ -350,11 +405,19 @@ function RegisterPageContent() {
                 </label>
                 <input id="reg-co-address" className="form-input" value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} required autoComplete="street-address" />
               </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="reg-co-city">
-                  City
-                </label>
-                <input id="reg-co-city" className="form-input" value={companyCity} onChange={(e) => setCompanyCity(e.target.value)} required autoComplete="address-level2" />
+              <div className="auth-grid-2">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="reg-co-city">
+                    City
+                  </label>
+                  <input id="reg-co-city" className="form-input" value={companyCity} onChange={(e) => setCompanyCity(e.target.value)} required autoComplete="address-level2" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="reg-co-postal">
+                    Postal code
+                  </label>
+                  <input id="reg-co-postal" className="form-input" value={companyPostal} onChange={(e) => setCompanyPostal(e.target.value)} required autoComplete="postal-code" />
+                </div>
               </div>
               <div className="auth-grid-2">
                 <div className="form-group">
@@ -364,11 +427,17 @@ function RegisterPageContent() {
                   <input id="reg-contact" className="form-input" value={contactName} onChange={(e) => setContactName(e.target.value)} required autoComplete="name" />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" htmlFor="reg-contact-phone">
-                    Phone
+                  <label className="form-label" htmlFor="reg-contact-title">
+                    Role
                   </label>
-                  <input id="reg-contact-phone" className="form-input" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} required autoComplete="tel" inputMode="tel" />
+                  <input id="reg-contact-title" className="form-input" value={contactTitle} onChange={(e) => setContactTitle(e.target.value)} required placeholder="Director" autoComplete="organization-title" />
                 </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="reg-contact-phone">
+                  Phone
+                </label>
+                <input id="reg-contact-phone" className="form-input" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} required autoComplete="tel" inputMode="tel" />
               </div>
               <div className="form-group">
                 <label className="form-label" htmlFor="reg-contact-email">
@@ -411,12 +480,38 @@ function RegisterPageContent() {
                   <input id="reg-dob" type="date" className="form-input" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} required autoComplete="bday" />
                 </div>
               </div>
+              <p className="auth-section">Identity</p>
+              <CountryField id="reg-nationality" label="Nationality" countryCode={nationality} onChange={setNationality} />
+              <div className="auth-grid-2">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="reg-id-type">
+                    Document
+                  </label>
+                  <select id="reg-id-type" className="form-select" value={idType} onChange={(e) => setIdType(e.target.value)} required>
+                    <option value="national_id">National ID</option>
+                    <option value="passport">Passport</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="reg-id-expiry">
+                    Expiry date
+                  </label>
+                  <input id="reg-id-expiry" type="date" className="form-input" value={idExpiry} onChange={(e) => setIdExpiry(e.target.value)} required />
+                </div>
+              </div>
               <div className="form-group">
                 <label className="form-label" htmlFor="reg-id">
                   ID or passport number
                 </label>
                 <input id="reg-id" className="form-input" value={idNumber} onChange={(e) => setIdNumber(e.target.value)} required autoComplete="off" />
               </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="reg-occupation">
+                  Occupation
+                </label>
+                <input id="reg-occupation" className="form-input" value={occupation} onChange={(e) => setOccupation(e.target.value)} required autoComplete="organization-title" />
+              </div>
+              <p className="auth-section">Home address</p>
               <CountryField id="reg-country" countryCode={countryCode} onChange={setCountryCode} />
               <div className="auth-grid-2">
                 <div className="form-group">
@@ -426,11 +521,17 @@ function RegisterPageContent() {
                   <input id="reg-city" className="form-input" value={city} onChange={(e) => setCity(e.target.value)} required autoComplete="address-level2" />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" htmlFor="reg-address">
-                    Street address
+                  <label className="form-label" htmlFor="reg-postal">
+                    Postal code
                   </label>
-                  <input id="reg-address" className="form-input" value={address} onChange={(e) => setAddress(e.target.value)} required autoComplete="street-address" />
+                  <input id="reg-postal" className="form-input" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} required autoComplete="postal-code" />
                 </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="reg-address">
+                  Street address
+                </label>
+                <input id="reg-address" className="form-input" value={address} onChange={(e) => setAddress(e.target.value)} required autoComplete="street-address" />
               </div>
               <div className="form-group">
                 <label className="form-label" htmlFor="reg-email">
