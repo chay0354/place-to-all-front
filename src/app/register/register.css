@@ -8,12 +8,16 @@
 }
 
 .auth-brand {
-  position: relative;
+  position: sticky;
+  top: 0;
+  align-self: start;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 3rem 3.25rem;
-  overflow: hidden;
+  justify-content: flex-start;
+  width: 100%;
+  max-height: 100dvh;
+  padding: 2.5rem 3.25rem 2rem;
+  overflow: auto;
 }
 
 .auth-brand-bg {
@@ -394,7 +398,12 @@
   }
 
   .auth-brand {
+    position: relative;
+    top: auto;
+    align-self: stretch;
+    max-height: none;
     padding: 1.35rem 1.25rem 0.25rem;
+    overflow: hidden;
   }
 
   .auth-logo {
