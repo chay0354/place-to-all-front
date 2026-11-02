@@ -41,6 +41,7 @@ function isPublicRelay(method, pathname) {
   if (m === 'POST' && /^\/api\/payment-links\/public\/[^/]+\/simulate-pay$/.test(pathname)) return true;
   if (m === 'GET' && pathname.startsWith('/api/auth/referral-preview')) return true;
   if (m === 'POST' && pathname === '/api/auth/confirm-email') return true;
+  if (m === 'POST' && pathname === '/api/auth/agent-application') return true;
   return false;
 }
 
