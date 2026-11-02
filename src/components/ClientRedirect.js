@@ -15,6 +15,14 @@ import { useRouter } from 'next/navigation';
 export function ClientRedirect({ path }) {
   const router = useRouter();
   useEffect(() => {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const search = window.location.search;
+    const recoveryHash = hash.get('type') === 'recovery' && hash.get('access_token');
+    const codeOnHome = window.location.pathname === '/' && new URLSearchParams(search).get('code');
+    if (recoveryHash || codeOnHome) {
+      router.replace(`/reset-password${search}${window.location.hash}`);
+      return;
+    }
     router.replace(path);
   }, [path, router]);
   return null;

@@ -1,5 +1,6 @@
 import './globals.css';
 import { DisableTextCopy } from '@/components/DisableTextCopy';
+import { RecoveryRedirect } from '@/components/RecoveryRedirect';
 
 export const metadata = {
   title: 'Place to All – Crypto',
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="app-shell">
         <DisableTextCopy />
+        <RecoveryRedirect />
         {children}
       </body>
     </html>

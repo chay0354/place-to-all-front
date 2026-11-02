@@ -34,9 +34,30 @@ export default function ResetPasswordPage() {
 
     async function boot() {
       const params = new URLSearchParams(window.location.search);
-      const linkError = params.get('error_description') || params.get('error');
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const linkError =
+        params.get('error_description') || params.get('error') || hash.get('error_description') || hash.get('error');
       if (linkError) {
         setPhase('invalid');
+        return;
+      }
+      const accessToken = hash.get('access_token');
+      const refreshToken = hash.get('refresh_token');
+      if (hash.get('type') === 'recovery' && accessToken && refreshToken) {
+        recovered = true;
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (cancelled) return;
+        if (sessionError) {
+          setPhase('invalid');
+          return;
+        }
+        const next = params.get('next');
+        const clean = next ? `/reset-password?next=${encodeURIComponent(next)}` : '/reset-password';
+        window.history.replaceState({}, '', clean);
+        setPhase('ready');
         return;
       }
       const code = params.get('code');
