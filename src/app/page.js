@@ -51,35 +51,33 @@ export default async function Home() {
         </section>
 
         <section className="hv-sheet" aria-label="Product highlights">
-          <h2>What you get</h2>
-          <div className="hv-grid">
-            <article>
-              <span className="hv-ico" aria-hidden>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 5v14M5 12l7 7 7-7" />
-                </svg>
-              </span>
-              <h3>Buy and sell</h3>
-              <p>USD prices from the same spot data used across the app.</p>
-            </article>
-            <article>
-              <span className="hv-ico" aria-hidden>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-                </svg>
-              </span>
-              <h3>Send freely</h3>
-              <p>Transfer to people by email or handle, built for everyday use.</p>
-            </article>
-            <article>
-              <span className="hv-ico" aria-hidden>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-              </span>
-              <h3>One portfolio</h3>
-              <p>Balances, cards, and activity together on a single screen.</p>
-            </article>
+          <h2>Spend crypto anywhere.</h2>
+          <ul className="hv-pills">
+            <li><span className="hv-dot" data-tone="btc" aria-hidden />Bitcoin</li>
+            <li><span className="hv-dot" data-tone="eth" aria-hidden />Ethereum</li>
+            <li><span className="hv-dot" data-tone="usdt" aria-hidden />USDT</li>
+            <li><span className="hv-dot" data-tone="card" aria-hidden />Cards</li>
+            <li><span className="hv-dot" data-tone="send" aria-hidden />Send</li>
+            <li><span className="hv-dot" data-tone="shop" aria-hidden />Shop</li>
+            <li><span className="hv-dot" data-tone="bills" aria-hidden />Bills</li>
+            <li><span className="hv-dot" data-tone="usd" aria-hidden />USD</li>
+          </ul>
+          <div className="hv-cardblock">
+            <h3>Place to All card</h3>
+            <p>Buy, send, and hold from one wallet, with live USD rates on every move.</p>
+            <div className="hv-cards" aria-hidden>
+              <div className="hv-plastic hv-plastic-back">
+                <span>Place to All</span>
+              </div>
+              <div className="hv-plastic hv-plastic-front">
+                <span className="hv-plastic-brand">
+                  <span className="hv-plastic-mark">P</span>
+                  Place to All
+                </span>
+                <span className="hv-plastic-chip" />
+                <span className="hv-plastic-num">•••• 4821</span>
+              </div>
+            </div>
           </div>
         </section>
       </main>
