@@ -8348,6 +8348,8 @@ input[type='range']:focus-visible::-moz-range-thumb {
 }
 
 .dashboard-wallet-ui .aff-copy-btn--done,
+.dashboard-wallet-ui .aff-copy-btn--done:hover,
+.app-dark .aff-copy-btn--done:hover,
 .aff-copy-btn--done {
   background: #2563EB;
   color: #fff;

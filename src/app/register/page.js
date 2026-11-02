@@ -8,6 +8,8 @@ import { toRelayUrl } from '@/lib/relay-url';
 import { COUNTRY_OPTIONS, DEFAULT_COUNTRY_CODE } from '@/lib/countries';
 import { countryFlagUrl } from '@/lib/phone-country';
 import { useQueryParam } from '@/lib/use-query-param';
+import { AuthScreen } from '@/components/AuthScreen';
+import './register.css';
 
 function RegisterPageContent() {
   const refParam = useQueryParam('ref') || '';
@@ -23,6 +25,7 @@ function RegisterPageContent() {
   const [refStatus, setRefStatus] = useState('idle');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -110,122 +113,166 @@ function RegisterPageContent() {
     }
   }
 
+  const loginHref = nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login';
+  const forgotHref = nextPath ? `/forgot-password?next=${encodeURIComponent(nextPath)}` : '/forgot-password';
+  const subtitle =
+    hasRefParam && refStatus === 'checking'
+      ? 'Checking invite link…'
+      : isFromAffiliateLink
+        ? 'This invite sets your account type. You can’t change it here.'
+        : 'A few details, then you’re in.';
+
   return (
-    <div className="app-dark" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '1.5rem' }}>
-      <main className="auth-card" style={{ width: '100%', maxWidth: 400 }}>
-      <h1 className="auth-title">Create account</h1>
-      {inviteBroken && (
-        <div className="alert alert-error" style={{ marginTop: '0.75rem' }}>
-          This invite link is invalid or expired, so no one will be credited for your signup. You can still create a
-          regular account below.
-        </div>
-      )}
-      <p className="auth-sub">
-        {hasRefParam && refStatus === 'checking'
-          ? 'Checking invite link…'
-          : isFromAffiliateLink
-          ? recruiterRole === 'super_super_agent'
-            ? 'You were invited by a super super agent. You will join as a super agent under them (account type is set by this link — you cannot choose). They earn network fees including an extra tier when the commission rules apply (fees are paid by the buyer).'
-            : recruiterRole === 'super_agent'
-            ? 'You were invited by a super agent. You will join as an agent under them (account type is set by this link — you cannot choose). They earn an extra 4% on qualifying buys you and your referrals make (fees are paid by the buyer).'
-            : 'You were referred by an agent. You will join as a regular user (account type is set by this link — you cannot choose). They earn 4% on your crypto buys (along with other tiers and admin; fees come from your purchase).'
-          : 'Get started with your crypto wallet'}
-      </p>
-      {!isFromAffiliateLink && !(hasRefParam && refStatus === 'checking') && (
-        <div className="form-group">
-          <label className="form-label">Account type</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.35rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input
-                type="radio"
-                name="userType"
-                value="regular"
-                checked={userType === 'regular'}
-                onChange={() => setUserType('regular')}
-              />
-              <span>Regular user</span>
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input
-                type="radio"
-                name="userType"
-                value="agent"
-                checked={userType === 'agent'}
-                onChange={() => setUserType('agent')}
-              />
-              <span>Agent</span>
-            </label>
+    <AuthScreen
+      kicker="Create account"
+      title="Your money, one place."
+      lede="Buy, send, and hold crypto from a single wallet."
+      showPoints
+    >
+      <main className="auth-panel">
+        <h2 className="auth-panel-title">Create account</h2>
+        <p className="auth-panel-sub">{subtitle}</p>
+        {inviteBroken && (
+          <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
+            This invite link is invalid or expired, so no one will be credited for your signup. You can still create a
+            regular account below.
           </div>
-          <p style={{ fontSize: '0.8125rem', color: 'var(--dash-muted)', marginTop: '0.35rem' }}>
-            Regular accounts can create <strong>payment links</strong> from Account (payers don’t need an account). Agents also get a referral link for regular signups and earn 4% on those users’ buys (plus upline tiers when applicable). <strong>Super agent</strong> is not a signup option — register as an agent first; an app admin promotes you from the admin menu.
+        )}
+        {isFromAffiliateLink && (
+          <p className="auth-note">
+            {recruiterRole === 'super_super_agent'
+              ? 'You were invited by a super super agent. You will join as a super agent under them (account type is set by this link — you cannot choose). They earn network fees including an extra tier when the commission rules apply (fees are paid by the buyer).'
+              : recruiterRole === 'super_agent'
+                ? 'You were invited by a super agent. You will join as an agent under them (account type is set by this link — you cannot choose). They earn an extra 4% on qualifying buys you and your referrals make (fees are paid by the buyer).'
+                : 'You were referred by an agent. You will join as a regular user (account type is set by this link — you cannot choose). They earn 4% on your crypto buys (along with other tiers and admin; fees come from your purchase).'}
           </p>
-        </div>
-      )}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <div className="form-group">
-          <label className="form-label" htmlFor="reg-country">Country</label>
-          <div className="auth-country-row">
-            {countryFlagUrl(countryCode, 40) && (
-              <img
-                src={countryFlagUrl(countryCode, 40)}
-                alt=""
-                className="auth-country-flag"
-                aria-hidden
-              />
-            )}
-            <select
-              id="reg-country"
-              className="form-select auth-country-select"
-              value={countryCode}
-              onChange={(e) => setCountryCode(e.target.value)}
-              required
-            >
-              {COUNTRY_OPTIONS.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+        )}
+        <form onSubmit={handleSubmit} className="auth-form">
+          {!isFromAffiliateLink && !(hasRefParam && refStatus === 'checking') && (
+            <div className="form-group">
+              <span className="form-label" id="reg-type-label">
+                Account type
+              </span>
+              <div className="auth-types" role="radiogroup" aria-labelledby="reg-type-label">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={userType === 'regular'}
+                  className={userType === 'regular' ? 'auth-type is-selected' : 'auth-type'}
+                  onClick={() => setUserType('regular')}
+                >
+                  <span className="auth-type-name">Regular</span>
+                  <span className="auth-type-desc">Buy, send, and create payment links.</span>
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={userType === 'agent'}
+                  className={userType === 'agent' ? 'auth-type is-selected' : 'auth-type'}
+                  onClick={() => setUserType('agent')}
+                >
+                  <span className="auth-type-name">Agent</span>
+                  <span className="auth-type-desc">Referral link and 4% on referred buys.</span>
+                </button>
+              </div>
+              <p className="auth-type-hint">
+                {userType === 'agent'
+                  ? 'Super agent isn’t a signup option. Register as an agent, then an admin can promote you.'
+                  : 'Payers can use your payment links without creating an account.'}
+              </p>
+            </div>
+          )}
+          <div className="form-group">
+            <label className="form-label" htmlFor="reg-country">
+              Country
+            </label>
+            <div className="auth-country-row">
+              {countryFlagUrl(countryCode, 40) && (
+                <img src={countryFlagUrl(countryCode, 40)} alt="" className="auth-country-flag" aria-hidden />
+              )}
+              <select
+                id="reg-country"
+                className="form-select auth-country-select"
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                required
+                autoComplete="country"
+              >
+                {COUNTRY_OPTIONS.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-        </div>
-        <div className="form-group">
-          <label className="form-label" htmlFor="reg-email">Email</label>
-          <input
-            id="reg-email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="form-input"
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label" htmlFor="reg-password">Password</label>
-          <input
-            id="reg-password"
-            type="password"
-            placeholder="At least 6 characters"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="form-input"
-          />
-        </div>
-        {error && <div className="alert alert-error">{error}</div>}
-        <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
-          {loading ? 'Creating account…' : 'Create account'}
-        </button>
-      </form>
-      {!isFromAffiliateLink && (
-        <p className="auth-footer">
-          Already have an account?{' '}
-          <Link href={nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login'}>Log in</Link>
-        </p>
-      )}
+          <div className="form-group">
+            <label className="form-label" htmlFor="reg-email">
+              Email
+            </label>
+            <input
+              id="reg-email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <div className="auth-label-row">
+              <label className="form-label" htmlFor="reg-password">
+                Password
+              </label>
+              <Link href={forgotHref} className="auth-forgot">
+                Forgot password?
+              </Link>
+            </div>
+            <div className="auth-password">
+              <input
+                id="reg-password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="At least 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                autoComplete="new-password"
+                className="form-input"
+              />
+              <button
+                type="button"
+                className="auth-eye"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword((v) => !v)}
+              >
+                {showPassword ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.1A10.8 10.8 0 0 1 12 5c5 0 9.3 3.1 11 7-0.6 1.4-1.5 2.7-2.6 3.7M6.1 6.1C4.2 7.4 2.7 9.1 1 12c1.7 3.9 6 7 11 7 1.6 0 3.1-.3 4.5-.9" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+          {error && <div className="alert alert-error">{error}</div>}
+          <button type="submit" disabled={loading} className="btn btn-primary auth-submit">
+            {loading ? 'Creating account…' : 'Create account'}
+          </button>
+        </form>
+        {!isFromAffiliateLink && (
+          <p className="auth-footer">
+            Already have an account? <Link href={loginHref}>Log in</Link>
+          </p>
+        )}
       </main>
-    </div>
+    </AuthScreen>
   );
 }
 
