@@ -817,108 +817,96 @@
 .hv-pay-stage {
   display: grid;
   place-items: center;
-  min-height: 320px;
+  min-height: 280px;
 }
 
-.hv-pay-card {
-  width: min(100%, 340px);
-  padding: 1.25rem 1.3rem 1.15rem;
-  border-radius: 22px;
-  background: #fff;
-  border: 1px solid #d7e2f1;
-  box-shadow: 0 24px 50px rgba(15, 40, 80, 0.1);
+.hv-card {
+  position: relative;
+  width: min(100%, 380px);
+  aspect-ratio: 1.7 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.15rem 1.25rem 1.05rem;
+  border-radius: 20px;
+  color: #fff;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.05) 26%, transparent 42%),
+    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.35), transparent 36%),
+    linear-gradient(152deg, #dbeafe 0%, #60a5fa 18%, #2563eb 52%, #1e3a8a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 24px 48px rgba(15, 40, 80, 0.18);
+  overflow: hidden;
   animation: hv-float 5.5s ease-in-out infinite;
 }
 
-.hv-pay-card-top,
-.hv-pay-bar {
+.hv-card::after {
+  content: '';
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -56px;
+  bottom: -90px;
+  border-radius: 50%;
+  border: 24px solid rgba(255, 255, 255, 0.1);
+}
+
+.hv-card-top,
+.hv-card-bottom,
+.hv-card-chip {
+  position: relative;
+  z-index: 1;
+}
+
+.hv-card-top,
+.hv-card-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
 }
 
-.hv-pay-card-top {
-  color: #5b6b82;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.hv-pay-live {
-  color: #2563eb;
-}
-
-.hv-pay-invoice {
-  margin: 1.3rem 0 0;
-  color: #5b6b82;
-  font-size: 0.9rem;
-}
-
-.hv-pay-amount {
-  margin: 0.15rem 0 0;
-  font-size: 2.6rem;
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  line-height: 1;
-}
-
-.hv-pay-amount small {
-  font-size: 1rem;
-  letter-spacing: 0;
-  color: #5b6b82;
-}
-
-.hv-pay-usd {
-  margin: 0.45rem 0 0;
-  color: #5b6b82;
-}
-
-.hv-pay-faces {
-  position: relative;
-  height: 2.6rem;
-  margin-top: 1.2rem;
-}
-
-.hv-pay-faces p {
-  position: absolute;
-  inset: 0;
-  display: flex;
+.hv-card-brand {
+  display: inline-flex;
   align-items: center;
-  margin: 0;
-  padding: 0 0.9rem;
-  border-radius: 12px;
-  background: #0b1f3a;
-  color: #fff;
+  gap: 0.45rem;
   font-weight: 700;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  letter-spacing: -0.03em;
+  font-size: 1rem;
 }
 
-.hv-pay-faces p.is-on {
-  opacity: 1;
-  transform: none;
-}
-
-.hv-pay-card.is-2 .hv-pay-faces p.is-on {
-  background: #15803d;
-}
-
-.hv-pay-bar {
-  height: 4px;
-  margin-top: 1.1rem;
-  border-radius: 99px;
-  background: #e6eef8;
-  overflow: hidden;
-}
-
-.hv-pay-bar span {
+.hv-card-mark {
+  width: 44px;
+  height: 44px;
   display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: #2563eb;
-  transition: width 0.45s ease;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.hv-card-chip {
+  width: 46px;
+  height: 34px;
+  border-radius: 7px;
+  background:
+    linear-gradient(90deg, transparent 47%, rgba(120, 53, 15, 0.35) 47% 53%, transparent 53%),
+    repeating-linear-gradient(180deg, rgba(120, 53, 15, 0.22) 0 1px, transparent 1px 7px),
+    linear-gradient(135deg, #fff4cc, #f5c451 42%, #d4920e);
+  box-shadow: inset 0 0 0 1px rgba(120, 53, 15, 0.35);
+}
+
+.hv-card-num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.14em;
+  font-size: 1.15rem;
+}
+
+.hv-card-meta {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 @media (min-width: 900px) {
@@ -949,7 +937,7 @@
 @media (prefers-reduced-motion: reduce) {
   .hv-hero-bg::after,
   .hv-hero-copy > *,
-  .hv-pay-card {
+  .hv-card {
     animation: none;
   }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import appIcon from '@/app/icon.png';
 
 const BEATS = [
   {
@@ -49,25 +50,24 @@ export function PayStory() {
         </div>
 
         <div className="hv-pay-stage" aria-hidden>
-          <div className={`hv-pay-card is-${step}`}>
-            <div className="hv-pay-card-top">
-              <span>Payment</span>
-              <span className="hv-pay-live">Example</span>
+          <article className="hv-card">
+            <div className="hv-card-top">
+              <span className="hv-card-brand">
+                <img className="hv-card-mark" src={appIcon.src} alt="" width={44} height={44} draggable={false} />
+                Place to All
+              </span>
+              <svg className="hv-card-wave" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <path d="M8 8.5a6 6 0 0 1 0 7" />
+                <path d="M11.5 6a9 9 0 0 1 0 12" />
+                <path d="M15 3.5a12 12 0 0 1 0 17" />
+              </svg>
             </div>
-            <p className="hv-pay-invoice">For a friend</p>
-            <p className="hv-pay-amount">
-              50 <small>USDT</small>
-            </p>
-            <p className="hv-pay-usd">≈ $50.00 USD</p>
-            <div className="hv-pay-faces">
-              <p className={step === 0 ? 'is-on' : ''}>Link ready to send</p>
-              <p className={step === 1 ? 'is-on' : ''}>They pay by card or bank</p>
-              <p className={step === 2 ? 'is-on' : ''}>Money in your wallet</p>
+            <span className="hv-card-chip" />
+            <div className="hv-card-bottom">
+              <span className="hv-card-num">•••• 4821</span>
+              <span className="hv-card-meta">Virtual · USD</span>
             </div>
-            <div className="hv-pay-bar">
-              <span style={{ width: `${((step + 1) / BEATS.length) * 100}%` }} />
-            </div>
-          </div>
+          </article>
         </div>
       </div>
     </section>
