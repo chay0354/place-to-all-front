@@ -263,34 +263,66 @@
 .hv-feats {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0;
+  gap: 0.9rem;
   margin: 1.75rem 0 0;
   padding: 0;
   list-style: none;
+}
+
+.hv-feats li {
+  display: flex;
+  flex-direction: column;
+  padding: 0 1.05rem 1.15rem;
+  background: #fff;
   border: 1px solid #e3e9f2;
   border-radius: 18px;
   overflow: hidden;
 }
 
-.hv-feats li {
-  padding: 1.25rem 1.2rem;
-  background: #fff;
-  border-bottom: 1px solid #e3e9f2;
+.hv-feat-shot {
+  display: block;
+  width: calc(100% + 2.1rem);
+  height: 196px;
+  margin: 0 -1.05rem 0;
+  object-fit: cover;
+  object-position: center top;
+  background: #e8eef6;
+  flex: none;
 }
 
-.hv-feats li:last-child {
-  border-bottom: 0;
+.hv-feat-shot.is-contain {
+  object-fit: contain;
+  object-position: center;
 }
 
-.hv-feat-ico {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  margin-bottom: 0.85rem;
-  border-radius: 10px;
-  background: #eff4ff;
-  color: #2563eb;
+.hv-feat-copy {
+  display: flex;
+  flex-direction: column;
+  height: 11.75rem;
+  padding-top: 0.95rem;
+  flex: none;
+}
+
+.hv-feat-cta {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  margin-top: 0.9rem;
+  padding: 0 1rem;
+  border-radius: 11px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.hv-feat-cta:hover {
+  background: #1d4ed8;
+  color: #fff;
+  text-decoration: none;
 }
 
 .hv-feats h3,
@@ -605,18 +637,6 @@
   .hv-feats {
     grid-template-columns: 1fr 1fr;
   }
-
-  .hv-feats li {
-    border-right: 1px solid #e3e9f2;
-  }
-
-  .hv-feats li:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .hv-feats li:nth-last-child(-n + 2) {
-    border-bottom: 0;
-  }
 }
 
 @media (min-width: 900px) {
@@ -649,24 +669,7 @@
 
   .hv-feats {
     grid-template-columns: repeat(3, 1fr);
-  }
-
-  .hv-feats li {
-    padding: 1.6rem 1.5rem;
-    border-right: 1px solid #e3e9f2;
-    border-bottom: 1px solid #e3e9f2;
-  }
-
-  .hv-feats li:nth-child(2n) {
-    border-right: 1px solid #e3e9f2;
-  }
-
-  .hv-feats li:nth-child(3n) {
-    border-right: 0;
-  }
-
-  .hv-feats li:nth-last-child(-n + 3) {
-    border-bottom: 0;
+    gap: 1.1rem;
   }
 
   .hv-steps {

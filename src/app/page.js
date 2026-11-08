@@ -37,9 +37,9 @@ export default async function Home() {
           <div className="hv-hero-bg" aria-hidden />
           <div className="hv-hero-copy">
             <p className="hv-kicker">Crypto wallet</p>
-            <h1>Your money, one place.</h1>
+            <h1>Your crypto, in one account.</h1>
             <p className="hv-lede">
-              Buy, sell, and transfer Bitcoin, Ethereum, and stablecoins with live USD rates and card checkout.
+              Buy coins, send them to someone, and pay with a card. Every price is shown in US dollars.
             </p>
             <div className="hv-actions">
               <Link href="/register" className="hv-primary">
@@ -55,22 +55,24 @@ export default async function Home() {
         <HomeReveal>
         <section className="hv-sheet" aria-label="Product highlights">
           <div className="hv-stage">
-            <p className="hv-eyebrow">The wallet</p>
-            <h2>Everything you do with crypto, in one account.</h2>
+            <p className="hv-eyebrow">What you can do</p>
+            <h2>Buy, send, and pay from one account.</h2>
             <p className="hv-sheet-lede">
-              Buy, hold, send, and spend from a single balance, priced in USD from the same live data everywhere in
-              the app.
+              Your coins, your card, and your balance sit together. The dollar price is the same on every screen.
             </p>
             <ul className="hv-feats">
               {FEATURES.map((f) => (
                 <li key={f.title}>
-                  <span className="hv-feat-ico" aria-hidden>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      {f.icon}
-                    </svg>
-                  </span>
-                  <h3>{f.title}</h3>
-                  <p>{f.text}</p>
+                  <img className={f.fit === 'contain' ? 'hv-feat-shot is-contain' : 'hv-feat-shot'} src={f.image} alt={f.alt} />
+                  <div className="hv-feat-copy">
+                    <h3>{f.title}</h3>
+                    <p>{f.text}</p>
+                    {f.href ? (
+                      <Link href={f.href} className="hv-feat-cta">
+                        {f.cta}
+                      </Link>
+                    ) : null}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -83,8 +85,8 @@ export default async function Home() {
         <HomeReveal>
         <section className="hv-band" aria-labelledby="hv-steps-title">
           <div className="hv-stage">
-            <p className="hv-eyebrow">Getting started</p>
-            <h2 id="hv-steps-title">Open an account in three steps.</h2>
+            <p className="hv-eyebrow">Start here</p>
+            <h2 id="hv-steps-title">Open your account in three steps.</h2>
             <ol className="hv-steps">
               {STEPS.map((s, i) => (
                 <li key={s.title}>
@@ -101,23 +103,12 @@ export default async function Home() {
         <HomeReveal>
         <section className="hv-band hv-band-alt" aria-labelledby="hv-guides-title">
           <div className="hv-stage">
-            <p className="hv-eyebrow">Guides</p>
-            <h2 id="hv-guides-title">Watch the full walkthrough.</h2>
-            <p className="hv-sheet-lede">Every screen, from log in to card settings. Available in Hebrew and English.</p>
+            <p className="hv-eyebrow">Videos</p>
+            <h2 id="hv-guides-title">Watch how it works.</h2>
+            <p className="hv-sheet-lede">
+              The first video shows the wallet. The second shows payment links, and how agents earn.
+            </p>
             <div className="hv-videos">
-              <figure>
-                <video
-                  controls
-                  playsInline
-                  preload="metadata"
-                  poster="/tutorials/hebrew.png"
-                  src="/tutorials/hebrew.mp4"
-                />
-                <figcaption>
-                  <strong>Hebrew</strong>
-                  <span>עברית</span>
-                </figcaption>
-              </figure>
               <figure>
                 <video
                   controls
@@ -127,8 +118,21 @@ export default async function Home() {
                   src="/tutorials/english.mp4"
                 />
                 <figcaption>
-                  <strong>English</strong>
-                  <span>Walkthrough</span>
+                  <strong>The wallet</strong>
+                  <span>From log in to your card</span>
+                </figcaption>
+              </figure>
+              <figure>
+                <video
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster="/tutorials/payments.png"
+                  src="/tutorials/payments.mp4"
+                />
+                <figcaption>
+                  <strong>Payments</strong>
+                  <span>How a payment link works</span>
                 </figcaption>
               </figure>
             </div>
@@ -141,20 +145,19 @@ export default async function Home() {
           <div className="hv-stage hv-agents-grid">
             <div>
               <p className="hv-eyebrow">For companies</p>
-              <h2 id="hv-agents-title">Become a Place to All agent.</h2>
+              <h2 id="hv-agents-title">Companies can become agents.</h2>
               <p className="hv-sheet-lede">
-                Agents are limited companies that bring customers to the wallet and earn a share of the fee on their
-                crypto purchases.
+                An agent invites people to Place to All and earns part of the fee when those people buy crypto.
               </p>
               <Link href="/register?type=agent" className="hv-agents-cta">
-                Apply as an agent
+                Apply to be an agent
               </Link>
             </div>
             <ul className="hv-checks">
-              <li>Send your company details through the application form.</li>
-              <li>We review the request. No account is opened before approval.</li>
-              <li>Sign the company agreement, then get your referral links.</li>
-              <li>Track every referred purchase and fee from the affiliation screen.</li>
+              <li>Fill in your company details on the form.</li>
+              <li>We check the request. No account opens until we approve it.</li>
+              <li>Sign the company agreement, then receive your invite links.</li>
+              <li>See each purchase and fee from the people you invited.</li>
             </ul>
           </div>
         </section>
@@ -164,7 +167,7 @@ export default async function Home() {
         <section className="hv-band" aria-labelledby="hv-security-title">
           <div className="hv-stage">
             <p className="hv-eyebrow">Security</p>
-            <h2 id="hv-security-title">Protection on every account.</h2>
+            <h2 id="hv-security-title">Your account stays locked to you.</h2>
             <ul className="hv-secure">
               {SECURITY.map((s) => (
                 <li key={s.title}>
@@ -182,7 +185,7 @@ export default async function Home() {
           <div className="hv-stage hv-faq-grid">
             <div>
               <p className="hv-eyebrow">Questions</p>
-              <h2 id="hv-faq-title">Frequently asked.</h2>
+              <h2 id="hv-faq-title">Common questions.</h2>
             </div>
             <div className="hv-faq">
               {FAQ.map((q) => (
@@ -198,8 +201,8 @@ export default async function Home() {
 
         <section className="hv-final" aria-labelledby="hv-final-title">
           <div className="hv-stage">
-            <h2 id="hv-final-title">Your money, one place.</h2>
-            <p>Create an account in a few minutes and start with live USD rates.</p>
+            <h2 id="hv-final-title">Ready to start?</h2>
+            <p>Create an account. It takes a few minutes.</p>
             <div className="hv-final-actions">
               <Link href="/register" className="hv-primary">
                 Create account
@@ -221,7 +224,7 @@ export default async function Home() {
           <nav aria-label="Footer">
             <Link href="/login">Log in</Link>
             <Link href="/register">Create account</Link>
-            <Link href="/register?type=agent">Agents</Link>
+            <Link href="/register?type=agent">Become an agent</Link>
             <Link href="/forgot-password">Reset password</Link>
           </nav>
           <small>© {new Date().getFullYear()} Place to All</small>
@@ -234,98 +237,82 @@ export default async function Home() {
 const FEATURES = [
   {
     title: 'Buy and sell',
-    text: 'Bitcoin, Ethereum, and stablecoins at live USD prices, with card checkout.',
-    icon: (
-      <>
-        <path d="M4 19h16" />
-        <path d="M7 15l4-5 3 2 5-7" />
-      </>
-    ),
+    text: 'Buy Bitcoin, Ethereum, and other coins with a card. Sell them when you want.',
+    image: '/home/buy.png',
+    alt: 'The buy screen, paying dollars for Bitcoin',
   },
   {
     title: 'Send and receive',
-    text: 'Transfer to anyone by email or handle, and deposit from your own wallet.',
-    icon: <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />,
+    text: 'Send coins by email or username. You can also receive coins from another wallet.',
+    image: '/home/send.png',
+    alt: 'Deposit and withdrawal on the home screen',
+    fit: 'contain',
   },
   {
-    title: 'Cards',
-    text: 'Pay with your balance, add the card to Apple Wallet, freeze it in one tap.',
-    icon: (
-      <>
-        <rect x="2.5" y="5.5" width="19" height="13" rx="2.5" />
-        <path d="M2.5 10h19M6.5 15h4" />
-      </>
-    ),
+    title: 'A card you can spend',
+    text: 'Pay with your balance. Add the card to Apple Wallet, or freeze it if you need to stop it.',
+    image: '/home/card.png',
+    alt: 'A Place to All card with view, freeze, and limit controls',
   },
   {
-    title: 'Live USD rates',
-    text: 'Every buy, sell, and payment uses the same spot price, shown in dollars.',
-    icon: (
-      <>
-        <circle cx="12" cy="12" r="8" />
-        <path d="M12 8v8M9.5 10.2c.4-.8 1.2-1.2 2.5-1.2 1.5 0 2.4.7 2.4 1.8S13.5 12.5 12 12.5 9.6 13.2 9.6 14.3 10.6 16 12.1 16c1.2 0 2-.4 2.4-1.1" />
-      </>
-    ),
+    title: 'Prices in dollars',
+    text: 'The price you see is the current dollar price, on every screen.',
+    image: '/home/prices.png',
+    alt: 'Available balance shown in US dollars',
   },
   {
-    title: 'Portfolio',
-    text: 'Balances, assets, and activity together, valued in USD.',
-    icon: (
-      <>
-        <path d="M21 12a9 9 0 1 1-9-9" />
-        <path d="M21 12h-9V3a9 9 0 0 1 9 9z" />
-      </>
-    ),
+    title: 'Your balance',
+    text: 'See what you hold, which coins you have, and what you did. All of it in dollars.',
+    image: '/home/balance.png',
+    alt: 'Total assets shown in dollars',
   },
   {
-    title: 'Agent network',
-    text: 'Approved companies refer customers and earn on their purchases.',
-    icon: (
-      <>
-        <circle cx="9" cy="8" r="3.5" />
-        <path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6" />
-      </>
-    ),
+    title: 'For companies',
+    text: 'A company we approve can invite customers and earn when those customers buy.',
+    image: '/home/agents.png',
+    alt: 'Affiliation screen with volume, fees, and people',
+    href: '/register?type=agent',
+    cta: 'Register your company',
   },
 ];
 
 const STEPS = [
   {
-    title: 'Create your account',
-    text: 'Add your name, contact details, and the identity document you will verify with.',
+    title: 'Sign up',
+    text: 'Enter your name, phone, address, and ID details.',
   },
   {
-    title: 'Verify and secure',
-    text: 'Confirm your phone, upload your ID, and set a PIN for the app.',
+    title: 'Confirm it is you',
+    text: 'Verify your phone, upload your ID, and choose a PIN.',
   },
   {
-    title: 'Buy, send, and spend',
-    text: 'Buy crypto by card, send it to others, and pay with your card.',
+    title: 'Use your account',
+    text: 'Buy coins with a card, send them to someone, or pay with your card.',
   },
 ];
 
 const SECURITY = [
-  { title: 'App PIN', text: 'A PIN is required to open the wallet on your device.' },
-  { title: 'Identity check', text: 'Accounts are tied to a verified ID or passport.' },
-  { title: 'Phone verification', text: 'A one-time code confirms the number on your account.' },
-  { title: 'Card controls', text: 'Freeze, set limits, and review every card transaction.' },
+  { title: 'A PIN', text: 'You need a PIN to open the wallet on your phone.' },
+  { title: 'An ID check', text: 'Your account is tied to your ID or passport.' },
+  { title: 'A phone check', text: 'We send a code to the phone number on your account.' },
+  { title: 'Card controls', text: 'Freeze a card, set a spending limit, and see every card payment.' },
 ];
 
 const FAQ = [
   {
     q: 'Which coins can I buy?',
-    a: 'Bitcoin, Ethereum, Solana, stablecoins like USDT and USDC, and many more, priced in USD from the same live data used across the app.',
+    a: 'Bitcoin, Ethereum, Solana, USDT, USDC, and many more. Prices are in US dollars.',
   },
   {
-    q: 'Do people need an account to pay me?',
-    a: 'No. A payment link can be paid by card without creating an account.',
+    q: 'Does someone need an account to pay me?',
+    a: 'No. They open your payment link and pay by card. They do not create an account.',
   },
   {
     q: 'How do I become an agent?',
-    a: 'Agents are limited companies. Submit the company application. An account is opened only after we approve it and a company agreement is signed.',
+    a: 'Agents are companies. Fill in the company form. We open an account only after we approve you and you sign the company agreement.',
   },
   {
-    q: 'I forgot my password. What now?',
-    a: 'Use Reset password on the log in screen. We email you a link to choose a new one.',
+    q: 'I forgot my password.',
+    a: 'On the log in screen, choose Reset password. We email you a link so you can choose a new one.',
   },
 ];
