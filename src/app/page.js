@@ -51,34 +51,57 @@ export default async function Home() {
         </section>
 
         <section className="hv-sheet" aria-label="Product highlights">
-          <h2>Spend crypto anywhere.</h2>
-          <ul className="hv-pills">
-            <li><span className="hv-dot" data-tone="btc" aria-hidden />Bitcoin</li>
-            <li><span className="hv-dot" data-tone="eth" aria-hidden />Ethereum</li>
-            <li><span className="hv-dot" data-tone="usdt" aria-hidden />USDT</li>
-            <li><span className="hv-dot" data-tone="card" aria-hidden />Cards</li>
-            <li><span className="hv-dot" data-tone="send" aria-hidden />Send</li>
-            <li><span className="hv-dot" data-tone="shop" aria-hidden />Shop</li>
-            <li><span className="hv-dot" data-tone="bills" aria-hidden />Bills</li>
-            <li><span className="hv-dot" data-tone="usd" aria-hidden />USD</li>
-          </ul>
-          <div className="hv-cardblock">
-            <h3>Place to All card</h3>
-            <p>Buy, send, and hold from one wallet, with live USD rates on every move.</p>
-            <div className="hv-cards" aria-hidden>
-              <div className="hv-plastic hv-plastic-back">
-                <span>Place to All</span>
-              </div>
-              <div className="hv-plastic hv-plastic-front">
-                <span className="hv-plastic-brand">
-                  <span className="hv-plastic-mark">P</span>
-                  Place to All
-                </span>
-                <span className="hv-plastic-chip" />
-                <span className="hv-plastic-num">•••• 4821</span>
-              </div>
+          <div className="hv-stage">
+            <div className="hv-copy">
+              <p className="hv-eyebrow">One wallet</p>
+              <h2>
+                Spend crypto <em>anywhere.</em>
+              </h2>
+              <p className="hv-sheet-lede">
+                Buy, send, and hold from the same balance. Every move uses a live USD rate.
+              </p>
+            </div>
+            <div className="hv-cardstage" aria-hidden>
+              <div className="hv-glow" />
+              <div className="hv-card hv-card-back" />
+              <article className="hv-card hv-card-front">
+                <div className="hv-card-top">
+                  <span className="hv-card-brand">
+                    <span className="hv-card-mark">P</span>
+                    Place to All
+                  </span>
+                  <svg className="hv-card-wave" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                    <path d="M8 8.5a6 6 0 0 1 0 7" />
+                    <path d="M11.5 6a9 9 0 0 1 0 12" />
+                    <path d="M15 3.5a12 12 0 0 1 0 17" />
+                  </svg>
+                </div>
+                <span className="hv-card-chip" />
+                <div className="hv-card-bottom">
+                  <span className="hv-card-num">•••• 4821</span>
+                  <span className="hv-card-meta">Virtual · USD</span>
+                </div>
+              </article>
             </div>
           </div>
+          <ul className="hv-rail">
+            <li>
+              <strong>Bitcoin</strong>
+              <span>Live USD price</span>
+            </li>
+            <li>
+              <strong>Ethereum</strong>
+              <span>Same rate in the app</span>
+            </li>
+            <li>
+              <strong>USDT</strong>
+              <span>A dollar you can send</span>
+            </li>
+            <li>
+              <strong>Transfers</strong>
+              <span>Email or handle</span>
+            </li>
+          </ul>
         </section>
       </main>
     </div>
