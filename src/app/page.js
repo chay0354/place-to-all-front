@@ -15,6 +15,7 @@ export default async function Home() {
 
   return (
     <div className="hv">
+      <div className="hv-top">
       <header className="hv-bar">
         <Link href="/" className="hv-logo" aria-label="Place to All home">
           <img src={appIcon.src} alt="" width={36} height={36} draggable={false} />
@@ -32,7 +33,6 @@ export default async function Home() {
         </nav>
       </header>
 
-      <main>
         <section className="hv-hero">
           <div className="hv-hero-bg" aria-hidden />
           <div className="hv-hero-copy">
@@ -51,7 +51,9 @@ export default async function Home() {
             </div>
           </div>
         </section>
+      </div>
 
+      <main>
         <HomeReveal>
         <section className="hv-sheet" aria-label="Product highlights">
           <div className="hv-stage">
