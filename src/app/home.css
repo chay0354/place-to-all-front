@@ -280,19 +280,19 @@
 }
 
 .hv-feat-shot {
-  display: block;
+  display: grid;
+  place-items: center;
   width: calc(100% + 2.1rem);
-  height: 196px;
+  height: 88px;
   margin: 0 -1.05rem 0;
-  object-fit: cover;
-  object-position: center top;
-  background: #e8eef6;
+  background: #f3f7fc;
+  color: #2563eb;
   flex: none;
 }
 
-.hv-feat-shot.is-contain {
-  object-fit: contain;
-  object-position: center;
+.hv-feat-shot svg {
+  width: 34px;
+  height: 34px;
 }
 
 .hv-feat-copy {

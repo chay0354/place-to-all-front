@@ -63,7 +63,11 @@ export default async function Home() {
             <ul className="hv-feats">
               {FEATURES.map((f) => (
                 <li key={f.title}>
-                  <img className={f.fit === 'contain' ? 'hv-feat-shot is-contain' : 'hv-feat-shot'} src={f.image} alt={f.alt} />
+                  <span className="hv-feat-shot" aria-hidden>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                      {f.icon}
+                    </svg>
+                  </span>
                   <div className="hv-feat-copy">
                     <h3>{f.title}</h3>
                     <p>{f.text}</p>
@@ -238,39 +242,58 @@ const FEATURES = [
   {
     title: 'Buy and sell',
     text: 'Buy Bitcoin, Ethereum, and other coins with a card. Sell them when you want.',
-    image: '/home/buy.png',
-    alt: 'The buy screen, paying dollars for Bitcoin',
+    icon: (
+      <>
+        <path d="M4 19h16" />
+        <path d="M7 15l4-5 3 2 5-7" />
+      </>
+    ),
   },
   {
     title: 'Send and receive',
     text: 'Send coins by email or username. You can also receive coins from another wallet.',
-    image: '/home/send.png',
-    alt: 'Deposit and withdrawal on the home screen',
-    fit: 'contain',
+    icon: <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />,
   },
   {
     title: 'A card you can spend',
     text: 'Pay with your balance. Add the card to Apple Wallet, or freeze it if you need to stop it.',
-    image: '/home/card.png',
-    alt: 'A Place to All card with view, freeze, and limit controls',
+    icon: (
+      <>
+        <rect x="3" y="6" width="18" height="12" rx="2" />
+        <path d="M3 10h18M7 14h4" />
+      </>
+    ),
   },
   {
     title: 'Prices in dollars',
     text: 'The price you see is the current dollar price, on every screen.',
-    image: '/home/prices.png',
-    alt: 'Available balance shown in US dollars',
+    icon: (
+      <>
+        <path d="M4 16l5-5 3 3 8-8" />
+        <path d="M14 6h6v6" />
+      </>
+    ),
   },
   {
     title: 'Your balance',
     text: 'See what you hold, which coins you have, and what you did. All of it in dollars.',
-    image: '/home/balance.png',
-    alt: 'Total assets shown in dollars',
+    icon: (
+      <>
+        <path d="M12 3a9 9 0 1 0 9 9h-9V3z" />
+        <path d="M13 3.1A9 9 0 0 1 20.9 11H13V3.1z" />
+      </>
+    ),
   },
   {
     title: 'For companies',
     text: 'A company we approve can invite customers and earn when those customers buy.',
-    image: '/home/agents.png',
-    alt: 'Affiliation screen with volume, fees, and people',
+    icon: (
+      <>
+        <path d="M4 20h16" />
+        <path d="M6 20V7l6-3 6 3v13" />
+        <path d="M10 20v-4h4v4M9 10h.01M15 10h.01M9 14h.01M15 14h.01" />
+      </>
+    ),
     href: '/register?type=agent',
     cta: 'Register your company',
   },
