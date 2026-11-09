@@ -62,19 +62,6 @@ export function PayStory() {
                 <path d="M15.8 2.8a13.6 13.6 0 0 1 0 18.4" strokeLinecap="round" />
               </svg>
             </div>
-            <svg className="hv-card-chip" viewBox="0 0 46 34" aria-hidden="true">
-              <defs>
-                <linearGradient id="hv-chip-gold" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stopColor="#fff1c2" />
-                  <stop offset="0.35" stopColor="#f0c14b" />
-                  <stop offset="0.7" stopColor="#c9922a" />
-                  <stop offset="1" stopColor="#ffe7a3" />
-                </linearGradient>
-              </defs>
-              <rect x="0.6" y="0.6" width="44.8" height="32.8" rx="5" fill="url(#hv-chip-gold)" stroke="#8a5a12" strokeWidth="0.8" />
-              <path d="M5 12.5h36M5 21.5h36M17 4.5v25M29 4.5v25" stroke="#8a5a12" strokeWidth="0.7" opacity="0.65" />
-              <rect x="17" y="12.5" width="12" height="9" fill="none" stroke="#8a5a12" strokeWidth="0.7" opacity="0.8" />
-            </svg>
             <p className="hv-card-num">
               <span>••••</span>
               <span>••••</span>

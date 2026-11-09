@@ -847,7 +847,6 @@
 
 .hv-card-top,
 .hv-card-bottom,
-.hv-card-chip,
 .hv-card-num {
   position: relative;
   z-index: 1;
@@ -887,13 +886,6 @@
   height: 28px;
   flex: none;
   color: rgba(255, 255, 255, 0.88);
-}
-
-.hv-card-chip {
-  width: 48px;
-  height: 36px;
-  display: block;
-  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.28));
 }
 
 .hv-card-num {
