@@ -154,13 +154,14 @@
 
 .auth-panel {
   width: 100%;
-  max-width: 520px;
+  max-width: 36rem;
   margin: auto;
   padding: 1.75rem 1.6rem 1.35rem;
   background: #fff;
   border: 1px solid #d0dbec;
   border-radius: 24px;
   box-shadow: 0 24px 60px rgba(15, 40, 80, 0.08);
+  container-type: inline-size;
 }
 
 .auth-panel-title {
@@ -181,11 +182,12 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
 .auth-form .form-group {
   margin-bottom: 0;
+  min-width: 0;
 }
 
 .auth-section {
@@ -205,6 +207,9 @@
 
 .auth-panel .form-input,
 .auth-panel .form-select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 48px;
   background-color: #fff;
   border: 1px solid #d0dbec;
@@ -275,7 +280,7 @@
 
 .auth-types {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 0.65rem;
 }
 
@@ -284,8 +289,9 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.2rem;
-  min-height: 5.4rem;
-  padding: 0.85rem 0.8rem;
+  min-width: 0;
+  min-height: 0;
+  padding: 0.85rem 0.95rem;
   border: 1px solid #d0dbec;
   border-radius: 14px;
   background: #f5f8fc;
@@ -342,8 +348,43 @@
 
 .auth-grid-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.85rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.auth-grid-2 > .form-group {
+  min-width: 0;
+}
+
+.auth-panel .auth-country-row {
+  position: relative;
+}
+
+.auth-panel .auth-country-flag {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  z-index: 1;
+  margin: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.auth-panel .auth-country-select {
+  width: 100%;
+  padding-left: 2.9rem;
+}
+
+@container (min-width: 34rem) {
+  .auth-types,
+  .auth-grid-2 {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem 1rem;
+  }
+
+  .auth-type {
+    min-height: 5.4rem;
+  }
 }
 
 .auth-agree {
@@ -429,13 +470,3 @@
   }
 }
 
-@media (max-width: 420px) {
-  .auth-types,
-  .auth-grid-2 {
-    grid-template-columns: 1fr;
-  }
-
-  .auth-type {
-    min-height: 0;
-  }
-}
