@@ -53,18 +53,43 @@ export function PayStory() {
           <article className="hv-card">
             <div className="hv-card-top">
               <span className="hv-card-brand">
-                <img className="hv-card-mark" src={appIcon.src} alt="" width={44} height={44} draggable={false} />
+                <img className="hv-card-mark" src={appIcon.src} alt="" width={34} height={34} draggable={false} />
                 Place to All
               </span>
-              <svg className="hv-card-wave" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-                <path d="M8 8.5a6 6 0 0 1 0 7" />
-                <path d="M11.5 6a9 9 0 0 1 0 12" />
-                <path d="M15 3.5a12 12 0 0 1 0 17" />
+              <svg className="hv-card-wave" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                <path d="M8.2 8.2a6.2 6.2 0 0 1 0 7.6" strokeLinecap="round" />
+                <path d="M12 5.4a10 10 0 0 1 0 13.2" strokeLinecap="round" />
+                <path d="M15.8 2.8a13.6 13.6 0 0 1 0 18.4" strokeLinecap="round" />
               </svg>
             </div>
-            <span className="hv-card-chip" />
+            <svg className="hv-card-chip" viewBox="0 0 46 34" aria-hidden="true">
+              <defs>
+                <linearGradient id="hv-chip-gold" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#fff1c2" />
+                  <stop offset="0.35" stopColor="#f0c14b" />
+                  <stop offset="0.7" stopColor="#c9922a" />
+                  <stop offset="1" stopColor="#ffe7a3" />
+                </linearGradient>
+              </defs>
+              <rect x="0.6" y="0.6" width="44.8" height="32.8" rx="5" fill="url(#hv-chip-gold)" stroke="#8a5a12" strokeWidth="0.8" />
+              <path d="M5 12.5h36M5 21.5h36M17 4.5v25M29 4.5v25" stroke="#8a5a12" strokeWidth="0.7" opacity="0.65" />
+              <rect x="17" y="12.5" width="12" height="9" fill="none" stroke="#8a5a12" strokeWidth="0.7" opacity="0.8" />
+            </svg>
+            <p className="hv-card-num">
+              <span>••••</span>
+              <span>••••</span>
+              <span>••••</span>
+              <span>4821</span>
+            </p>
             <div className="hv-card-bottom">
-              <span className="hv-card-num">•••• 4821</span>
+              <span className="hv-card-field">
+                <small>Cardholder</small>
+                Place to All
+              </span>
+              <span className="hv-card-field">
+                <small>Valid thru</small>
+                09/28
+              </span>
               <span className="hv-card-meta">Virtual · USD</span>
             </div>
           </article>

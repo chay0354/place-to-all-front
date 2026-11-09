@@ -827,37 +827,28 @@
 .hv-card {
   position: relative;
   width: min(100%, 380px);
-  aspect-ratio: 1.7 / 1;
+  aspect-ratio: 1.586 / 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 1.15rem 1.25rem 1.05rem;
-  border-radius: 20px;
+  padding: 1.05rem 1.2rem 0.95rem;
+  border-radius: 18px;
   color: #fff;
   background:
-    linear-gradient(115deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.05) 26%, transparent 42%),
-    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.35), transparent 36%),
-    linear-gradient(152deg, #dbeafe 0%, #60a5fa 18%, #2563eb 52%, #1e3a8a 100%);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 24px 48px rgba(15, 40, 80, 0.18);
+    linear-gradient(165deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.04) 22%, transparent 40%),
+    linear-gradient(180deg, #3b82f6 0%, #1d4ed8 46%, #1e3a8a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 18px 36px rgba(15, 40, 80, 0.22);
   overflow: hidden;
   animation: hv-float 5.5s ease-in-out infinite;
 }
 
-.hv-card::after {
-  content: '';
-  position: absolute;
-  width: 180px;
-  height: 180px;
-  right: -56px;
-  bottom: -90px;
-  border-radius: 50%;
-  border: 24px solid rgba(255, 255, 255, 0.1);
-}
-
 .hv-card-top,
 .hv-card-bottom,
-.hv-card-chip {
+.hv-card-chip,
+.hv-card-num {
   position: relative;
   z-index: 1;
 }
@@ -867,48 +858,81 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .hv-card-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  font-size: 1rem;
+  gap: 0.5rem;
+  min-width: 0;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-size: 0.95rem;
+  text-shadow: 0 1px 0 rgba(15, 40, 80, 0.18);
 }
 
 .hv-card-mark {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   display: block;
-  border-radius: 10px;
+  flex: none;
+  border-radius: 8px;
   object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28);
+}
+
+.hv-card-wave {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .hv-card-chip {
-  width: 46px;
-  height: 34px;
-  border-radius: 7px;
-  background:
-    linear-gradient(90deg, transparent 47%, rgba(120, 53, 15, 0.35) 47% 53%, transparent 53%),
-    repeating-linear-gradient(180deg, rgba(120, 53, 15, 0.22) 0 1px, transparent 1px 7px),
-    linear-gradient(135deg, #fff4cc, #f5c451 42%, #d4920e);
-  box-shadow: inset 0 0 0 1px rgba(120, 53, 15, 0.35);
+  width: 48px;
+  height: 36px;
+  display: block;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.28));
 }
 
 .hv-card-num {
-  font-weight: 700;
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin: 0;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+  font-size: 1.12rem;
+  text-shadow: 0 1px 0 rgba(15, 40, 80, 0.25);
+}
+
+.hv-card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(15, 40, 80, 0.2);
+}
+
+.hv-card-field small {
+  font-size: 0.58rem;
+  font-weight: 600;
   letter-spacing: 0.14em;
-  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .hv-card-meta {
-  font-size: 0.68rem;
+  margin-left: auto;
+  align-self: flex-end;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.82);
 }
