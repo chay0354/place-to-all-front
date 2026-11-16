@@ -222,18 +222,31 @@ export default async function Home() {
       </main>
 
       <footer className="hv-foot">
-        <div className="hv-stage hv-foot-row">
-          <span className="hv-foot-brand">
-            <img src={appIcon.src} alt="" width={28} height={28} draggable={false} />
-            Place to All
-          </span>
-          <nav aria-label="Footer">
+        <div className="hv-stage hv-foot-inner">
+          <Link href="/register" className="hv-foot-download">
+            Download App
+          </Link>
+
+          <ul className="hv-foot-social" aria-label="Social">
+            {SOCIAL.map((item) => (
+              <li key={item.name}>
+                <span role="img" aria-label={item.name}>
+                  {item.icon}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <p className="hv-foot-copy">Copyright © {new Date().getFullYear()} Place to All. All rights reserved.</p>
+          <p className="hv-foot-note">
+            Buy coins, send them to someone, and pay with a card. Every price is shown in US dollars.
+          </p>
+
+          <nav className="hv-foot-links" aria-label="Footer">
             <Link href="/login">Log in</Link>
             <Link href="/register">Create account</Link>
             <Link href="/register?type=agent">Become an agent</Link>
-            <Link href="/forgot-password">Reset password</Link>
           </nav>
-          <small>© {new Date().getFullYear()} Place to All</small>
         </div>
       </footer>
     </div>
@@ -321,6 +334,55 @@ const SECURITY = [
   { title: 'An ID check', text: 'Your account is tied to your ID or passport.' },
   { title: 'A phone check', text: 'We send a code to the phone number on your account.' },
   { title: 'Card controls', text: 'Freeze a card, set a spending limit, and see every card payment.' },
+];
+
+const SOCIAL = [
+  {
+    name: 'X',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.727-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+      </svg>
+    ),
+  },
+  {
+    name: 'LinkedIn',
+    icon: (
+      <svg viewBox="0 0 28 24" fill="currentColor" aria-hidden="true">
+        <text x="0" y="19" fontSize="18" fontFamily="Inter, system-ui, sans-serif" fontWeight="700">
+          in
+        </text>
+      </svg>
+    ),
+  },
+  {
+    name: 'Instagram',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" />
+        <circle cx="12" cy="12" r="4.1" />
+        <circle cx="17.35" cy="6.65" r="0.9" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
+  {
+    name: 'Facebook',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <text x="7" y="20" fontSize="22" fontFamily="Inter, system-ui, sans-serif" fontWeight="700">
+          f
+        </text>
+      </svg>
+    ),
+  },
+  {
+    name: 'Telegram',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
+      </svg>
+    ),
+  },
 ];
 
 const FAQ = [
