@@ -389,7 +389,9 @@ function RegisterPageContent() {
                   <label className="form-label" htmlFor="reg-incorporated">
                     Incorporation date
                   </label>
-                  <input id="reg-incorporated" type="date" className="form-input" value={incorporatedOn} onChange={(e) => setIncorporatedOn(e.target.value)} required />
+                  <div className="auth-date">
+                    <input id="reg-incorporated" type="date" className="form-input" value={incorporatedOn} onChange={(e) => setIncorporatedOn(e.target.value)} required />
+                  </div>
                 </div>
                 <div className="form-group">
                   <label className="form-label" htmlFor="reg-tax">
@@ -477,7 +479,9 @@ function RegisterPageContent() {
                   <label className="form-label" htmlFor="reg-dob">
                     Date of birth
                   </label>
-                  <input id="reg-dob" type="date" className="form-input" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} required autoComplete="bday" />
+                  <div className="auth-date">
+                    <input id="reg-dob" type="date" className="form-input" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} required autoComplete="bday" />
+                  </div>
                 </div>
               </div>
               <p className="auth-section">Identity</p>
@@ -496,7 +500,9 @@ function RegisterPageContent() {
                   <label className="form-label" htmlFor="reg-id-expiry">
                     Expiry date
                   </label>
-                  <input id="reg-id-expiry" type="date" className="form-input" value={idExpiry} onChange={(e) => setIdExpiry(e.target.value)} required />
+                  <div className="auth-date">
+                    <input id="reg-id-expiry" type="date" className="form-input" value={idExpiry} onChange={(e) => setIdExpiry(e.target.value)} required />
+                  </div>
                 </div>
               </div>
               <div className="form-group">
